@@ -943,7 +943,7 @@ function toSystemWeight(kgVal, system) {
   var kgNum = parseFloat(kgVal);
   if (isNaN(kgNum)) return kgVal.toString();
   if (system === "imperial") return (kgNum * 2.20462).toFixed(1);
-  return kgNum.toString();
+  return Number(kgNum.toFixed(1)).toString();
 }
 
 function fromSystemWeight(val, system) {
@@ -1201,11 +1201,22 @@ function GlobalStyle() {
         }
         
         .print-grid-2-col {
-          display: grid !important;
-          grid-template-columns: 1fr 1fr !important;
-          gap: 20px !important;
+          display: block !important;
+          clear: both !important;
           margin-bottom: 20px !important;
-          align-items: start !important;
+        }
+        .print-grid-2-col::after {
+          content: "" !important;
+          display: table !important;
+          clear: both !important;
+        }
+        .print-grid-2-col > * {
+          float: left !important;
+          width: 48% !important;
+          margin-bottom: 20px !important;
+        }
+        .print-grid-2-col > :first-child {
+          margin-right: 4% !important;
         }
         
         /* CARD PRINCIPAL E BORDAS */
@@ -2178,9 +2189,20 @@ function FInput({ label, value, onChange, type, placeholder, unit, required, hel
             setLocalValue(val);
             onChange(val);
           }}
-          onFocus={function() {
+          onFocus={function(e) {
             setFocused(true);
             setLocalValue(value);
+            var inputEl = e.target;
+            setTimeout(function() {
+              if (inputEl) {
+                try {
+                  var len = inputEl.value.length;
+                  inputEl.setSelectionRange(len, len);
+                } catch (err) {
+                  // Silencia erro se o tipo do input não suportar seleção
+                }
+              }
+            }, 0);
           }}
           onBlur={function() {
             setFocused(false);
@@ -2230,7 +2252,20 @@ function FTextarea({ label, value, onChange, placeholder, rows }) {
         onChange={function(e) { onChange(e.target.value); }}
         placeholder={placeholder || ""}
         rows={rows || 3}
-        onFocus={function() { setFocused(true); }}
+        onFocus={function(e) {
+          setFocused(true);
+          var inputEl = e.target;
+          setTimeout(function() {
+            if (inputEl) {
+              try {
+                var len = inputEl.value.length;
+                inputEl.setSelectionRange(len, len);
+              } catch (err) {
+                // Silencia
+              }
+            }
+          }, 0);
+        }}
         onBlur={function() { setFocused(false); }}
         style={{ background:T.surface, border:"1.5px solid "+borderColor, borderRadius:10, color:T.text, padding:"12px 14px", fontSize:15, outline:"none", resize:"vertical", fontFamily:"'Outfit', sans-serif", lineHeight:1.5 }}
       />
