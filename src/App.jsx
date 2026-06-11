@@ -6216,34 +6216,60 @@ function PaywallScreen({ trainer, onLogout }) {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const isExpired = trainer && trainer.stripeCustomerId && (
+    trainer.subscriptionStatus === "past_due" || 
+    trainer.subscriptionStatus === "unpaid" || 
+    trainer.subscriptionStatus === "canceled"
+  );
+
+  const titleText = isExpired 
+    ? (lang === "pt" ? "Assinatura Expirada ou Pendente" : "Subscription Expired or Pending")
+    : (lang === "pt" ? "Ativação Necessária" : "Activation Required");
+
+  const descText = isExpired
+    ? (lang === "pt" 
+        ? "Identificamos um problema no processamento do pagamento da sua última mensalidade. Regularize sua assinatura para continuar acessando seus alunos e avaliações." 
+        : "We detected an issue processing your latest payment. Please update your payment details to continue accessing your dashboard.")
+    : (lang === "pt" 
+        ? "Para liberar o acesso total ao painel e criar novas avaliações, ative a sua assinatura profissional." 
+        : "To unlock full dashboard access and create new physical evaluations, activate your professional subscription.");
+
+  const buttonText = loading
+    ? (lang === "pt" ? "Processando..." : "Processing...")
+    : (isExpired 
+        ? (lang === "pt" ? "Regularizar Assinatura" : "Update Subscription & Pay") 
+        : (lang === "pt" ? "Assinar Plano Profissional" : "Subscribe to Pro Plan"));
+
   async function handleCheckout() {
     setLoading(true);
     setErrorMsg("");
     try {
-      const res = await fetch("/api/create-checkout-session", {
+      const endpoint = trainer.stripeCustomerId ? "/api/create-portal-session" : "/api/create-checkout-session";
+      const body = trainer.stripeCustomerId 
+        ? { customerId: trainer.stripeCustomerId }
+        : { trainerId: trainer.id, email: trainer.email };
+
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          trainerId: trainer.id,
-          email: trainer.email
-        })
+        body: JSON.stringify(body)
       });
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Erro ao criar sessão de checkout.");
+        throw new Error(data.error || "Erro ao conectar com Stripe.");
       }
 
       if (data.url) {
         window.location.href = data.url;
       } else {
-        throw new Error("URL de checkout não retornada.");
+        throw new Error("URL não retornada.");
       }
     } catch (err) {
       console.error(err);
-      setErrorMsg(lang === "pt" ? "Erro ao processar pagamento. Tente novamente mais tarde." : "Error processing payment. Please try again later.");
+      setErrorMsg(lang === "pt" ? "Erro ao redirecionar. Tente novamente mais tarde." : "Error redirecting. Please try again later.");
       setLoading(false);
     }
   }
@@ -6255,26 +6281,42 @@ function PaywallScreen({ trainer, onLogout }) {
         <div style={{ fontSize: 13, color: T.muted }}>{t("plataforma_av", lang)}</div>
       </div>
 
-      <Card sx={{ width:"100%", maxWidth:420, padding:28, border:"1.5px solid " + T.border, position:"relative", overflow:"hidden" }}>
-        <div style={{ position:"absolute", top:-40, right:-40, width:120, height:120, borderRadius:"50%", background:ac() + "12", filter:"blur(20px)" }} />
+      <Card sx={{ width:"100%", maxWidth:420, padding:28, border:"1.5px solid " + (isExpired ? "#FCCACA" : T.border), position:"relative", overflow:"hidden" }}>
+        <div style={{ position:"absolute", top:-40, right:-40, width:120, height:120, borderRadius:"50%", background:isExpired ? "rgba(239, 68, 68, 0.08)" : ac() + "12", filter:"blur(20px)" }} />
         
         <div style={{ display:"flex", justifyContent:"center", marginBottom:16 }}>
-          <div style={{ width:56, height:56, borderRadius:16, background:ac() + "18", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ac()} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          <div style={{ 
+            width: 56, 
+            height: 56, 
+            borderRadius: 16, 
+            background: isExpired ? "rgba(239, 68, 68, 0.15)" : ac() + "18", 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center" 
+          }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={isExpired ? "#EF4444" : ac()} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              {isExpired ? (
+                <>
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </>
+              ) : (
+                <>
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </>
+              )}
             </svg>
           </div>
         </div>
 
-        <div style={{ fontSize:18, fontWeight:700, textAlign:"center", marginBottom:8, color:T.text }}>
-          {lang === "pt" ? "Ativação Necessária" : "Activation Required"}
+        <div style={{ fontSize:18, fontWeight:700, textAlign:"center", marginBottom:8, color:isExpired ? "#B91C1C" : T.text }}>
+          {titleText}
         </div>
         
         <p style={{ fontSize:14, color:T.muted, textAlign:"center", marginBottom:24, lineHeight:1.5 }}>
-          {lang === "pt" 
-            ? "Para liberar o acesso total ao painel e criar novas avaliações, ative a sua assinatura profissional." 
-            : "To unlock full dashboard access and create new physical evaluations, activate your professional subscription."}
+          {descText}
         </p>
 
         {errorMsg && (
@@ -6283,7 +6325,7 @@ function PaywallScreen({ trainer, onLogout }) {
           </div>
         )}
 
-        <div style={{ background:T.bg, borderRadius:12, padding:16, marginBottom:24, border:"1px solid " + T.borderLight }}>
+        <div style={{ background:T.bg, borderRadius:12, padding:16, marginBottom:24, border:"1px solid " + (isExpired ? "#FEE2E2" : T.borderLight) }}>
           <div style={{ fontSize:12, fontWeight:700, textTransform:"uppercase", letterSpacing:0.5, color:T.muted, marginBottom:12 }}>
             {lang === "pt" ? "O que está incluso no Plano Pro:" : "What's included in the Pro Plan:"}
           </div>
@@ -6302,7 +6344,7 @@ function PaywallScreen({ trainer, onLogout }) {
             ].map(function(item, idx) {
               return (
                 <div key={idx} style={{ display:"flex", alignItems:"center", gap:10, fontSize:13, color:T.text }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ac()} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isExpired ? "#EF4444" : ac()} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
                     <polyline points="20 6 9 17 4 12"/>
                   </svg>
                   <span>{item}</span>
@@ -6313,10 +6355,8 @@ function PaywallScreen({ trainer, onLogout }) {
         </div>
 
         <Btn full onClick={handleCheckout} disabled={loading}>
-          {loading 
-            ? (lang === "pt" ? "Processando..." : "Processing...") 
-            : (lang === "pt" ? "Assinar Plano Profissional" : "Subscribe to Pro Plan")}
-          </Btn>
+          {buttonText}
+        </Btn>
       </Card>
 
       <div style={{ marginTop:24, display:"flex", gap:16 }}>
