@@ -1241,172 +1241,215 @@ function GlobalStyle() {
         
         /* CAPA (PÁGINA 1) */
         .print-page-1 .eval-header-print {
-          padding-bottom: 24px !important;
-          margin-bottom: 30px !important;
-          border-bottom: 3.5px solid var(--primary-color) !important;
+          padding-bottom: 8px !important;
+          margin-bottom: 12px !important;
+          border-bottom: 2px solid var(--primary-color) !important;
         }
         
         .print-page-1 .eval-header-print img,
         .print-page-1 .eval-header-print div[style*="border-radius"] {
-          width: 84px !important;
-          height: 84px !important;
-          font-size: 34px !important;
+          width: 42px !important;
+          height: 42px !important;
+          font-size: 18px !important;
         }
         
         .print-page-1 .eval-header-print .eval-name {
-          font-size: 24px !important;
-        }
-        
-        .print-page-1 .eval-header-print .brand-name {
-          font-size: 32px !important;
-        }
-        
-        .print-page-1 .print-card {
-          padding: 36px 40px !important;
-        }
-        
-        .print-page-1 .print-card div[style*="font-size: 12px"] {
-          font-size: 18px !important;
-          margin-bottom: 24px !important;
-        }
-        
-        .print-page-1 .stat-row {
-          padding: 16px 0 !important;
-        }
-        
-        .print-page-1 .stat-row .stat-label {
-          font-size: 16px !important;
-        }
-        
-        .print-page-1 .stat-row .stat-val {
-          font-size: 24px !important;
-        }
-        
-        .print-page-1 .stat-row .stat-unit {
           font-size: 14px !important;
         }
         
+        .print-page-1 .eval-header-print .brand-name {
+          font-size: 18px !important;
+        }
+        
+        /* Apenas o card de Identificação (primeiro card) ganha padding um pouco maior */
+        .print-page-1 > .print-card {
+          padding: 14px 18px !important;
+        }
+        
+        /* Outros cards da página 1 (Composição/Perimetria) usam padding mais compacto */
+        .print-page-1 .print-grid-2-col .print-card {
+          padding: 12px 14px !important;
+        }
+        
+        .print-page-1 .print-card div[style*="font-size: 12px"] {
+          font-size: 12px !important;
+          margin-bottom: 8px !important;
+        }
+        
+        .print-page-1 .stat-row {
+          padding: 4px 0 !important;
+        }
+        
+        .print-page-1 .stat-row .stat-label {
+          font-size: 12px !important;
+        }
+        
+        .print-page-1 .stat-row .stat-val {
+          font-size: 14px !important;
+        }
+        
+        .print-page-1 .stat-row .stat-unit {
+          font-size: 11px !important;
+        }
+        
         .print-page-1 .weight-height-container {
-          padding-top: 24px !important;
-          margin-top: 10px !important;
-          gap: 16px !important;
+          padding-top: 8px !important;
+          margin-top: 4px !important;
+          gap: 8px !important;
         }
         
         .print-page-1 .weight-height-box {
-          padding: 12px 20px !important;
+          padding: 4px 8px !important;
           border: 1px solid #E8E8EC !important;
           background: #ffffff !important;
         }
         
         .print-page-1 .weight-height-box span:nth-child(1) {
-          font-size: 15px !important;
+          font-size: 11px !important;
         }
         
         .print-page-1 .weight-height-box span:nth-child(2) {
-          font-size: 20px !important;
+          font-size: 12px !important;
         }
         
         .print-page-1 .indices-container {
-          gap: 16px !important;
-          margin-top: 24px !important;
+          gap: 8px !important;
+          margin-top: 8px !important;
         }
         
         .print-page-1 .indices-card {
-          padding: 18px !important;
+          padding: 8px !important;
           border: 1px solid #E8E8EC !important;
           background: #ffffff !important;
         }
         
         .print-page-1 .indices-card div[style*="font-size: 10px"] {
-          font-size: 12px !important;
+          font-size: 10px !important;
         }
         
         .print-page-1 .indices-card div[style*="font-size: 20px"] {
-          font-size: 30px !important;
+          font-size: 22px !important;
         }
         
         .print-page-1 .indices-card div[style*="font-size: 11px"] {
-          font-size: 14px !important;
+          font-size: 11px !important;
         }
 
-        /* CAPA (PÁGINA 1) - ANAMNESE INTELIGENTE DENSIDADE */
+        /* Reduzir tamanho dos elementos da composição corporal e perimetria na capa */
+        .print-page-1 .print-grid-2-col .print-card div[style*="font-size: 13px"] {
+          font-size: 11px !important;
+          padding: 4px 0 !important;
+        }
+        .print-page-1 .print-grid-2-col .print-card div[style*="background:"] {
+          padding: 6px 10px !important;
+          border-radius: 6px !important;
+          margin-top: 8px !important;
+        }
+        .print-page-1 .print-grid-2-col .print-card div[style*="background:"] strong {
+          font-size: 12px !important;
+        }
+        .print-page-1 .print-grid-2-col .print-card div[style*="background:"] strong[style*="font-size: 20px"] {
+          font-size: 15px !important;
+        }
+        .print-page-1 .print-grid-2-col .print-card div[style*="background:"] div[style*="display: grid"] {
+          gap: 6px !important;
+        }
+        .print-page-1 .print-grid-2-col .print-card div[style*="background:"] div[style*="display: grid"] > div {
+          padding: 4px !important;
+          border-radius: 6px !important;
+        }
+        .print-page-1 .print-grid-2-col .print-card div[style*="background:"] div[style*="display: grid"] div[style*="font-size: 9px"] {
+          font-size: 8px !important;
+        }
+        .print-page-1 .print-grid-2-col .print-card div[style*="background:"] div[style*="display: grid"] div[style*="font-size: 16px"] {
+          font-size: 12px !important;
+        }
+        .print-page-1 .print-grid-2-col .print-card div[style*="grid-template-columns: 1fr 1fr 1fr"] {
+          gap: 6px !important;
+        }
+        .print-page-1 .print-grid-2-col .print-card div[style*="grid-template-columns: 1fr 1fr 1fr"] > div {
+          padding: 4px 6px !important;
+          border-radius: 6px !important;
+        }
+        .print-page-1 .print-grid-2-col .print-card div[style*="grid-template-columns: 1fr 1fr 1fr"] div[style*="font-size: 9px"] {
+          font-size: 8px !important;
+        }
+        .print-page-1 .print-grid-2-col .print-card div[style*="grid-template-columns: 1fr 1fr 1fr"] div[style*="font-size: 14px"] {
+          font-size: 11px !important;
+          margin-top: 1px !important;
+        }
+
+        /* ANAMNESE INTELIGENTE DENSIDADE */
+        .print-anamnese-container {
+          display: block !important;
+        }
+        
+        .print-anamnese-row {
+          display: block !important;
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
+          -webkit-column-break-inside: avoid !important;
+          border-bottom: 1px solid #E8E8EC !important;
+        }
         
         /* DENSIDADE BAIXA (<= 6 perguntas: 1 coluna, fontes grandes) */
-        .print-page-1 .anamnese-print-density-low {
-          padding: 36px 40px !important;
+        .anamnese-print-density-low {
+          padding: 24px 30px !important;
         }
-        .print-page-1 .anamnese-print-density-low div[style*="font-size: 12px"] {
-          font-size: 18px !important;
-          margin-bottom: 24px !important;
-        }
-        .print-page-1 .anamnese-print-density-low .print-anamnese-container {
-          display: flex !important;
-          flex-direction: column !important;
-          gap: 16px !important;
-        }
-        .print-page-1 .anamnese-print-density-low .print-anamnese-row {
-          border-bottom: 1.5px solid #E8E8EC !important;
-          padding-bottom: 12px !important;
-          page-break-inside: avoid !important;
-        }
-        .print-page-1 .anamnese-print-density-low .print-anamnese-row strong {
-          font-size: 16px !important;
-          margin-bottom: 4px !important;
-        }
-        .print-page-1 .anamnese-print-density-low .print-anamnese-row span {
-          font-size: 16px !important;
-        }
-
-        /* DENSIDADE MÉDIA (7 a 12 perguntas: 2 colunas, fontes médias) */
-        .print-page-1 .anamnese-print-density-medium {
-          padding: 30px 36px !important;
-        }
-        .print-page-1 .anamnese-print-density-medium div[style*="font-size: 12px"] {
+        .anamnese-print-density-low div[style*="font-size: 12px"] {
           font-size: 16px !important;
           margin-bottom: 16px !important;
         }
-        .print-page-1 .anamnese-print-density-medium .print-anamnese-container {
-          display: grid !important;
-          grid-template-columns: 1fr 1fr !important;
-          gap: 12px 24px !important;
+        .anamnese-print-density-low .print-anamnese-row {
+          padding-bottom: 12px !important;
+          margin-bottom: 12px !important;
         }
-        .print-page-1 .anamnese-print-density-medium .print-anamnese-row {
-          border-bottom: 1px solid #E8E8EC !important;
-          padding-bottom: 8px !important;
-          page-break-inside: avoid !important;
+        .anamnese-print-density-low .print-anamnese-row strong {
+          font-size: 15px !important;
+          margin-bottom: 4px !important;
         }
-        .print-page-1 .anamnese-print-density-medium .print-anamnese-row strong {
-          font-size: 13px !important;
-          margin-bottom: 3px !important;
-        }
-        .print-page-1 .anamnese-print-density-medium .print-anamnese-row span {
-          font-size: 14px !important;
+        .anamnese-print-density-low .print-anamnese-row span {
+          font-size: 15px !important;
         }
 
-        /* DENSIDADE ALTA (> 12 perguntas: 2 colunas, fontes compactas) */
-        .print-page-1 .anamnese-print-density-high {
-          padding: 24px 30px !important;
+        /* DENSIDADE MÉDIA (7 a 12 perguntas: 1 coluna, fontes médias) */
+        .anamnese-print-density-medium {
+          padding: 20px 24px !important;
         }
-        .print-page-1 .anamnese-print-density-high div[style*="font-size: 12px"] {
+        .anamnese-print-density-medium div[style*="font-size: 12px"] {
           font-size: 14px !important;
           margin-bottom: 12px !important;
         }
-        .print-page-1 .anamnese-print-density-high .print-anamnese-container {
-          display: grid !important;
-          grid-template-columns: 1fr 1fr !important;
-          gap: 8px 20px !important;
+        .anamnese-print-density-medium .print-anamnese-row {
+          padding-bottom: 8px !important;
+          margin-bottom: 8px !important;
         }
-        .print-page-1 .anamnese-print-density-high .print-anamnese-row {
-          border-bottom: 1px solid #E8E8EC !important;
+        .anamnese-print-density-medium .print-anamnese-row strong {
+          font-size: 13px !important;
+          margin-bottom: 3px !important;
+        }
+        .anamnese-print-density-medium .print-anamnese-row span {
+          font-size: 13px !important;
+        }
+
+        /* DENSIDADE ALTA (> 12 perguntas: 1 coluna, fontes compactas) */
+        .anamnese-print-density-high {
+          padding: 16px 20px !important;
+        }
+        .anamnese-print-density-high div[style*="font-size: 12px"] {
+          font-size: 12px !important;
+          margin-bottom: 8px !important;
+        }
+        .anamnese-print-density-high .print-anamnese-row {
           padding-bottom: 6px !important;
-          page-break-inside: avoid !important;
+          margin-bottom: 6px !important;
         }
-        .print-page-1 .anamnese-print-density-high .print-anamnese-row strong {
+        .anamnese-print-density-high .print-anamnese-row strong {
           font-size: 11px !important;
           margin-bottom: 2px !important;
         }
-        .print-page-1 .anamnese-print-density-high .print-anamnese-row span {
-          font-size: 12px !important;
+        .anamnese-print-density-high .print-anamnese-row span {
+          font-size: 11px !important;
         }
         
         /* CARDIOVASCULAR E OUTROS DETALHES */
