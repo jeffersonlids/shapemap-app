@@ -1177,8 +1177,8 @@ function GlobalStyle() {
         /* PÁGINAS DO RELATÓRIO */
         .print-page-1 {
           display: block !important;
-          page-break-after: always !important;
-          break-after: page !important;
+          page-break-after: auto !important;
+          break-after: auto !important;
           padding-top: 0 !important;
           margin-top: 0 !important;
         }
@@ -1188,8 +1188,8 @@ function GlobalStyle() {
         
         .print-page-2 {
           display: block !important;
-          page-break-after: always !important;
-          break-after: page !important;
+          page-break-after: auto !important;
+          break-after: auto !important;
           padding-top: 0 !important;
           margin-top: 0 !important;
         }
@@ -1239,144 +1239,144 @@ function GlobalStyle() {
           margin-top: 20px !important;
         }
         
-        /* CAPA (PÁGINA 1) */
+                /* CAPA (PÁGINA 1) */
         .print-page-1 .eval-header-print {
-          padding-bottom: 8px !important;
-          margin-bottom: 12px !important;
-          border-bottom: 2px solid var(--primary-color) !important;
+          padding-bottom: 16px !important;
+          margin-bottom: 24px !important;
+          border-bottom: 3px solid var(--primary-color) !important;
         }
         
         .print-page-1 .eval-header-print img,
         .print-page-1 .eval-header-print div[style*="border-radius"] {
-          width: 42px !important;
-          height: 42px !important;
-          font-size: 18px !important;
+          width: 58px !important;
+          height: 58px !important;
+          font-size: 24px !important;
         }
         
         .print-page-1 .eval-header-print .eval-name {
-          font-size: 14px !important;
+          font-size: 18px !important;
         }
         
         .print-page-1 .eval-header-print .brand-name {
-          font-size: 18px !important;
+          font-size: 24px !important;
         }
         
         /* Apenas o card de Identificação (primeiro card) ganha padding um pouco maior */
         .print-page-1 > .print-card {
-          padding: 14px 18px !important;
+          padding: 24px 28px !important;
         }
         
         /* Outros cards da página 1 (Composição/Perimetria) usam padding mais compacto */
         .print-page-1 .print-grid-2-col .print-card {
-          padding: 12px 14px !important;
+          padding: 20px 22px !important;
         }
         
         .print-page-1 .print-card div[style*="font-size: 12px"] {
-          font-size: 12px !important;
-          margin-bottom: 8px !important;
+          font-size: 14px !important;
+          margin-bottom: 12px !important;
         }
         
         .print-page-1 .stat-row {
-          padding: 4px 0 !important;
+          padding: 10px 0 !important;
         }
         
         .print-page-1 .stat-row .stat-label {
-          font-size: 12px !important;
-        }
-        
-        .print-page-1 .stat-row .stat-val {
           font-size: 14px !important;
         }
         
+        .print-page-1 .stat-row .stat-val {
+          font-size: 18px !important;
+        }
+        
         .print-page-1 .stat-row .stat-unit {
-          font-size: 11px !important;
+          font-size: 12px !important;
         }
         
         .print-page-1 .weight-height-container {
-          padding-top: 8px !important;
-          margin-top: 4px !important;
-          gap: 8px !important;
+          padding-top: 16px !important;
+          margin-top: 10px !important;
+          gap: 12px !important;
         }
         
         .print-page-1 .weight-height-box {
-          padding: 4px 8px !important;
+          padding: 8px 14px !important;
           border: 1px solid #E8E8EC !important;
           background: #ffffff !important;
         }
         
         .print-page-1 .weight-height-box span:nth-child(1) {
-          font-size: 11px !important;
-        }
-        
-        .print-page-1 .weight-height-box span:nth-child(2) {
           font-size: 12px !important;
         }
         
+        .print-page-1 .weight-height-box span:nth-child(2) {
+          font-size: 15px !important;
+        }
+        
         .print-page-1 .indices-container {
-          gap: 8px !important;
-          margin-top: 8px !important;
+          gap: 12px !important;
+          margin-top: 14px !important;
         }
         
         .print-page-1 .indices-card {
-          padding: 8px !important;
+          padding: 12px !important;
           border: 1px solid #E8E8EC !important;
           background: #ffffff !important;
         }
         
         .print-page-1 .indices-card div[style*="font-size: 10px"] {
-          font-size: 10px !important;
+          font-size: 11px !important;
         }
         
         .print-page-1 .indices-card div[style*="font-size: 20px"] {
-          font-size: 22px !important;
+          font-size: 26px !important;
         }
         
         .print-page-1 .indices-card div[style*="font-size: 11px"] {
-          font-size: 11px !important;
+          font-size: 12px !important;
         }
 
         /* Reduzir tamanho dos elementos da composição corporal e perimetria na capa */
         .print-page-1 .print-grid-2-col .print-card div[style*="font-size: 13px"] {
-          font-size: 11px !important;
-          padding: 4px 0 !important;
+          font-size: 12px !important;
+          padding: 6px 0 !important;
         }
         .print-page-1 .print-grid-2-col .print-card div[style*="background:"] {
-          padding: 6px 10px !important;
-          border-radius: 6px !important;
-          margin-top: 8px !important;
+          padding: 10px 12px !important;
+          border-radius: 8px !important;
+          margin-top: 12px !important;
         }
         .print-page-1 .print-grid-2-col .print-card div[style*="background:"] strong {
-          font-size: 12px !important;
+          font-size: 13px !important;
         }
         .print-page-1 .print-grid-2-col .print-card div[style*="background:"] strong[style*="font-size: 20px"] {
-          font-size: 15px !important;
+          font-size: 18px !important;
         }
         .print-page-1 .print-grid-2-col .print-card div[style*="background:"] div[style*="display: grid"] {
           gap: 6px !important;
         }
         .print-page-1 .print-grid-2-col .print-card div[style*="background:"] div[style*="display: grid"] > div {
-          padding: 4px !important;
-          border-radius: 6px !important;
+          padding: 6px !important;
+          border-radius: 8px !important;
         }
         .print-page-1 .print-grid-2-col .print-card div[style*="background:"] div[style*="display: grid"] div[style*="font-size: 9px"] {
-          font-size: 8px !important;
+          font-size: 9px !important;
         }
         .print-page-1 .print-grid-2-col .print-card div[style*="background:"] div[style*="display: grid"] div[style*="font-size: 16px"] {
-          font-size: 12px !important;
+          font-size: 14px !important;
         }
         .print-page-1 .print-grid-2-col .print-card div[style*="grid-template-columns: 1fr 1fr 1fr"] {
-          gap: 6px !important;
+          gap: 8px !important;
         }
         .print-page-1 .print-grid-2-col .print-card div[style*="grid-template-columns: 1fr 1fr 1fr"] > div {
-          padding: 4px 6px !important;
-          border-radius: 6px !important;
+          padding: 6px 8px !important;
+          border-radius: 8px !important;
         }
         .print-page-1 .print-grid-2-col .print-card div[style*="grid-template-columns: 1fr 1fr 1fr"] div[style*="font-size: 9px"] {
-          font-size: 8px !important;
+          font-size: 9px !important;
         }
         .print-page-1 .print-grid-2-col .print-card div[style*="grid-template-columns: 1fr 1fr 1fr"] div[style*="font-size: 14px"] {
-          font-size: 11px !important;
-          margin-top: 1px !important;
+          font-size: 13px !important;
+          margin-top: 2px !important;
         }
 
         /* ANAMNESE INTELIGENTE DENSIDADE */
