@@ -2717,7 +2717,8 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
   const [rememberMe, setRememberMe] = useState(true);
 
   async function go() {
-    if (!email || !senha || (isSignUp && !nome)) {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !senha || (isSignUp && !nome)) {
       setErrorMsg(lang === "pt" ? "Preencha todos os campos" : "Please fill in all fields");
       return;
     }
@@ -2726,7 +2727,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
     
     if (isSignUp) {
       const { data, error } = await supabase.auth.signUp({
-        email: email,
+        email: trimmedEmail,
         password: senha,
         options: {
           data: {
@@ -2752,7 +2753,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
       }
     } else {
       const { error } = await supabase.auth.signInWithPassword({
-        email: email,
+        email: trimmedEmail,
         password: senha
       });
       if (error) {
