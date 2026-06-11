@@ -1104,6 +1104,16 @@ function GlobalStyle() {
       @keyframes checkDraw { from{stroke-dashoffset:60} to{stroke-dashoffset:0} }
       @keyframes fall { 0%{transform:translateY(-10px) rotate(0deg);opacity:1} 100%{transform:translateY(140px) rotate(700deg);opacity:0} }
       @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+      @keyframes logoFill {
+        0% { height: 0%; }
+        45% { height: 100%; }
+        55% { height: 100%; }
+        100% { height: 0%; }
+      }
+      @keyframes logoPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
       .fu { animation: fadeUp 0.28s ease both; }
 
       .print-anamnese-container {
@@ -6510,8 +6520,37 @@ export default function App() {
 
   if (loadingSession) {
     return (
-      <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-        <div style={{ color: T.text, fontSize: 16, fontWeight: 600 }}>Carregando sessão...</div>
+      <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap: 20 }}>
+        <GlobalStyle />
+        <div style={{
+          position: "relative",
+          width: 80,
+          height: 80,
+          animation: "logoPulse 2s ease-in-out infinite"
+        }}>
+          {/* Background logo (faint/empty state) */}
+          <img 
+            src="/logo.png" 
+            style={{ width: "100%", height: "100%", opacity: 0.1, display: "block" }} 
+            alt="logo-bg" 
+          />
+          {/* Foreground logo (animating fill state) */}
+          <div style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: "0%",
+            overflow: "hidden",
+            animation: "logoFill 2.5s ease-in-out infinite"
+          }}>
+            <img 
+              src="/logo.png" 
+              style={{ position: "absolute", bottom: 0, left: 0, width: 80, height: 80, display: "block" }} 
+              alt="logo-fill" 
+            />
+          </div>
+        </div>
       </div>
     );
   }
