@@ -6291,9 +6291,13 @@ function PaywallScreen({ trainer, onLogout }) {
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
             {[
               lang === "pt" ? "Alunos e Avaliações ilimitadas" : "Unlimited Students and Evaluations",
+              lang === "pt" ? "Métodos de composição corporal" : "Body composition methods",
+              lang === "pt" ? "Perimetria e Teste de Força" : "Perimetry & Strength tests",
+              lang === "pt" ? "Teste de Flexibilidade e VO2 Máx" : "Flexibility & VO2 Max tests",
+              lang === "pt" ? "Cálculo de TMB (Taxa Metabólica Basal)" : "BMR calculation",
+              lang === "pt" ? "Fotos comparativas de evolução" : "Comparative progress photos",
               lang === "pt" ? "Gráficos de evolução física" : "Physical progress & evolution charts",
               lang === "pt" ? "Exportação de PDFs personalizados" : "Premium customizable PDF reports",
-              lang === "pt" ? "Protocolos Pollock (7 e 3 dobras)" : "Pollock Skinfold protocols (7 & 3 folds)",
               lang === "pt" ? "Anamnese flexível e reordenável" : "Flexible and reorderable anamnesis"
             ].map(function(item, idx) {
               return (
