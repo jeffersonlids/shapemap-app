@@ -1087,6 +1087,14 @@ function GlobalStyle() {
       .recharts-wrapper:focus, svg:focus { outline: none !important; }
       body { margin: 0; background: #F7F7F8; font-family: 'Outfit', sans-serif; }
       input, select, textarea, button { font-family: 'Outfit', sans-serif; }
+      /* Impedir o zoom automático no iOS ao focar campos de entrada */
+      @media (max-width: 768px) {
+        input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="color"]):not([type="file"]),
+        select,
+        textarea {
+          font-size: 16px !important;
+        }
+      }
       input[type=number]::-webkit-outer-spin-button,
       input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
       ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -1168,13 +1176,14 @@ function GlobalStyle() {
         
         /* PÁGINAS DO RELATÓRIO */
         .print-page-1 {
-          display: flex !important;
-          flex-direction: column !important;
-          gap: 20px !important;
+          display: block !important;
           page-break-after: always !important;
           break-after: page !important;
           padding-top: 0 !important;
           margin-top: 0 !important;
+        }
+        .print-page-1 > * {
+          margin-bottom: 20px !important;
         }
         
         .print-page-2 {
@@ -1208,6 +1217,8 @@ function GlobalStyle() {
           padding: 24px !important;
           background: #ffffff !important;
           page-break-inside: avoid !important;
+          break-inside: avoid !important;
+          -webkit-column-break-inside: avoid !important;
           box-shadow: none !important;
         }
         
