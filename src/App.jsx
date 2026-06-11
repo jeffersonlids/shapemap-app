@@ -19,6 +19,7 @@ const TR = {
     acesse_sua_area: "Acesse sua área profissional",
     email: "E-mail",
     senha: "Senha",
+    mantenha_me_conectado: "Mantenha-me conectado",
     entrando: "Entrando...",
     entrar: "Entrar",
     esqueci_senha: "Esqueci minha senha",
@@ -326,6 +327,7 @@ const TR = {
     acesse_sua_area: "Access your professional area",
     email: "Email",
     senha: "Password",
+    mantenha_me_conectado: "Keep me signed in",
     entrando: "Logging in...",
     entrar: "Log in",
     esqueci_senha: "Forgot my password",
@@ -2712,6 +2714,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
 
   async function go() {
     if (!email || !senha || (isSignUp && !nome)) {
@@ -2737,6 +2740,8 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
       } else {
         setLoading(false);
         if (data.session) {
+          localStorage.setItem("avaliapro_remember_me", rememberMe ? "true" : "false");
+          sessionStorage.setItem("avaliapro_session_active", "true");
           onLogin();
         } else {
           alert(lang === "pt" 
@@ -2754,6 +2759,8 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
         setErrorMsg(error.message);
         setLoading(false);
       } else {
+        localStorage.setItem("avaliapro_remember_me", rememberMe ? "true" : "false");
+        sessionStorage.setItem("avaliapro_session_active", "true");
         setLoading(false);
         onLogin();
       }
@@ -2804,6 +2811,43 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
           )}
           <FInput label={t("email", lang)} value={email} onChange={setEmail} type="email" placeholder="seu@email.com"/>
           <FInput label={t("senha", lang)} value={senha} onChange={setSenha} type="password" placeholder="••••••••"/>
+          
+          <div 
+            style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: 8, 
+              userSelect: "none", 
+              cursor: "pointer",
+              padding: "2px 0",
+              marginTop: -2,
+              marginBottom: 4
+            }}
+            onClick={function() { setRememberMe(!rememberMe); }}
+          >
+            <div style={{
+              width: 18,
+              height: 18,
+              borderRadius: 6,
+              border: "1.5px solid " + (rememberMe ? ac() : T.border),
+              background: rememberMe ? ac() : "transparent",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.15s ease",
+              boxShadow: rememberMe ? "0 2px 8px " + ac() + "33" : "none"
+            }}>
+              {rememberMe && (
+                <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                  <path d="M1.5 4L3.75 6.25L8.5 1.5" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </div>
+            <span style={{ fontSize: 13, color: T.text, fontWeight: 500 }}>
+              {t("mantenha_me_conectado", lang)}
+            </span>
+          </div>
+
           <Btn full onClick={go} disabled={loading}>{buttonText}</Btn>
         </div>
       </Card>
@@ -6153,18 +6197,29 @@ export default function App() {
 
   // Load session and onAuthStateChange
   useEffect(function() {
-    supabase.auth.getSession().then(function({ data: { session } }) {
-      if (session) {
-        setUser(session.user);
-        setLogged(true);
-        loadUserData(session.user);
-      } else {
+    const rememberMe = localStorage.getItem("avaliapro_remember_me");
+    const sessionActive = sessionStorage.getItem("avaliapro_session_active");
+
+    if (rememberMe === "false" && !sessionActive) {
+      supabase.auth.signOut().then(function() {
         setLoadingSession(false);
-      }
-    });
+      });
+    } else {
+      supabase.auth.getSession().then(function({ data: { session } }) {
+        if (session) {
+          sessionStorage.setItem("avaliapro_session_active", "true");
+          setUser(session.user);
+          setLogged(true);
+          loadUserData(session.user);
+        } else {
+          setLoadingSession(false);
+        }
+      });
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(function(event, session) {
       if (session) {
+        sessionStorage.setItem("avaliapro_session_active", "true");
         setUser(session.user);
         setLogged(true);
         loadUserData(session.user);
@@ -6389,6 +6444,8 @@ export default function App() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
+    localStorage.removeItem("avaliapro_remember_me");
+    sessionStorage.removeItem("avaliapro_session_active");
     setLogged(false);
     resetStack();
   }
