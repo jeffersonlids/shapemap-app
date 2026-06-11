@@ -6528,13 +6528,23 @@ export default function App() {
           height: 80,
           animation: "logoPulse 2s ease-in-out infinite"
         }}>
-          {/* Background logo (faint/empty state) */}
-          <img 
-            src="/logo.png" 
-            style={{ width: "100%", height: "100%", opacity: 0.1, display: "block" }} 
-            alt="logo-bg" 
+          {/* Background logo (faint/empty state dynamically colored) */}
+          <div 
+            style={{ 
+              width: "100%", 
+              height: "100%", 
+              backgroundColor: ac(), 
+              opacity: 0.1, 
+              WebkitMaskImage: "url(/logo.png)",
+              maskImage: "url(/logo.png)",
+              WebkitMaskSize: "contain",
+              maskSize: "contain",
+              WebkitMaskRepeat: "no-repeat",
+              maskRepeat: "no-repeat",
+              display: "block"
+            }} 
           />
-          {/* Foreground logo (animating fill state) */}
+          {/* Foreground logo (animating fill state dynamically colored) */}
           <div style={{
             position: "absolute",
             bottom: 0,
@@ -6544,10 +6554,22 @@ export default function App() {
             overflow: "hidden",
             animation: "logoFill 2.5s ease-in-out infinite"
           }}>
-            <img 
-              src="/logo.png" 
-              style={{ position: "absolute", bottom: 0, left: 0, width: 80, height: 80, display: "block" }} 
-              alt="logo-fill" 
+            <div 
+              style={{ 
+                position: "absolute", 
+                bottom: 0, 
+                left: 0, 
+                width: 80, 
+                height: 80, 
+                backgroundColor: ac(), 
+                WebkitMaskImage: "url(/logo.png)",
+                maskImage: "url(/logo.png)",
+                WebkitMaskSize: "contain",
+                maskSize: "contain",
+                WebkitMaskRepeat: "no-repeat",
+                maskRepeat: "no-repeat",
+                display: "block"
+              }} 
             />
           </div>
         </div>
