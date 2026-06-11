@@ -2101,7 +2101,7 @@ function newAval(nome, sexo, telefone, idade, settings) {
     peso: "", altura: "",
     composicoes: [Object.assign(newComp(), { metodo: compMetodo })],
     perimetria: perim,
-    testes: [{ id: 1, exercicio: forceExercises[0] || "", reps: "", carga: "" }],
+    testes: [{ id: 1, exercicio: "", reps: "", carga: "" }],
     flexibilidade: { wells: "", anguloPopliteo: "", thomas: "" },
     cardiovascular: { tipoTeste: "cooper", cooper: "", esteiraVelocidade: "", esteiraInclinacao: "", fcRepouso: "", fcRecuperacao: "", fcMax: "", pressaoArterial: "" },
     fotos: { frente: null, lado: null, costas: null },
@@ -4249,7 +4249,7 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
                   <div style={{ display:"flex", flexDirection:"column", gap:11 }}>
                     {(function() {
                       var exerciciosPredefinidos = settings ? settings.exerciciosForca : [
-                        "Puxada Aberta", "Supino Reto", "Agachamento", "Leg Press 45°", "Rosca Direta", "Puxada Pulley", "Tríceps Pulley"
+                        "Supino Reto", "Agachamento", "Puxada Aberta", "Leg Press 45°", "Rosca Direta", "Puxada Pulley", "Tríceps Pulley"
                       ];
                       var isPredefined = exerciciosPredefinidos.indexOf(tItem.exercicio) >= 0;
                       var showCustom = customActive[tItem.id] || (!isPredefined && tItem.exercicio !== "");
@@ -6115,7 +6115,18 @@ export default function App() {
   const [settings, setSettings] = useState(function() {
     const saved = localStorage.getItem("avaliapro_settings");
     if (saved) {
-      try { return JSON.parse(saved); } catch(err) { console.warn(err); }
+      try { 
+        var parsed = JSON.parse(saved); 
+        var oldOrderStr = JSON.stringify(["Puxada Aberta", "Supino Reto", "Agachamento", "Leg Press 45\u00B0", "Rosca Direta", "Puxada Pulley", "Tr\u00EDceps Pulley"]);
+        var oldOrderStrAccentFix = JSON.stringify(["Puxada Aberta", "Supino Reto", "Agachamento", "Leg Press 45°", "Rosca Direta", "Puxada Pulley", "Tríceps Pulley"]);
+        if (parsed && parsed.exerciciosForca) {
+          var currentOrderStr = JSON.stringify(parsed.exerciciosForca);
+          if (currentOrderStr === oldOrderStr || currentOrderStr === oldOrderStrAccentFix) {
+            parsed.exerciciosForca = ["Supino Reto", "Agachamento", "Puxada Aberta", "Leg Press 45°", "Rosca Direta", "Puxada Pulley", "Tríceps Pulley"];
+          }
+        }
+        return parsed; 
+      } catch(err) { console.warn(err); }
     }
     return {
       defaultMetodo: "pollock7",
@@ -6134,7 +6145,7 @@ export default function App() {
         { label: "Panturrilha Dir.", key: "panturrilhaDireita", active: true },
         { label: "Panturrilha Esq.", key: "panturrilhaEsquerda", active: true }
       ],
-      exerciciosForca: ["Puxada Aberta", "Supino Reto", "Agachamento", "Leg Press 45°", "Rosca Direta", "Puxada Pulley", "Tríceps Pulley"]
+      exerciciosForca: ["Supino Reto", "Agachamento", "Puxada Aberta", "Leg Press 45°", "Rosca Direta", "Puxada Pulley", "Tríceps Pulley"]
     };
   });
 
@@ -6200,7 +6211,7 @@ export default function App() {
             { label: "Panturrilha Dir.", key: "panturrilhaDireita", active: true },
             { label: "Panturrilha Esq.", key: "panturrilhaEsquerda", active: true }
           ],
-          exerciciosForca: ["Puxada Aberta", "Supino Reto", "Agachamento", "Leg Press 45°", "Rosca Direta", "Puxada Pulley", "Tríceps Pulley"]
+          exerciciosForca: ["Supino Reto", "Agachamento", "Puxada Aberta", "Leg Press 45°", "Rosca Direta", "Puxada Pulley", "Tríceps Pulley"]
         };
         
         const newTrainer = {
@@ -6236,7 +6247,23 @@ export default function App() {
 
       setTrainer(mappedTrainer);
       if (trainerData.settings) {
-        setSettings(trainerData.settings);
+        var userSettings = trainerData.settings;
+        var oldOrderStr = JSON.stringify(["Puxada Aberta", "Supino Reto", "Agachamento", "Leg Press 45\u00B0", "Rosca Direta", "Puxada Pulley", "Tr\u00EDceps Pulley"]);
+        var oldOrderStrAccentFix = JSON.stringify(["Puxada Aberta", "Supino Reto", "Agachamento", "Leg Press 45°", "Rosca Direta", "Puxada Pulley", "Tríceps Pulley"]);
+        if (userSettings && userSettings.exerciciosForca) {
+          var currentOrderStr = JSON.stringify(userSettings.exerciciosForca);
+          if (currentOrderStr === oldOrderStr || currentOrderStr === oldOrderStrAccentFix) {
+            userSettings = Object.assign({}, userSettings, {
+              exerciciosForca: ["Supino Reto", "Agachamento", "Puxada Aberta", "Leg Press 45°", "Rosca Direta", "Puxada Pulley", "Tríceps Pulley"]
+            });
+            setSettings(userSettings);
+            handleUpdateSettings(userSettings);
+          } else {
+            setSettings(userSettings);
+          }
+        } else {
+          setSettings(userSettings);
+        }
       }
 
       const { data: studentsData, error: studentsError } = await supabase
