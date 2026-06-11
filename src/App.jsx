@@ -6121,6 +6121,83 @@ function PerfilScreen({ trainer, onUpdate, onLogout }) {
         </div>
       </Card>
 
+      {/* Assinatura Card */}
+      <Card sx={{ padding:18, marginBottom:14 }}>
+        <div style={{ display: "flex", flexDirection:"column", gap:12 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <div style={{ width:3, height:17, borderRadius:2, background:ac() }}/>
+            <div style={{ fontSize:12, fontWeight:700, color:ac(), letterSpacing:1.2, textTransform:"uppercase" }}>
+              {lang === "pt" ? "Assinatura" : "Subscription"}
+            </div>
+          </div>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:4 }}>
+            <div>
+              <div style={{ fontSize:13, fontWeight:600, color:T.text }}>
+                {lang === "pt" ? "Status do Plano" : "Plan Status"}:{" "}
+                <span style={{ color: trainer.subscriptionStatus === "active" ? T.success : T.danger, textTransform:"uppercase", fontWeight:700 }}>
+                  {trainer.subscriptionStatus || "INATIVO"}
+                </span>
+              </div>
+              {trainer.currentPeriodEnd && (
+                <div style={{ fontSize:12, color:T.muted, marginTop:2 }}>
+                  {lang === "pt" ? "Vence em" : "Expires on"}: {new Date(trainer.currentPeriodEnd).toLocaleDateString(lang === "pt" ? "pt-BR" : "en-US")}
+                </div>
+              )}
+            </div>
+            {trainer.stripeCustomerId ? (
+              <Btn 
+                small 
+                variant="outline" 
+                onClick={async function() {
+                  try {
+                    const res = await fetch("/api/create-portal-session", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ customerId: trainer.stripeCustomerId })
+                    });
+                    const data = await res.json();
+                    if (data.url) {
+                      window.location.href = data.url;
+                    } else {
+                      alert(lang === "pt" ? "Erro ao redirecionar para o portal da Stripe." : "Error redirecting to Stripe portal.");
+                    }
+                  } catch (err) {
+                    console.error(err);
+                    alert(lang === "pt" ? "Erro ao acessar gerenciamento." : "Error accessing subscription management.");
+                  }
+                }}
+              >
+                {lang === "pt" ? "Gerenciar" : "Manage"}
+              </Btn>
+            ) : (
+              <Btn 
+                small 
+                onClick={async function() {
+                  try {
+                    const res = await fetch("/api/create-checkout-session", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ trainerId: trainer.id, email: trainer.email })
+                    });
+                    const data = await res.json();
+                    if (data.url) {
+                      window.location.href = data.url;
+                    } else {
+                      alert(lang === "pt" ? "Erro ao redirecionar para o checkout." : "Error redirecting to checkout.");
+                    }
+                  } catch (err) {
+                    console.error(err);
+                    alert(lang === "pt" ? "Erro ao iniciar assinatura." : "Error starting subscription.");
+                  }
+                }}
+              >
+                {lang === "pt" ? "Assinar" : "Subscribe"}
+              </Btn>
+            )}
+          </div>
+        </div>
+      </Card>
+
       <Card sx={{ padding:18, marginBottom:14 }}>
         <SecHead title={t("dados_pessoais", lang)}/>
         <div style={{ display:"flex", flexDirection:"column", gap:13 }}>
@@ -6133,10 +6210,127 @@ function PerfilScreen({ trainer, onUpdate, onLogout }) {
   );
 }
 
+function PaywallScreen({ trainer, onLogout }) {
+  const lang = (trainer && trainer.lang) || "pt";
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  async function handleCheckout() {
+    setLoading(true);
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          trainerId: trainer.id,
+          email: trainer.email
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Erro ao criar sessão de checkout.");
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("URL de checkout não retornada.");
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg(lang === "pt" ? "Erro ao processar pagamento. Tente novamente mais tarde." : "Error processing payment. Please try again later.");
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, fontFamily:"'Outfit', sans-serif" }}>
+      <div style={{ width:"100%", maxWidth:420, textAlign:"center", marginBottom:24 }}>
+        <LogoShapeMap size={140} color={ac()} showText={true} style={{ marginBottom: 12 }} />
+        <div style={{ fontSize: 13, color: T.muted }}>{t("plataforma_av", lang)}</div>
+      </div>
+
+      <Card sx={{ width:"100%", maxWidth:420, padding:28, border:"1.5px solid " + T.border, position:"relative", overflow:"hidden" }}>
+        <div style={{ position:"absolute", top:-40, right:-40, width:120, height:120, borderRadius:"50%", background:ac() + "12", filter:"blur(20px)" }} />
+        
+        <div style={{ display:"flex", justifyContent:"center", marginBottom:16 }}>
+          <div style={{ width:56, height:56, borderRadius:16, background:ac() + "18", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={ac()} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+        </div>
+
+        <div style={{ fontSize:18, fontWeight:700, textAlign:"center", marginBottom:8, color:T.text }}>
+          {lang === "pt" ? "Ativação Necessária" : "Activation Required"}
+        </div>
+        
+        <p style={{ fontSize:14, color:T.muted, textAlign:"center", marginBottom:24, lineHeight:1.5 }}>
+          {lang === "pt" 
+            ? "Para liberar o acesso total ao painel e criar novas avaliações, ative a sua assinatura profissional." 
+            : "To unlock full dashboard access and create new physical evaluations, activate your professional subscription."}
+        </p>
+
+        {errorMsg && (
+          <div style={{ background:"#FEE2E2", color:"#991B1B", padding:12, borderRadius:8, fontSize:13, marginBottom:16, textAlign:"center" }}>
+            {errorMsg}
+          </div>
+        )}
+
+        <div style={{ background:T.bg, borderRadius:12, padding:16, marginBottom:24, border:"1px solid " + T.borderLight }}>
+          <div style={{ fontSize:12, fontWeight:700, textTransform:"uppercase", letterSpacing:0.5, color:T.muted, marginBottom:12 }}>
+            {lang === "pt" ? "O que está incluso no Plano Pro:" : "What's included in the Pro Plan:"}
+          </div>
+          
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {[
+              lang === "pt" ? "Alunos e Avaliações ilimitadas" : "Unlimited Students and Evaluations",
+              lang === "pt" ? "Gráficos de evolução física" : "Physical progress & evolution charts",
+              lang === "pt" ? "Exportação de PDFs personalizados" : "Premium customizable PDF reports",
+              lang === "pt" ? "Protocolos Pollock (7 e 3 dobras)" : "Pollock Skinfold protocols (7 & 3 folds)",
+              lang === "pt" ? "Anamnese flexível e reordenável" : "Flexible and reorderable anamnesis"
+            ].map(function(item, idx) {
+              return (
+                <div key={idx} style={{ display:"flex", alignItems:"center", gap:10, fontSize:13, color:T.text }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ac()} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span>{item}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <Btn full onClick={handleCheckout} disabled={loading}>
+          {loading 
+            ? (lang === "pt" ? "Processando..." : "Processing...") 
+            : (lang === "pt" ? "Assinar Plano Profissional" : "Subscribe to Pro Plan")}
+          </Btn>
+      </Card>
+
+      <div style={{ marginTop:24, display:"flex", gap:16 }}>
+        <button 
+          onClick={onLogout} 
+          style={{ background:"none", border:"none", color:T.muted, fontSize:13, cursor:"pointer", fontWeight:600, textDecoration:"underline" }}
+        >
+          {lang === "pt" ? "Sair da conta" : "Sign out"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── ROOT APP ──────────────────────────────────────────────────────────────────
 export default function App() {
   const [logged, setLogged] = useState(false);
   const [tab, setTab] = useState("home");
+  const [hasAccess, setHasAccess] = useState(true);
   const [user, setUser] = useState(null);
   const [loadingSession, setLoadingSession] = useState(true);
   
@@ -6297,10 +6491,29 @@ export default function App() {
         foto: trainerData.foto || "",
         telefone: trainerData.telefone || "",
         corPrimaria: trainerData.cor_primaria || "#1A1A2E",
-        lang: trainerData.lang || "pt"
+        lang: trainerData.lang || "pt",
+        stripeCustomerId: trainerData.stripe_customer_id || "",
+        subscriptionStatus: trainerData.subscription_status || "inactive",
+        subscriptionId: trainerData.subscription_id || "",
+        currentPeriodEnd: trainerData.current_period_end || null
       };
 
       setTrainer(mappedTrainer);
+
+      const status = trainerData.subscription_status || "inactive";
+      const periodEndStr = trainerData.current_period_end;
+      
+      let access = false;
+      if (status === "active") {
+        access = true;
+      }
+      if (status === "trialing" && periodEndStr) {
+        const periodEnd = new Date(periodEndStr);
+        if (periodEnd > new Date()) {
+          access = true;
+        }
+      }
+      setHasAccess(access);
       if (trainerData.settings) {
         var userSettings = trainerData.settings;
         var oldOrderStr = JSON.stringify(["Puxada Aberta", "Supino Reto", "Agachamento", "Leg Press 45\u00B0", "Rosca Direta", "Puxada Pulley", "Tr\u00EDceps Pulley"]);
@@ -6447,6 +6660,7 @@ export default function App() {
     localStorage.removeItem("avaliapro_remember_me");
     sessionStorage.removeItem("avaliapro_session_active");
     setLogged(false);
+    setHasAccess(true);
     resetStack();
   }
 
@@ -6662,6 +6876,15 @@ export default function App() {
   }
 
   if (!logged) return <><GlobalStyle/><LoginScreen onLogin={function() { setLogged(true); }} trainer={trainer} onUpdateTrainer={handleUpdateTrainer}/></>;
+
+  if (!hasAccess) {
+    return (
+      <>
+        <GlobalStyle />
+        <PaywallScreen trainer={trainer} onLogout={handleLogout} />
+      </>
+    );
+  }
 
   var content;
   if (cur && cur.type === "avaliacao") {
