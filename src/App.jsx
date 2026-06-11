@@ -6250,8 +6250,8 @@ function PaywallScreen({ trainer, onLogout }) {
 
   return (
     <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, fontFamily:"'Outfit', sans-serif" }}>
-      <div style={{ width:"100%", maxWidth:420, textAlign:"center", marginBottom:24 }}>
-        <LogoShapeMap size={140} color={ac()} showText={true} style={{ marginBottom: 12 }} />
+      <div style={{ width:"100%", maxWidth:420, textAlign:"center", marginBottom:24, display:"flex", flexDirection:"column", alignItems:"center" }}>
+        <LogoShapeMap size={140} color={ac()} showText={true} style={{ marginBottom: 12, marginLeft: "auto", marginRight: "auto" }} />
         <div style={{ fontSize: 13, color: T.muted }}>{t("plataforma_av", lang)}</div>
       </div>
 
