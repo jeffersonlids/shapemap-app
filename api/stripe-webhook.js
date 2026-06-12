@@ -20,6 +20,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'placeholder_key');
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder_key';
 
+function getIsoDate(timestamp) {
+  if (!timestamp) return null;
+  const date = new Date(timestamp * 1000);
+  return isNaN(date.getTime()) ? null : date.toISOString();
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -66,7 +72,7 @@ export default async function handler(req, res) {
 
         // Buscar detalhes da assinatura no Stripe para obter a data final do período pago
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-        const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+        const currentPeriodEndISO = getIsoDate(subscription.current_period_end);
 
         // Atualizar perfil do treinador no Supabase
         const { error } = await supabase
@@ -75,7 +81,7 @@ export default async function handler(req, res) {
             stripe_customer_id: customerId,
             subscription_status: subscription.status,
             subscription_id: subscriptionId,
-            current_period_end: currentPeriodEnd.toISOString(),
+            current_period_end: currentPeriodEndISO,
           })
           .eq('id', trainerId);
 
@@ -87,45 +93,62 @@ export default async function handler(req, res) {
       case 'customer.subscription.updated': {
         const subscription = event.data.object;
         const trainerId = subscription.metadata?.trainerId;
-        const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+        const customerId = subscription.customer;
+        const currentPeriodEndISO = getIsoDate(subscription.current_period_end);
 
-        if (!trainerId) {
-          console.warn('⚠️ Assinatura atualizada sem trainerId nos metadados.');
+        console.log(`[Webhook] Atualização de assinatura. Status: ${subscription.status}, End: ${currentPeriodEndISO}, TrainerId: ${trainerId}, CustomerId: ${customerId}`);
+
+        if (!trainerId && !customerId) {
+          console.warn('⚠️ Assinatura atualizada sem trainerId nos metadados e sem customerId.');
           break;
         }
 
-        const { error } = await supabase
+        let query = supabase
           .from('trainers')
           .update({
+            stripe_customer_id: customerId,
+            subscription_id: subscription.id,
             subscription_status: subscription.status,
-            current_period_end: currentPeriodEnd.toISOString(),
-          })
-          .eq('id', trainerId);
+            current_period_end: currentPeriodEndISO,
+          });
 
+        if (trainerId) {
+          query = query.eq('id', trainerId);
+        } else {
+          query = query.eq('stripe_customer_id', customerId);
+        }
+
+        const { error } = await query;
         if (error) throw error;
-        console.log(`✅ Assinatura Stripe renovada/atualizada para o Treinador: ${trainerId}`);
+        console.log(`✅ Assinatura Stripe renovada/atualizada para o Treinador (TrainerId: ${trainerId || 'N/A'}, CustomerId: ${customerId})`);
         break;
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object;
         const trainerId = subscription.metadata?.trainerId;
+        const customerId = subscription.customer;
 
-        if (!trainerId) {
-          console.warn('⚠️ Assinatura deletada sem trainerId nos metadados.');
+        if (!trainerId && !customerId) {
+          console.warn('⚠️ Assinatura deletada sem trainerId e sem customerId.');
           break;
         }
 
-        const { error } = await supabase
+        let query = supabase
           .from('trainers')
           .update({
             subscription_status: 'canceled',
-            // Mantemos a data para histórico, o controle de acesso detectará expirado
-          })
-          .eq('id', trainerId);
+          });
 
+        if (trainerId) {
+          query = query.eq('id', trainerId);
+        } else {
+          query = query.eq('stripe_customer_id', customerId);
+        }
+
+        const { error } = await query;
         if (error) throw error;
-        console.log(`❌ Assinatura Stripe cancelada/deletada para o Treinador: ${trainerId}`);
+        console.log(`❌ Assinatura Stripe cancelada/deletada para o Treinador (TrainerId: ${trainerId || 'N/A'}, CustomerId: ${customerId})`);
         break;
       }
 

@@ -24,7 +24,7 @@ const TR = {
     entrar: "Entrar",
     esqueci_senha: "Esqueci minha senha",
     nao_tem_conta: "Não tem conta?",
-    criar_conta_gratis: "Criar conta grátis",
+    criar_conta_gratis: "Criar conta",
     plataforma_av: "Plataforma de Avaliação Física",
     // Home
     avaliador: "Avaliador(a)",
@@ -332,7 +332,7 @@ const TR = {
     entrar: "Log in",
     esqueci_senha: "Forgot my password",
     nao_tem_conta: "Don't have an account?",
-    criar_conta_gratis: "Create free account",
+    criar_conta_gratis: "Create account",
     plataforma_av: "Physical Evaluation Platform",
     // Home
     avaliador: "Trainer",
@@ -638,7 +638,7 @@ const TR = {
     entrar: "Entrar",
     esqueci_senha: "Olvidé mi contraseña",
     nao_tem_conta: "¿No tienes cuenta?",
-    criar_conta_gratis: "Crear cuenta gratis",
+    criar_conta_gratis: "Crear cuenta",
     plataforma_av: "Plataforma de Evaluación Física",
     // Home
     avaliador: "Evaluador/a",
@@ -937,6 +937,76 @@ function t(key, lang = "pt") {
   const dict = TR[lang] || TR["pt"];
   const val = dict[key];
   return val !== undefined ? val : key;
+}
+
+function translateAuthError(msg, lang = "pt") {
+  if (!msg) return "";
+  const lower = msg.toLowerCase();
+  
+  const translations = {
+    pt: {
+      already_registered: "Este e-mail já está cadastrado.",
+      invalid_credentials: "E-mail ou senha incorretos.",
+      email_not_confirmed: "E-mail não confirmado. Por favor, verifique sua caixa de entrada.",
+      password_too_short: "A senha deve ter pelo menos 6 caracteres.",
+      invalid_email: "Insira um e-mail válido.",
+      token_expired: "O link de recuperação expirou ou é inválido.",
+      rate_limit: "Muitas solicitações seguidas. Por favor, tente novamente mais tarde.",
+      network: "Erro de rede. Verifique sua conexão.",
+      unknown: "Ocorreu um erro. Por favor, tente novamente."
+    },
+    es: {
+      already_registered: "Este correo electrónico ya está registrado.",
+      invalid_credentials: "Correo electrónico o contraseña incorrectos.",
+      email_not_confirmed: "Correo electrónico no verificado. Por favor, revise su bandeja de entrada.",
+      password_too_short: "La contraseña debe tener al menos 6 caracteres.",
+      invalid_email: "Ingrese un correo electrónico válido.",
+      token_expired: "El enlace de recuperación ha expirado o no es válido.",
+      rate_limit: "Demasiadas solicitudes. Por favor, inténtelo de nuevo más tarde.",
+      network: "Error de red. Verifique su conexión.",
+      unknown: "Ocurrió un error. Por favor, inténtelo de nuevo."
+    },
+    en: {
+      already_registered: "This email is already registered.",
+      invalid_credentials: "Invalid email or password.",
+      email_not_confirmed: "Email not confirmed. Please check your inbox.",
+      password_too_short: "Password must be at least 6 characters.",
+      invalid_email: "Please enter a valid email.",
+      token_expired: "The recovery link has expired or is invalid.",
+      rate_limit: "Too many requests. Please try again later.",
+      network: "Network error. Please check your connection.",
+      unknown: "An error occurred. Please try again."
+    }
+  };
+
+  const tDict = translations[lang] || translations["pt"];
+
+  if (lower.includes("already registered") || lower.includes("already_registered") || lower.includes("user_already_exists") || lower.includes("user already exists")) {
+    return tDict.already_registered;
+  }
+  if (lower.includes("invalid grant") || lower.includes("invalid login credentials") || lower.includes("invalid_credentials") || lower.includes("double check")) {
+    return tDict.invalid_credentials;
+  }
+  if (lower.includes("email not confirmed") || lower.includes("email_not_confirmed")) {
+    return tDict.email_not_confirmed;
+  }
+  if (lower.includes("password should be at least") || lower.includes("password_too_short") || lower.includes("should be at least 6 characters")) {
+    return tDict.password_too_short;
+  }
+  if (lower.includes("valid email") || lower.includes("invalid email") || lower.includes("email is not valid")) {
+    return tDict.invalid_email;
+  }
+  if (lower.includes("token") || lower.includes("expired") || lower.includes("invalid_token") || lower.includes("not found")) {
+    return tDict.token_expired;
+  }
+  if (lower.includes("rate limit") || lower.includes("too many requests") || lower.includes("over_limit") || lower.includes("rate_limit")) {
+    return tDict.rate_limit;
+  }
+  if (lower.includes("network") || lower.includes("failed to fetch")) {
+    return tDict.network;
+  }
+  
+  return msg;
 }
 
 // ── CONVERSÕES DE SISTEMA DE MEDIDAS (MÉTRICO <-> IMPERIAL) ───────────────────
@@ -2709,17 +2779,24 @@ function LanguageSelector({ lang, onChange, align = "right" }) {
 function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
   const lang = (trainer && trainer.lang) || "pt";
   const [email, setEmail] = useState("");
+  const [confirmEmail, setConfirmEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isResetMode, setIsResetMode] = useState(false);
+  const [recoveryEmailSent, setRecoveryEmailSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
 
   async function go() {
     const trimmedEmail = email.trim();
-    if (!trimmedEmail || !senha || (isSignUp && !nome)) {
+    if (!trimmedEmail || !senha || (isSignUp && (!nome || !confirmEmail))) {
       setErrorMsg(lang === "pt" ? "Preencha todos os campos" : "Please fill in all fields");
+      return;
+    }
+    if (isSignUp && trimmedEmail.toLowerCase() !== confirmEmail.trim().toLowerCase()) {
+      setErrorMsg(lang === "pt" ? "Os e-mails informados não coincidem" : lang === "es" ? "Los correos electrónicos no coinciden" : "The emails entered do not match");
       return;
     }
     setLoading(true);
@@ -2736,7 +2813,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
         }
       });
       if (error) {
-        setErrorMsg(error.message);
+        setErrorMsg(translateAuthError(error.message, lang));
         setLoading(false);
       } else {
         setLoading(false);
@@ -2757,7 +2834,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
         password: senha
       });
       if (error) {
-        setErrorMsg(error.message);
+        setErrorMsg(translateAuthError(error.message, lang));
         setLoading(false);
       } else {
         localStorage.setItem("avaliapro_remember_me", rememberMe ? "true" : "false");
@@ -2768,105 +2845,287 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
     }
   }
 
-  const titleText = isSignUp 
-    ? (lang === "pt" ? "Criar conta grátis" : "Create free account")
-    : t("entrar_conta", lang);
-  const subtitleText = isSignUp
-    ? (lang === "pt" ? "Cadastre-se para começar" : "Sign up to get started")
-    : t("acesse_sua_area", lang);
-  const buttonText = loading 
-    ? t("entrando", lang) 
+  async function handleSendRecovery() {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setErrorMsg(lang === "pt" ? "Preencha o campo de e-mail" : lang === "es" ? "Por favor ingrese su correo electrónico" : "Please enter your email");
+      return;
+    }
+    setLoading(true);
+    setErrorMsg("");
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+        redirectTo: window.location.origin
+      });
+      if (error) {
+        setErrorMsg(translateAuthError(error.message, lang));
+      } else {
+        setRecoveryEmailSent(true);
+        setErrorMsg("");
+      }
+    } catch (err) {
+      setErrorMsg(translateAuthError(err.message || err, lang));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const titleText = isResetMode 
+    ? (lang === "pt" ? "Recuperar senha" : lang === "es" ? "Recuperar contraseña" : "Recover password")
     : (isSignUp 
-        ? (lang === "pt" ? "Criar Conta" : "Create Account")
-        : t("entrar", lang));
+        ? (lang === "pt" ? "Criar conta" : "Create account")
+        : t("entrar_conta", lang));
+
+  const subtitleText = isResetMode
+    ? (lang === "pt" ? "Insira seu e-mail para receber o link de redefinição" : lang === "es" ? "Ingrese su correo para recibir el enlace de restablecimiento" : "Enter your email to receive the reset link")
+    : (isSignUp
+        ? (lang === "pt" ? "Cadastre-se para começar" : "Sign up to get started")
+        : t("acesse_sua_area", lang));
+
+  const buttonText = loading 
+    ? (isResetMode
+        ? (lang === "pt" ? "Enviando..." : lang === "es" ? "Enviando..." : "Sending...")
+        : t("entrando", lang)) 
+    : (isResetMode
+        ? (lang === "pt" ? "Enviar Link de Recuperação" : lang === "es" ? "Enviar enlace" : "Send Recovery Link")
+        : (isSignUp 
+            ? (lang === "pt" ? "Criar Conta" : "Create Account")
+            : t("entrar", lang)));
 
   return (
     <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, position: "relative" }}>
-      <div style={{ position: "absolute", top: 16, right: 16, zIndex: 100 }}>
-        <LanguageSelector
-          lang={lang}
-          onChange={function(newLang) {
-            if (onUpdateTrainer && trainer) {
-              onUpdateTrainer(Object.assign({}, trainer, { lang: newLang }));
-            }
-          }}
-          align="right"
-        />
-      </div>
-
       <div className="fu" style={{ textAlign:"center", marginBottom:30, display:"flex", flexDirection:"column", alignItems:"center" }}>
         <LogoShapeMap size={180} color={ac()} showText={true} style={{ marginBottom: 4 }} />
         <div style={{ fontSize:13, color:T.muted, marginTop:3 }}>{t("plataforma_av", lang)}</div>
       </div>
+
       <Card sx={{ width:"100%", maxWidth:380, padding:28 }}>
         <div style={{ fontSize:17, fontWeight:700, marginBottom:4 }}>{titleText}</div>
         <div style={{ fontSize:13, color:T.muted, marginBottom:22 }}>{subtitleText}</div>
+        
         {errorMsg && (
           <div style={{ background:"#FEE2E2", color:"#991B1B", padding:10, borderRadius:8, fontSize:13, marginBottom:16 }}>
             {errorMsg}
           </div>
         )}
-        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-          {isSignUp && (
-            <FInput label={lang === "pt" ? "Nome Completo" : "Full Name"} value={nome} onChange={setNome} placeholder="Seu nome completo"/>
-          )}
-          <FInput label={t("email", lang)} value={email} onChange={setEmail} type="email" placeholder="seu@email.com"/>
-          <FInput label={t("senha", lang)} value={senha} onChange={setSenha} type="password" placeholder="••••••••"/>
-          
-          <div 
-            style={{ 
-              display: "flex", 
-              alignItems: "center", 
-              gap: 8, 
-              userSelect: "none", 
-              cursor: "pointer",
-              padding: "2px 0",
-              marginTop: -2,
-              marginBottom: 4
-            }}
-            onClick={function() { setRememberMe(!rememberMe); }}
-          >
-            <div style={{
-              width: 18,
-              height: 18,
-              borderRadius: 6,
-              border: "1.5px solid " + (rememberMe ? ac() : T.border),
-              background: rememberMe ? ac() : "transparent",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              transition: "all 0.15s ease",
-              boxShadow: rememberMe ? "0 2px 8px " + ac() + "33" : "none"
-            }}>
-              {rememberMe && (
-                <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                  <path d="M1.5 4L3.75 6.25L8.5 1.5" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              )}
-            </div>
-            <span style={{ fontSize: 13, color: T.text, fontWeight: 500 }}>
-              {t("mantenha_me_conectado", lang)}
-            </span>
-          </div>
 
-          <Btn full onClick={go} disabled={loading}>{buttonText}</Btn>
+        {/* Idioma / Language Selector positioned right above the login info inputs */}
+        <div style={{ marginBottom: 18, display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 13, color: T.muted, fontWeight: 500 }}>
+            {lang === "pt" ? "Idioma:" : lang === "es" ? "Idioma:" : "Language:"}
+          </span>
+          <LanguageSelector
+            lang={lang}
+            onChange={function(newLang) {
+              if (onUpdateTrainer && trainer) {
+                onUpdateTrainer(Object.assign({}, trainer, { lang: newLang }));
+              }
+            }}
+            align="left"
+          />
+        </div>
+
+        {isResetMode && recoveryEmailSent ? (
+          <div style={{ background: "#DCFCE7", color: "#166534", padding: 16, borderRadius: 12, fontSize: 14, textAlign: "center", lineHeight: 1.5 }}>
+            {lang === "pt"
+              ? "Link de recuperação enviado com sucesso! Verifique sua caixa de entrada."
+              : lang === "es"
+                ? "¡Enlace de recuperación enviado con éxito! Revise su bandeja de entrada."
+                : "Recovery link sent successfully! Please check your inbox."}
+            <Btn full variant="ghost" onClick={function() { setIsResetMode(false); setRecoveryEmailSent(false); }} style={{ marginTop: 14 }}>
+              {lang === "pt" ? "Voltar ao Login" : lang === "es" ? "Volver al Login" : "Back to Login"}
+            </Btn>
+          </div>
+        ) : (
+          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+            {isResetMode ? (
+              <>
+                <FInput label={t("email", lang)} value={email} onChange={setEmail} type="email" placeholder="seu@email.com"/>
+                <Btn full onClick={handleSendRecovery} disabled={loading}>{buttonText}</Btn>
+                <div style={{ textAlign: "center", marginTop: 4 }}>
+                  <span 
+                    style={{ fontSize:13, color:ac(), cursor:"pointer", fontWeight:600 }}
+                    onClick={function() { setIsResetMode(false); setErrorMsg(""); }}
+                  >
+                    {lang === "pt" ? "Voltar ao Login" : lang === "es" ? "Volver al Login" : "Back to Login"}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <>
+                {isSignUp && (
+                  <FInput label={lang === "pt" ? "Nome Completo" : "Full Name"} value={nome} onChange={setNome} placeholder="Seu nome completo"/>
+                )}
+                <FInput label={t("email", lang)} value={email} onChange={setEmail} type="email" placeholder="seu@email.com"/>
+                {isSignUp && (
+                  <FInput label={lang === "pt" ? "Confirmar E-mail" : lang === "es" ? "Confirmar Correo Electrónico" : "Confirm Email"} value={confirmEmail} onChange={setConfirmEmail} type="email" placeholder="seu@email.com"/>
+                )}
+                <FInput label={t("senha", lang)} value={senha} onChange={setSenha} type="password" placeholder="••••••••"/>
+                
+                {!isSignUp && (
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: -6 }}>
+                    <span 
+                      style={{ fontSize: 12, color: ac(), cursor: "pointer", fontWeight: 500 }}
+                      onClick={function() { setIsResetMode(true); setErrorMsg(""); }}
+                    >
+                      {lang === "pt" ? "Esqueci minha senha" : lang === "es" ? "Olvidé mi contraseña" : "Forgot my password"}
+                    </span>
+                  </div>
+                )}
+
+                <div 
+                  style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: 8, 
+                    userSelect: "none", 
+                    cursor: "pointer",
+                    padding: "2px 0",
+                    marginTop: -2,
+                    marginBottom: 4
+                  }}
+                  onClick={function() { setRememberMe(!rememberMe); }}
+                >
+                  <div style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: 6,
+                    border: "1.5px solid " + (rememberMe ? ac() : T.border),
+                    background: rememberMe ? ac() : "transparent",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.15s ease",
+                    boxShadow: rememberMe ? "0 2px 8px " + ac() + "33" : "none"
+                  }}>
+                    {rememberMe && (
+                      <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                        <path d="M1.5 4L3.75 6.25L8.5 1.5" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </div>
+                  <span style={{ fontSize: 13, color: T.text, fontWeight: 500 }}>
+                    {t("mantenha_me_conectado", lang)}
+                  </span>
+                </div>
+
+                <Btn full onClick={go} disabled={loading}>{buttonText}</Btn>
+              </>
+            )}
+          </div>
+        )}
+      </Card>
+      
+      {!isResetMode && (
+        <div style={{ marginTop:28, textAlign:"center" }}>
+          <span style={{ fontSize:13, color:T.muted }}>
+            {isSignUp 
+              ? (lang === "pt" ? "Já tem uma conta?" : "Already have an account?")
+              : t("nao_tem_conta", lang)}{" "}
+          </span>
+          <span 
+            style={{ fontSize:13, color:ac(), cursor:"pointer", fontWeight:600 }}
+            onClick={function() { setIsSignUp(!isSignUp); setErrorMsg(""); }}
+          >
+            {isSignUp 
+              ? (lang === "pt" ? "Entrar" : "Log in")
+              : t("criar_conta_gratis", lang)}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── RESET PASSWORD SCREEN ──────────────────────────────────────────────────────
+function ResetPasswordScreen({ trainer, onSaved, onCancel }) {
+  const lang = (trainer && trainer.lang) || "pt";
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  async function handleReset() {
+    const pwd = newPassword.trim();
+    const conf = confirmPassword.trim();
+    if (!pwd || !conf) {
+      setErrorMsg(lang === "pt" ? "Preencha todos os campos" : lang === "es" ? "Por favor complete todos los campos" : "Please fill in all fields");
+      return;
+    }
+    if (pwd !== conf) {
+      setErrorMsg(lang === "pt" ? "As senhas não coincidem" : lang === "es" ? "Las contraseñas no coinciden" : "Passwords do not match");
+      return;
+    }
+    if (pwd.length < 6) {
+      setErrorMsg(lang === "pt" ? "A senha deve ter pelo menos 6 caracteres" : lang === "es" ? "La contraseña debe tener al menos 6 caracteres" : "Password must be at least 6 characters");
+      return;
+    }
+
+    setLoading(true);
+    setErrorMsg("");
+    try {
+      const { error } = await supabase.auth.updateUser({ password: pwd });
+      if (error) {
+        setErrorMsg(translateAuthError(error.message, lang));
+      } else {
+        alert(lang === "pt" ? "Senha alterada com sucesso!" : lang === "es" ? "¡Contraseña cambiada con éxito!" : "Password changed successfully!");
+        onSaved();
+      }
+    } catch (err) {
+      setErrorMsg(translateAuthError(err.message || err, lang));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24 }}>
+      <div className="fu" style={{ textAlign:"center", marginBottom:30, display:"flex", flexDirection:"column", alignItems:"center" }}>
+        <LogoShapeMap size={180} color={ac()} showText={true} style={{ marginBottom: 4 }} />
+        <div style={{ fontSize:13, color:T.muted, marginTop:3 }}>{t("plataforma_av", lang)}</div>
+      </div>
+
+      <Card sx={{ width:"100%", maxWidth:380, padding:28 }}>
+        <div style={{ fontSize:17, fontWeight:700, marginBottom:4 }}>
+          {lang === "pt" ? "Redefinir senha" : lang === "es" ? "Restablecer contraseña" : "Reset password"}
+        </div>
+        <div style={{ fontSize:13, color:T.muted, marginBottom:22 }}>
+          {lang === "pt" ? "Defina sua nova senha de acesso" : lang === "es" ? "Defina su nueva contraseña de acesso" : "Set your new access password"}
+        </div>
+
+        {errorMsg && (
+          <div style={{ background:"#FEE2E2", color:"#991B1B", padding:10, borderRadius:8, fontSize:13, marginBottom:16 }}>
+            {errorMsg}
+          </div>
+        )}
+
+        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          <FInput 
+            label={lang === "pt" ? "Nova Senha" : lang === "es" ? "Nueva Contraseña" : "New Password"} 
+            value={newPassword} 
+            onChange={setNewPassword} 
+            type="password" 
+            placeholder="••••••••"
+          />
+          <FInput 
+            label={lang === "pt" ? "Confirmar Senha" : lang === "es" ? "Confirmar Contraseña" : "Confirm Password"} 
+            value={confirmPassword} 
+            onChange={setConfirmPassword} 
+            type="password" 
+            placeholder="••••••••"
+          />
+
+          <Btn full onClick={handleReset} disabled={loading}>
+            {loading 
+              ? (lang === "pt" ? "Salvando..." : lang === "es" ? "Guardando..." : "Saving...") 
+              : (lang === "pt" ? "Salvar Senha" : lang === "es" ? "Guardar Contraseña" : "Save Password")}
+          </Btn>
+
+          <Btn full variant="ghost" onClick={onCancel} disabled={loading}>
+            {lang === "pt" ? "Cancelar" : lang === "es" ? "Cancelar" : "Cancel"}
+          </Btn>
         </div>
       </Card>
-      <div style={{ marginTop:28, textAlign:"center" }}>
-        <span style={{ fontSize:13, color:T.muted }}>
-          {isSignUp 
-            ? (lang === "pt" ? "Já tem uma conta?" : "Already have an account?")
-            : t("nao_tem_conta", lang)}{" "}
-        </span>
-        <span 
-          style={{ fontSize:13, color:ac(), cursor:"pointer", fontWeight:600 }}
-          onClick={function() { setIsSignUp(!isSignUp); setErrorMsg(""); }}
-        >
-          {isSignUp 
-            ? (lang === "pt" ? "Entrar" : "Log in")
-            : t("criar_conta_gratis", lang)}
-        </span>
-      </div>
     </div>
   );
 }
@@ -3161,28 +3420,25 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
                 );
               })}
               <div style={{ position: "relative", width: 36, height: 36 }}>
-                <button
-                  onClick={function() { pickerRef.current.click(); }}
+                <div
                   style={{
                     width: 36,
                     height: 36,
                     borderRadius: "50%",
                     background: !CORES.includes(trainer.corPrimaria) ? trainer.corPrimaria : "linear-gradient(45deg, red, orange, yellow, green, blue, purple)",
                     border: "3px solid " + (!CORES.includes(trainer.corPrimaria) ? "#000" : "transparent"),
-                    cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     transform: !CORES.includes(trainer.corPrimaria) ? "scale(1.18)" : "scale(1)",
                     transition: "all 0.12s",
-                    boxShadow: "0 2px 5px rgba(0,0,0,0.15)"
+                    boxShadow: "0 2px 5px rgba(0,0,0,0.15)",
+                    pointerEvents: "none"
                   }}
-                  title={t("cor_personalizada", lang)}
                 >
                   <span style={{ fontSize: 18, color: "#fff", textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>+</span>
-                </button>
+                </div>
                 <input
-                  ref={pickerRef}
                   type="color"
                   value={trainer.corPrimaria && trainer.corPrimaria.startsWith("#") && trainer.corPrimaria.length === 7 ? trainer.corPrimaria : "#1A1A2E"}
                   onChange={function(e) {
@@ -3190,7 +3446,18 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
                     _ACC = e.target.value;
                     onUpdateTrainer(nextTrainer);
                   }}
-                  style={{ position: "absolute", top: 0, left: 0, opacity: 0, width: "100%", height: "100%", cursor: "pointer", pointerEvents: "none" }}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    opacity: 0,
+                    width: "100%",
+                    height: "100%",
+                    cursor: "pointer",
+                    pointerEvents: "auto",
+                    borderRadius: "50%"
+                  }}
+                  title={t("cor_personalizada", lang)}
                 />
               </div>
             </div>
@@ -6018,6 +6285,85 @@ function PerfilScreen({ trainer, onUpdate, onLogout }) {
   const [cropImageSrc, setCropImageSrc] = useState(null);
   const fileRef = useRef();
 
+  // Novos states para alteração de credenciais
+  const [showEditCredentials, setShowEditCredentials] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loadingCredentials, setLoadingCredentials] = useState(false);
+  const [errorCredentials, setErrorCredentials] = useState("");
+
+  async function saveCredentials() {
+    const emailTrimmed = newEmail.trim();
+    if (!emailTrimmed) {
+      setErrorCredentials(lang === "pt" ? "O e-mail não pode ficar em branco" : "Email cannot be empty");
+      return;
+    }
+
+    if (newPassword) {
+      if (newPassword.length < 6) {
+        setErrorCredentials(lang === "pt" ? "A senha deve ter no mínimo 6 caracteres" : "Password must be at least 6 characters");
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setErrorCredentials(lang === "pt" ? "As senhas não coincidem" : "Passwords do not match");
+        return;
+      }
+    }
+
+    setLoadingCredentials(true);
+    setErrorCredentials("");
+
+    try {
+      const emailChanged = emailTrimmed.toLowerCase() !== trainer.email.toLowerCase();
+      
+      if (emailChanged) {
+        // Atualizar auth do Supabase
+        const { error: authError } = await supabase.auth.updateUser({ email: emailTrimmed });
+        if (authError) throw authError;
+
+        // Atualizar tabela trainers
+        const { error: dbError } = await supabase
+          .from('trainers')
+          .update({ email: emailTrimmed })
+          .eq('id', trainer.id);
+        if (dbError) throw dbError;
+
+        // Atualizar na Stripe
+        if (trainer.stripeCustomerId) {
+          const stripeRes = await fetch("/api/update-stripe-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ customerId: trainer.stripeCustomerId, email: emailTrimmed })
+          });
+          const stripeData = await stripeRes.json();
+          if (!stripeRes.ok) {
+            console.error("Erro ao sincronizar e-mail na Stripe:", stripeData.error);
+          }
+        }
+
+        // Atualizar local state
+        onUpdate(Object.assign({}, trainer, { email: emailTrimmed }));
+      }
+
+      if (newPassword) {
+        const { error: pwdError } = await supabase.auth.updateUser({ password: newPassword });
+        if (pwdError) throw pwdError;
+      }
+
+      alert(lang === "pt" 
+        ? "Alterações salvas com sucesso!" + (emailChanged ? " Verifique sua caixa de entrada para confirmar o novo e-mail." : "")
+        : "Changes saved successfully!" + (emailChanged ? " Please verify your inbox to confirm the new email." : "")
+      );
+      setShowEditCredentials(false);
+    } catch (err) {
+      console.error("Erro ao atualizar credenciais:", err);
+      setErrorCredentials(translateAuthError(err.message, lang) || "Erro desconhecido");
+    } finally {
+      setLoadingCredentials(false);
+    }
+  }
+
   function handleFoto(e) {
     var f = e.target.files[0];
     if (!f) return;
@@ -6043,6 +6389,61 @@ function PerfilScreen({ trainer, onUpdate, onLogout }) {
           }}
         />
       )}
+      {showEditCredentials && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:400, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
+          <div style={{ background:T.surface, borderRadius:20, padding:"28px 24px", width:"100%", maxWidth:360, boxShadow:"0 20px 60px rgba(0,0,0,0.2)" }}>
+            <div style={{ fontSize:17, fontWeight:700, marginBottom:4 }}>
+              {lang === "pt" ? "Alterar login e senha" : lang === "es" ? "Cambiar login y contraseña" : "Change login and password"}
+            </div>
+            <div style={{ fontSize:13, color:T.muted, marginBottom:18 }}>
+              {lang === "pt" 
+                ? "Atualize seu e-mail de acesso ou altere a sua senha." 
+                : lang === "es" 
+                  ? "Actualice su correo de acceso o cambie su contraseña." 
+                  : "Update your login email or change your password."}
+            </div>
+
+            {errorCredentials && (
+              <div style={{ background:"#FEE2E2", color:"#991B1B", padding:10, borderRadius:8, fontSize:13, marginBottom:16 }}>
+                {errorCredentials}
+              </div>
+            )}
+
+            <div style={{ display:"flex", flexDirection:"column", gap:14, marginBottom:22 }}>
+              <FInput 
+                label={lang === "pt" ? "Novo E-mail" : "New Email"} 
+                value={newEmail} 
+                onChange={setNewEmail} 
+                type="email"
+              />
+              <FInput 
+                label={lang === "pt" ? "Nova Senha" : "New Password"} 
+                value={newPassword} 
+                onChange={setNewPassword} 
+                type="password" 
+                placeholder={lang === "pt" ? "Preencha para alterar" : "Fill to change"}
+              />
+              {newPassword && (
+                <FInput 
+                  label={lang === "pt" ? "Confirmar Nova Senha" : "Confirm New Password"} 
+                  value={confirmPassword} 
+                  onChange={setConfirmPassword} 
+                  type="password"
+                />
+              )}
+            </div>
+
+            <div style={{ display:"flex", gap:10 }}>
+              <Btn full variant="ghost" onClick={function() { setShowEditCredentials(false); }} disabled={loadingCredentials}>
+                {lang === "pt" ? "Cancelar" : "Cancel"}
+              </Btn>
+              <Btn full onClick={saveCredentials} disabled={loadingCredentials}>
+                {loadingCredentials ? (lang === "pt" ? "Salvando..." : "Saving...") : (lang === "pt" ? "Salvar" : "Save")}
+              </Btn>
+            </div>
+          </div>
+        </div>
+      )}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:22 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <div style={{ fontSize:22, fontWeight:800 }}>{t("meu_perfil", lang)}</div>
@@ -6062,64 +6463,24 @@ function PerfilScreen({ trainer, onUpdate, onLogout }) {
           </div>
           <div>
             <div style={{ fontWeight:700, fontSize:16 }}>{trainer.nome || "—"}</div>
-            <div style={{ fontSize:13, color:T.muted, marginTop:1 }}>{trainer.email}</div>
+            <div style={{ fontSize:13, color:T.muted, marginTop:1, display:"flex", alignItems:"center", gap:8 }}>
+              <span>{trainer.email}</span>
+              <button 
+                onClick={function() { 
+                  setNewEmail(trainer.email);
+                  setNewPassword("");
+                  setConfirmPassword("");
+                  setErrorCredentials("");
+                  setShowEditCredentials(true); 
+                }} 
+                style={{ background: "none", border: "none", color: ac(), fontSize: 12, fontWeight: 600, cursor: "pointer", padding: 0, textDecoration: "underline" }}
+              >
+                {lang === "pt" ? "Alterar" : lang === "es" ? "Cambiar" : "Change"}
+              </button>
+            </div>
           </div>
         </div>
         <input ref={fileRef} type="file" accept="image/*" onChange={handleFoto} style={{ display:"none" }}/>
-      </Card>
-      
-      {/* Idioma Card */}
-      <Card sx={{ padding:18, marginBottom:14, overflow:"visible", position:"relative", zIndex:50 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <div style={{ width:3, height:17, borderRadius:2, background:ac() }}/>
-            <div style={{ fontSize:12, fontWeight:700, color:ac(), letterSpacing:1.2, textTransform:"uppercase" }}>{t("idioma", lang)}</div>
-          </div>
-          <LanguageSelector
-            lang={lang}
-            onChange={function(newLang) {
-              onUpdate(Object.assign({}, trainer, { lang: newLang }));
-            }}
-            align="right"
-          />
-        </div>
-      </Card>
-
-      {/* Sistema de Medidas Card */}
-      <Card sx={{ padding:18, marginBottom:14 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <div style={{ width:3, height:17, borderRadius:2, background:ac() }}/>
-            <div style={{ fontSize:12, fontWeight:700, color:ac(), letterSpacing:1.2, textTransform:"uppercase" }}>{t("sistema_medidas", lang)}</div>
-          </div>
-          <div style={{ display: "flex", gap: 6 }}>
-            {[
-              { value: "metric", label: t("metrico", lang) },
-              { value: "imperial", label: t("imperial", lang) }
-            ].map(function(o) {
-              const active = (trainer.unitSystem || "metric") === o.value;
-              return (
-                <button
-                  key={o.value}
-                  onClick={function() { onUpdate(Object.assign({}, trainer, { unitSystem: o.value })); }}
-                  style={{
-                    padding: "8px 12px",
-                    borderRadius: 8,
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    fontSize: 12,
-                    border: "1.5px solid " + (active ? ac() : T.border),
-                    background: active ? ac() : T.surface,
-                    color: active ? "#fff" : T.sub,
-                    transition: "all 0.15s"
-                  }}
-                >
-                  {o.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
       </Card>
 
       {/* Assinatura Card */}
@@ -6135,7 +6496,7 @@ function PerfilScreen({ trainer, onUpdate, onLogout }) {
             <div>
               <div style={{ fontSize:13, fontWeight:600, color:T.text }}>
                 {lang === "pt" ? "Status do Plano" : "Plan Status"}:{" "}
-                <span style={{ color: trainer.subscriptionStatus === "active" ? T.success : T.danger, textTransform:"uppercase", fontWeight:700 }}>
+                <span style={{ color: (trainer.subscriptionStatus === "active" || trainer.subscriptionStatus === "trialing") ? T.success : T.danger, textTransform:"uppercase", fontWeight:700 }}>
                   {trainer.subscriptionStatus || "INATIVO"}
                 </span>
               </div>
@@ -6196,6 +6557,86 @@ function PerfilScreen({ trainer, onUpdate, onLogout }) {
               </Btn>
             )}
           </div>
+        </div>
+      </Card>
+      
+      {/* Idioma Card */}
+      <Card sx={{ padding:18, marginBottom:14, overflow:"visible", position:"relative", zIndex:50 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <div style={{ width:3, height:17, borderRadius:2, background:ac() }}/>
+            <div style={{ fontSize:12, fontWeight:700, color:ac(), letterSpacing:1.2, textTransform:"uppercase" }}>{t("idioma", lang)}</div>
+          </div>
+          <LanguageSelector
+            lang={lang}
+            onChange={function(newLang) {
+              onUpdate(Object.assign({}, trainer, { lang: newLang }));
+            }}
+            align="right"
+          />
+        </div>
+      </Card>
+
+      {/* Sistema de Medidas Card */}
+      <Card sx={{ padding:18, marginBottom:14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <div style={{ width:3, height:17, borderRadius:2, background:ac() }}/>
+            <div style={{ fontSize:12, fontWeight:700, color:ac(), letterSpacing:1.2, textTransform:"uppercase" }}>{t("sistema_medidas", lang)}</div>
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            {[
+              { value: "metric", label: t("metrico", lang) },
+              { value: "imperial", label: t("imperial", lang) }
+            ].map(function(o) {
+              const active = (trainer.unitSystem || "metric") === o.value;
+              return (
+                <button
+                  key={o.value}
+                  onClick={function() { onUpdate(Object.assign({}, trainer, { unitSystem: o.value })); }}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    fontSize: 12,
+                    border: "1.5px solid " + (active ? ac() : T.border),
+                    background: active ? ac() : T.surface,
+                    color: active ? "#fff" : T.sub,
+                    transition: "all 0.15s"
+                  }}
+                >
+                  {o.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </Card>
+
+      {/* Suporte Card */}
+      <Card sx={{ padding:18, marginBottom:14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <div style={{ width:3, height:17, borderRadius:2, background:ac() }}/>
+            <div style={{ fontSize:12, fontWeight:700, color:ac(), letterSpacing:1.2, textTransform:"uppercase" }}>
+              {lang === "pt" ? "Suporte" : lang === "es" ? "Soporte" : "Support"}
+            </div>
+          </div>
+          <Btn 
+            small 
+            variant="outline" 
+            onClick={function() {
+              window.open("https://wa.me/5516993419103?text=ShapeMap", "_blank");
+            }}
+            icon={
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.458L0 24zm6.273-3.66c1.65.981 3.27 1.488 4.966 1.492 5.568.002 10.105-4.519 10.108-10.089.001-2.699-1.047-5.236-2.951-7.143C16.55 2.7 14.02 1.65 11.996 1.65c-5.57 0-10.11 4.519-10.113 10.091-.001 1.884.502 3.725 1.458 5.34l-1.026 3.744 3.848-1.009zm11.306-7.855c-.302-.15-.178-.25-.178-.25s-.853-.943-.984-1.07c-.131-.128-.31-.19-.481-.027-.37.354-.789.81-.963.992-.174.182-.363.201-.664.05-3.048-1.523-4.148-3.417-4.437-3.91-.289-.492-.03-.757.22-.857.3-.12.44-.26.54-.39.1-.13.15-.22.2-.33.05-.11.02-.2-.03-.31-.05-.1-.45-1.08-.62-1.49-.16-.4-.36-.33-.49-.33H7.66c-.19 0-.44.07-.67.32-.23.25-.87.85-.87 2.07 0 1.22.89 2.4 1.01 2.56.12.16 1.76 2.68 4.26 3.76 2.5.1.84-.23 1.15-.36a3.543 3.543 0 001.63-.99c.39-.39.67-.85.76-1.12.09-.27.04-.51-.01-.61z"/>
+              </svg>
+            }
+          >
+            WhatsApp
+          </Btn>
         </div>
       </Card>
 
@@ -6374,6 +6815,7 @@ function PaywallScreen({ trainer, onLogout }) {
 // ── ROOT APP ──────────────────────────────────────────────────────────────────
 export default function App() {
   const [logged, setLogged] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [tab, setTab] = useState("home");
   const [hasAccess, setHasAccess] = useState(true);
   const [user, setUser] = useState(null);
@@ -6457,7 +6899,13 @@ export default function App() {
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(function(event, session) {
-      if (session) {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsResettingPassword(true);
+        if (session) {
+          setUser(session.user);
+          setLogged(true);
+        }
+      } else if (session) {
         sessionStorage.setItem("avaliapro_session_active", "true");
         setUser(session.user);
         setLogged(true);
@@ -6917,6 +7365,27 @@ export default function App() {
           </div>
         </div>
       </div>
+    );
+  }
+
+  if (isResettingPassword) {
+    return (
+      <>
+        <GlobalStyle />
+        <ResetPasswordScreen 
+          trainer={trainer} 
+          onSaved={function() {
+            setIsResettingPassword(false);
+            if (user) {
+              loadUserData(user);
+            }
+          }}
+          onCancel={function() {
+            setIsResettingPassword(false);
+            handleLogout();
+          }}
+        />
+      </>
     );
   }
 
