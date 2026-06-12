@@ -2420,7 +2420,7 @@ function ToggleGroup({ label, value, onChange, options, clearable }) {
   );
 }
 
-function Btn({ children, onClick, variant, full, small, disabled, icon }) {
+function Btn({ children, onClick, variant, full, small, disabled, icon, style }) {
   const v = variant || "primary";
   const [hov, setHov] = useState(false);
   const styles = {
@@ -2436,7 +2436,7 @@ function Btn({ children, onClick, variant, full, small, disabled, icon }) {
       disabled={disabled}
       onMouseEnter={function() { setHov(true); }}
       onMouseLeave={function() { setHov(false); }}
-      style={Object.assign({ display:"inline-flex", alignItems:"center", justifyContent:"center", gap:7, borderRadius:10, fontWeight:600, cursor: disabled ? "not-allowed" : "pointer", transition:"all 0.15s", fontFamily:"'Outfit', sans-serif", fontSize: small ? 13 : 15, padding: small ? "9px 16px" : "13px 22px", width: full ? "100%" : "auto", opacity: disabled ? 0.5 : 1, whiteSpace:"nowrap" }, styles[v])}
+      style={Object.assign({ display:"inline-flex", alignItems:"center", justifyContent:"center", gap:7, borderRadius:10, fontWeight:600, cursor: disabled ? "not-allowed" : "pointer", transition:"all 0.15s", fontFamily:"'Outfit', sans-serif", fontSize: small ? 13 : 15, padding: small ? "9px 16px" : "13px 22px", width: full ? "100%" : "auto", opacity: disabled ? 0.5 : 1, whiteSpace:"nowrap" }, styles[v], style || {})}
     >
       {icon && <span style={{ display:"flex", alignItems:"center" }}>{icon}</span>}
       {children}
