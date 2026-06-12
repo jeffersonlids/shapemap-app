@@ -6763,7 +6763,11 @@ function PaywallScreen({ trainer, onLogout }) {
           </div>
         )}
 
-        <div style={{ background:T.bg, borderRadius:12, padding:16, marginBottom:24, border:"1px solid " + (isExpired ? "#FEE2E2" : T.borderLight) }}>
+        <Btn full onClick={handleCheckout} disabled={loading} style={{ marginBottom: 20 }}>
+          {buttonText}
+        </Btn>
+
+        <div style={{ background:T.bg, borderRadius:12, padding:16, border:"1px solid " + (isExpired ? "#FEE2E2" : T.borderLight) }}>
           <div style={{ fontSize:12, fontWeight:700, textTransform:"uppercase", letterSpacing:0.5, color:T.muted, marginBottom:12 }}>
             {lang === "pt" ? "O que está incluso no Plano Pro:" : "What's included in the Pro Plan:"}
           </div>
@@ -6791,10 +6795,6 @@ function PaywallScreen({ trainer, onLogout }) {
             })}
           </div>
         </div>
-
-        <Btn full onClick={handleCheckout} disabled={loading}>
-          {buttonText}
-        </Btn>
       </Card>
 
       <div style={{ marginTop:24, display:"flex", gap:16 }}>
