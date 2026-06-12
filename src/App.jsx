@@ -2726,7 +2726,8 @@ function LanguageSelector({ lang, onChange, align = "right" }) {
             position: "absolute",
             top: "calc(100% + 6px)",
             right: align === "right" ? 0 : "auto",
-            left: align === "left" ? 0 : "auto",
+            left: align === "left" ? 0 : align === "center" ? "50%" : "auto",
+            transform: align === "center" ? "translateX(-50%)" : "none",
             background: T.surface,
             border: "1.5px solid " + T.border,
             borderRadius: 12,
@@ -2894,9 +2895,21 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
 
   return (
     <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, position: "relative" }}>
-      <div className="fu" style={{ textAlign:"center", marginBottom:30, display:"flex", flexDirection:"column", alignItems:"center" }}>
+      <div className="fu" style={{ textAlign:"center", marginBottom:20, display:"flex", flexDirection:"column", alignItems:"center" }}>
         <LogoShapeMap size={180} color={ac()} showText={true} style={{ marginBottom: 4 }} />
         <div style={{ fontSize:13, color:T.muted, marginTop:3 }}>{t("plataforma_av", lang)}</div>
+      </div>
+
+      <div style={{ marginBottom: 20, display: "flex", justifyContent: "center" }}>
+        <LanguageSelector
+          lang={lang}
+          onChange={function(newLang) {
+            if (onUpdateTrainer && trainer) {
+              onUpdateTrainer(Object.assign({}, trainer, { lang: newLang }));
+            }
+          }}
+          align="center"
+        />
       </div>
 
       <Card sx={{ width:"100%", maxWidth:380, padding:28 }}>
@@ -2908,22 +2921,6 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
             {errorMsg}
           </div>
         )}
-
-        {/* Idioma / Language Selector positioned right above the login info inputs */}
-        <div style={{ marginBottom: 18, display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 13, color: T.muted, fontWeight: 500 }}>
-            {lang === "pt" ? "Idioma:" : lang === "es" ? "Idioma:" : "Language:"}
-          </span>
-          <LanguageSelector
-            lang={lang}
-            onChange={function(newLang) {
-              if (onUpdateTrainer && trainer) {
-                onUpdateTrainer(Object.assign({}, trainer, { lang: newLang }));
-              }
-            }}
-            align="left"
-          />
-        </div>
 
         {isResetMode && recoveryEmailSent ? (
           <div style={{ background: "#DCFCE7", color: "#166534", padding: 16, borderRadius: 12, fontSize: 14, textAlign: "center", lineHeight: 1.5 }}>
@@ -6630,8 +6627,8 @@ function PerfilScreen({ trainer, onUpdate, onLogout }) {
               window.open("https://wa.me/5516993419103?text=ShapeMap", "_blank");
             }}
             icon={
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.458L0 24zm6.273-3.66c1.65.981 3.27 1.488 4.966 1.492 5.568.002 10.105-4.519 10.108-10.089.001-2.699-1.047-5.236-2.951-7.143C16.55 2.7 14.02 1.65 11.996 1.65c-5.57 0-10.11 4.519-10.113 10.091-.001 1.884.502 3.725 1.458 5.34l-1.026 3.744 3.848-1.009zm11.306-7.855c-.302-.15-.178-.25-.178-.25s-.853-.943-.984-1.07c-.131-.128-.31-.19-.481-.027-.37.354-.789.81-.963.992-.174.182-.363.201-.664.05-3.048-1.523-4.148-3.417-4.437-3.91-.289-.492-.03-.757.22-.857.3-.12.44-.26.54-.39.1-.13.15-.22.2-.33.05-.11.02-.2-.03-.31-.05-.1-.45-1.08-.62-1.49-.16-.4-.36-.33-.49-.33H7.66c-.19 0-.44.07-.67.32-.23.25-.87.85-.87 2.07 0 1.22.89 2.4 1.01 2.56.12.16 1.76 2.68 4.26 3.76 2.5.1.84-.23 1.15-.36a3.543 3.543 0 001.63-.99c.39-.39.67-.85.76-1.12.09-.27.04-.51-.01-.61z"/>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
               </svg>
             }
           >
