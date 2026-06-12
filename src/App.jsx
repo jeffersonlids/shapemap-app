@@ -6753,7 +6753,7 @@ function PaywallScreen({ trainer, onLogout }) {
           {titleText}
         </div>
         
-        <p style={{ fontSize:14, color:T.muted, textAlign:"center", marginBottom:24, lineHeight:1.5 }}>
+        <p style={{ fontSize:14, color:T.muted, textAlign:"center", marginBottom:16, lineHeight:1.5 }}>
           {descText}
         </p>
 
@@ -6763,7 +6763,7 @@ function PaywallScreen({ trainer, onLogout }) {
           </div>
         )}
 
-        <Btn full onClick={handleCheckout} disabled={loading} style={{ marginBottom: 20 }}>
+        <Btn full onClick={handleCheckout} disabled={loading} style={{ marginBottom: 16 }}>
           {buttonText}
         </Btn>
 
