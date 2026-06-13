@@ -1221,6 +1221,46 @@ function GlobalStyle() {
         .no-print, .no-print * { display: none !important; }
         .print-only { display: block !important; }
         .recharts-tooltip-wrapper { display: none !important; }
+
+        /* Ajustar gráficos para não cortar e ocupar toda a largura */
+        .recharts-wrapper, 
+        .recharts-surface {
+          width: 100% !important;
+          height: 100% !important;
+          max-width: 100% !important;
+        }
+
+        /* Fotos comparativas compactas e sem quebra inadequada */
+        .print-photos-container {
+          display: block !important;
+        }
+        .print-photos-container .print-card {
+          padding: 12px 16px !important;
+          margin-top: 0 !important;
+          margin-bottom: 12px !important;
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
+        }
+        .print-photos-container img {
+          max-height: 220px !important;
+          object-fit: contain !important;
+        }
+
+        /* Forçar todos os títulos nos relatórios em preto para maior destaque */
+        .eval-header-print .eval-name,
+        .eval-header-print .brand-name,
+        .eval-name-print,
+        .student-name-print,
+        .compare-header-title,
+        #print-section .print-card > div:first-child,
+        #print-compare-section .print-card > div:first-child,
+        #print-section .print-card > div[style*="text-transform"],
+        #print-compare-section .print-card > div[style*="text-transform"],
+        #print-section .print-card > div[style*="font-size: 12px"],
+        #print-compare-section .print-card > div[style*="font-size: 11px"],
+        #print-compare-section .print-card > div[style*="font-size: 10px"] {
+          color: #000000 !important;
+        }
         
         /* Reset containers to not take space or style */
         #root {
@@ -5732,7 +5772,7 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
               <Avatar name={trainer.nome} foto={trainer.foto} size={54} color={trainer.corPrimaria} />
               <div>
                 <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: "uppercase", letterSpacing: 0.8 }}>{t("avaliador", lang)}</div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: acc }}>{trainer.nome}</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: acc }} className="eval-name-print">{trainer.nome}</div>
                 {trainer.email && <div style={{ fontSize: 11, color: T.sub, marginTop: 1 }}>{trainer.email}</div>}
                 {trainer.telefone && <div style={{ fontSize: 11, color: T.sub, marginTop: 1 }}>{trainer.telefone}</div>}
               </div>
@@ -5740,9 +5780,9 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
 
             {/* Right side: Client/Report details */}
             <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: T.text, letterSpacing: -0.5, marginBottom: 4 }}>ShapeMap</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: T.text, letterSpacing: -0.5, marginBottom: 4 }} className="compare-header-title">ShapeMap</div>
               <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: "uppercase", letterSpacing: 0.8 }}>{t("relatorio_comparativo", lang)}</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: acc, marginTop: 1 }}>{aluno ? aluno.nome : ""}</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: acc, marginTop: 1 }} className="student-name-print">{aluno ? aluno.nome : ""}</div>
               <div style={{ fontSize: 11, color: T.sub, marginTop: 1 }}>
                 {t("periodo", lang)} <strong>{fmtDate(av1.data)}</strong> {lang === "en" ? "to" : lang === "es" ? "a" : "a"} <strong>{fmtDate(av2.data)}</strong>
               </div>
@@ -6121,7 +6161,7 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
 
         {/* 6. Visual comparison (Photos) */}
         {hasFotosCompare && (
-          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }} className="print-photos-container">
             {[["frente", t("frente", lang)], ["lado", t("lado", lang)], ["costas", t("costas", lang)]].map(function(pair) {
               var key = pair[0], label = pair[1];
               var f1 = av1.fotos && av1.fotos[key];
