@@ -3291,9 +3291,6 @@ function HomeScreen({ alunos, trainer, onSelectAluno, onDeleteAluno, onAddAluno,
                         </div>
                       </div>
                     </div>
-                    <button onClick={function(e) { e.stopPropagation(); setConfirmId(a.id); }} style={{ background:"none", border:"none", cursor:"pointer", padding:"6px", display:"flex", alignItems:"center", flexShrink:0 }}>
-                      <IcTrash c={T.danger} s={18}/>
-                    </button>
                   </div>
                 </Card>
               );
