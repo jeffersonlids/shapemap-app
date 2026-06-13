@@ -4194,29 +4194,8 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
           <button onClick={handleBack} style={{ background:"none", border:"1.5px solid "+T.border, borderRadius:8, padding:"7px 10px", cursor:"pointer", display:"flex", alignItems:"center" }}>
             <IcBack c={T.sub} s={18}/>
           </button>
-          <div style={{ flex:1, fontSize:13, color:T.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", display:"flex", alignItems:"center", gap:8 }}>
-            <span>{isNew ? t("nova_avaliacao", lang) : (lang === "en" ? "Edit" : lang === "es" ? "Editar" : "Editar")} · {alunoNome}</span>
-            <span style={{ 
-              fontSize: 10, 
-              fontWeight: 700, 
-              color: saveColor, 
-              background: saveColor + "14", 
-              padding: "2px 7px", 
-              borderRadius: 10,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
-              transition: "all 0.2s"
-            }}>
-              <span style={{ 
-                width: 5, 
-                height: 5, 
-                borderRadius: "50%", 
-                background: saveColor,
-                animation: saveState === "saving" ? "pulse 0.8s infinite alternate" : "none"
-              }}/>
-              {saveLabel}
-            </span>
+          <div style={{ flex:1, fontSize:13, color:T.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+            {isNew ? t("nova_avaliacao", lang) : (lang === "en" ? "Edit" : lang === "es" ? "Editar" : "Editar")} · {alunoNome}
           </div>
           <Btn small onClick={finalizar} icon={<IcCheck c="#fff" s={15}/>}>{lang === "en" ? "Finish" : lang === "es" ? "Finalizar" : "Finalizar"}</Btn>
         </div>
