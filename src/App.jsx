@@ -1226,7 +1226,33 @@ function GlobalStyle() {
         .recharts-wrapper, 
         .recharts-surface {
           width: 100% !important;
+          height: 100% !important;
           max-width: 100% !important;
+        }
+
+        .print-chart-container {
+          width: 280px !important;
+          height: 130px !important;
+          display: block !important;
+          position: relative !important;
+        }
+        .print-chart-container-rcq {
+          width: 165px !important;
+          height: 110px !important;
+          display: block !important;
+          position: relative !important;
+        }
+        .print-chart-container-force {
+          width: 280px !important;
+          height: 120px !important;
+          display: block !important;
+          position: relative !important;
+        }
+        .print-chart-container-vo2 {
+          width: 280px !important;
+          height: 120px !important;
+          display: block !important;
+          position: relative !important;
         }
 
         /* Fotos comparativas compactas e sem quebra inadequada */
@@ -5501,7 +5527,7 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
       <Card className="print-card" sx={{ padding:15 }}>
         <div style={{ fontSize:10, fontWeight:700, color:T.muted, textTransform:"uppercase", letterSpacing:0.5, marginBottom:10 }}>{title}</div>
         {filtered.length >= 1 && (
-          <div style={{ height:130, marginBottom:10 }}>
+          <div style={{ height:130, marginBottom:10 }} className="print-chart-container">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={filtered} margin={{ top:18, right:25, left:-22, bottom:0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={T.border}/>
@@ -5867,7 +5893,7 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
                       })()}
                     </div>
                     {rcqHistory.length >= 2 && (
-                      <div style={{ height:110 }}>
+                      <div style={{ height:110 }} className="print-chart-container-rcq">
                         <ResponsiveContainer width="100%" height="100%">
                           <LineChart data={rcqHistory} margin={{ top:18, right:25, left:-28, bottom:0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke={T.border}/>
@@ -5943,7 +5969,7 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
                 <Card className="print-card" sx={{ padding:15 }} key={ex}>
                   <div style={{ fontSize:11, fontWeight:700, color:T.muted, textTransform:"uppercase", letterSpacing:0.5, marginBottom:10 }}>{t("teste_forca_pontos", lang) + (t(ex, lang) || ex)}</div>
                   {showChart && (
-                    <div style={{ height:120, marginBottom:10 }}>
+                    <div style={{ height:120, marginBottom:10 }} className="print-chart-container-force">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={exHistory} margin={{ top:18, right:15, left:-22, bottom:0 }}>
                           <CartesianGrid strokeDasharray="2 2" stroke={T.border}/>
@@ -6004,7 +6030,7 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
               <Card className="print-card" sx={{ padding:15 }}>
                 <div style={{ fontSize:11, fontWeight:700, color:T.muted, textTransform:"uppercase", letterSpacing:0.5, marginBottom:12 }}>{t("condicionamento_vo2", lang)}</div>
                 {vo2History.length >= 1 && (
-                  <div style={{ height:120, marginBottom:10 }}>
+                  <div style={{ height:120, marginBottom:10 }} className="print-chart-container-vo2">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={vo2History} margin={{ top:18, right:25, left:-22, bottom:0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke={T.border}/>
