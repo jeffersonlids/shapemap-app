@@ -65,6 +65,7 @@ export default async function handler(req, res) {
         },
       ],
       mode: 'subscription',
+      allow_promotion_codes: true,
       success_url: `${origin}/?success=true`,
       cancel_url: `${origin}/?success=false`,
       metadata: {
