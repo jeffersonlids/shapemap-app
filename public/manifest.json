@@ -1,0 +1,18 @@
+{
+  "name": "ShapeMap App",
+  "short_name": "ShapeMap",
+  "description": "Plataforma de Avaliação Física",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1A1A2E",
+  "theme_color": "#1A1A2E",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

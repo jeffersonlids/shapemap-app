@@ -3187,6 +3187,9 @@ function HomeScreen({ alunos, trainer, onSelectAluno, onDeleteAluno, onAddAluno,
   const [newDataNascimento, setNewDataNascimento] = useState("");
   const [confirmId, setConfirmId] = useState(null);
   const [busca, setBusca] = useState("");
+  const [hideInstallPrompt, setHideInstallPrompt] = useState(function() {
+    return localStorage.getItem("avaliapro_hide_install_prompt") === "true";
+  });
 
   const toDelete = alunos.find(function(a) { return a.id === confirmId; });
   const total = alunos.reduce(function(s, a) { return s + (a.avaliacoes ? a.avaliacoes.length : 0); }, 0);
@@ -3225,6 +3228,62 @@ function HomeScreen({ alunos, trainer, onSelectAluno, onDeleteAluno, onAddAluno,
           </div>
         </div>
       )}
+
+      {!hideInstallPrompt && (
+        <Card sx={{ padding: 18, marginBottom: 20, border: "1.5px solid " + ac() + "33", background: T.surface, position: "relative" }}>
+          <div style={{ position: "absolute", top: 10, right: 12, cursor: "pointer", fontSize: 16, color: T.muted, fontWeight: "bold" }} onClick={function() { setHideInstallPrompt(true); }}>✕</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+            <span style={{ fontSize: 20 }}>📱</span>
+            <div style={{ fontWeight: 700, fontSize: 14, color: T.text }}>
+              {lang === "pt" ? "Instalar o ShapeMap no Celular" : "Install ShapeMap on your Phone"}
+            </div>
+          </div>
+          <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.5, marginBottom: 14 }}>
+            {lang === "pt" ? (
+              <>
+                Acesse mais rápido e use em tela cheia como um aplicativo real:
+                <div style={{ marginTop: 6, paddingLeft: 4 }}>
+                  • <strong>iPhone (Safari):</strong> toque no ícone de Compartilhar <svg width="12" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ display: "inline", verticalAlign: "middle" }}><rect x="3" y="9" width="18" height="12" rx="2" ry="2"/><path d="M12 9V3m0 0l-3 3m3-3l3 3"/></svg> na barra do navegador, role para baixo e selecione <strong>"Adicionar à Tela de Início"</strong>.
+                </div>
+                <div style={{ marginTop: 4, paddingLeft: 4 }}>
+                  • <strong>Android (Chrome):</strong> toque no menu <strong style={{ fontSize: 14 }}>⋮</strong> no topo, role e selecione <strong>"Adicionar à tela inicial"</strong> ou <strong>"Instalar aplicativo"</strong>.
+                </div>
+              </>
+            ) : (
+              <>
+                Access faster and run in full-screen mode like a native app:
+                <div style={{ marginTop: 6, paddingLeft: 4 }}>
+                  • <strong>iPhone (Safari):</strong> tap the Share button <svg width="12" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ display: "inline", verticalAlign: "middle" }}><rect x="3" y="9" width="18" height="12" rx="2" ry="2"/><path d="M12 9V3m0 0l-3 3m3-3l3 3"/></svg> at the bottom, scroll and select <strong>"Add to Home Screen"</strong>.
+                </div>
+                <div style={{ marginTop: 4, paddingLeft: 4 }}>
+                  • <strong>Android (Chrome):</strong> tap the menu icon <strong style={{ fontSize: 14 }}>⋮</strong>, scroll and select <strong>"Add to Home Screen"</strong> or <strong>"Install app"</strong>.
+                </div>
+              </>
+            )}
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button 
+              onClick={function() {
+                localStorage.setItem("avaliapro_hide_install_prompt", "true");
+                setHideInstallPrompt(true);
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                color: ac(),
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+                padding: "4px 8px",
+                textDecoration: "underline"
+              }}
+            >
+              {lang === "pt" ? "Não me avisar novamente" : "Don't show this again"}
+            </button>
+          </div>
+        </Card>
+      )}
+
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24 }}>
         <div style={{ display:"flex", alignItems:"center", gap:12, cursor:"pointer" }} onClick={onSelectPerfil}>
           <Avatar name={trainer.nome} foto={trainer.foto} size={44} color={ac()}/>
