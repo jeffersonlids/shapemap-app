@@ -6614,6 +6614,16 @@ function PerfilScreen({ trainer, onUpdate, onLogout }) {
         </div>
       </Card>
 
+      {/* Dados Pessoais Card */}
+      <Card sx={{ padding:18, marginBottom:14 }}>
+        <SecHead title={t("dados_pessoais", lang)}/>
+        <div style={{ display:"flex", flexDirection:"column", gap:13 }}>
+          <FInput label={t("nome", lang)} value={trainer.nome} onChange={function(v) { onUpdate(Object.assign({}, trainer, { nome: v })); }} placeholder="Seu nome completo"/>
+          <FInput label={t("email_insta", lang)} value={trainer.email} onChange={function(v) { onUpdate(Object.assign({}, trainer, { email: v })); }}/>
+          <FInput label={t("telefone", lang)} value={trainer.telefone || ""} onChange={function(v) { onUpdate(Object.assign({}, trainer, { telefone: v })); }} placeholder="(11) 99999-9999"/>
+        </div>
+      </Card>
+
       {/* Suporte Card */}
       <Card sx={{ padding:18, marginBottom:14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -6640,14 +6650,6 @@ function PerfilScreen({ trainer, onUpdate, onLogout }) {
         </div>
       </Card>
 
-      <Card sx={{ padding:18, marginBottom:14 }}>
-        <SecHead title={t("dados_pessoais", lang)}/>
-        <div style={{ display:"flex", flexDirection:"column", gap:13 }}>
-          <FInput label={t("nome", lang)} value={trainer.nome} onChange={function(v) { onUpdate(Object.assign({}, trainer, { nome: v })); }} placeholder="Seu nome completo"/>
-          <FInput label={t("email_insta", lang)} value={trainer.email} onChange={function(v) { onUpdate(Object.assign({}, trainer, { email: v })); }}/>
-          <FInput label={t("telefone", lang)} value={trainer.telefone || ""} onChange={function(v) { onUpdate(Object.assign({}, trainer, { telefone: v })); }} placeholder="(11) 99999-9999"/>
-        </div>
-      </Card>
     </div>
   );
 }
