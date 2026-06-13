@@ -2783,7 +2783,16 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
   const [confirmEmail, setConfirmEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(function() {
+    const search = window.location.search;
+    const hash = window.location.hash;
+    return search.includes("signup=true") || 
+           search.includes("cadastro=true") || 
+           search.includes("register=true") ||
+           hash === "#signup" || 
+           hash === "#cadastro" || 
+           hash === "#register";
+  });
   const [isResetMode, setIsResetMode] = useState(false);
   const [recoveryEmailSent, setRecoveryEmailSent] = useState(false);
   const [loading, setLoading] = useState(false);
