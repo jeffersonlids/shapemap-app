@@ -1226,7 +1226,6 @@ function GlobalStyle() {
         .recharts-wrapper, 
         .recharts-surface {
           width: 100% !important;
-          height: 100% !important;
           max-width: 100% !important;
         }
 
