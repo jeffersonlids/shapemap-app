@@ -1222,38 +1222,7 @@ function GlobalStyle() {
         .print-only { display: block !important; }
         .recharts-tooltip-wrapper { display: none !important; }
 
-        /* Ajustar gráficos para não cortar e ocupar toda a largura */
-        .recharts-wrapper, 
-        .recharts-surface {
-          width: 100% !important;
-          height: 100% !important;
-          max-width: 100% !important;
-        }
 
-        .print-chart-container {
-          width: 280px !important;
-          height: 130px !important;
-          display: block !important;
-          position: relative !important;
-        }
-        .print-chart-container-rcq {
-          width: 165px !important;
-          height: 110px !important;
-          display: block !important;
-          position: relative !important;
-        }
-        .print-chart-container-force {
-          width: 280px !important;
-          height: 120px !important;
-          display: block !important;
-          position: relative !important;
-        }
-        .print-chart-container-vo2 {
-          width: 280px !important;
-          height: 120px !important;
-          display: block !important;
-          position: relative !important;
-        }
 
         /* Fotos comparativas compactas e sem quebra inadequada */
         .print-photos-container {
@@ -5527,19 +5496,34 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
       <Card className="print-card" sx={{ padding:15 }}>
         <div style={{ fontSize:10, fontWeight:700, color:T.muted, textTransform:"uppercase", letterSpacing:0.5, marginBottom:10 }}>{title}</div>
         {filtered.length >= 1 && (
-          <div style={{ height:130, marginBottom:10 }} className="print-chart-container">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={filtered} margin={{ top:18, right:25, left:-22, bottom:0 }}>
+          <>
+            {/* Bloco de Tela: usa ResponsiveContainer e some no print */}
+            <div style={{ height:130, marginBottom:10 }} className="no-print">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={filtered} margin={{ top:18, right:25, left:-22, bottom:0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={T.border}/>
+                  <XAxis dataKey="shortName" tick={{ fontSize:9, fill:T.muted }} padding={{ left: 15, right: 20 }}/>
+                  <YAxis tick={{ fontSize:9, fill:T.muted }} domain={["auto","auto"]} padding={{ top: 15 }}/>
+                  <Tooltip cursor={false} formatter={function(value) { return [value + unit, title]; }} contentStyle={{ background:T.surface, border:"1px solid "+T.border, borderRadius:8, fontSize:11 }}/>
+                  <Line type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2} dot={{ fill:color, r:3 }} activeDot={{ r:5 }}>
+                    <LabelList dataKey={dataKey} position="top" offset={10} style={{ fill:T.text, fontSize:10, fontWeight:700 }} formatter={function(v) { return v !== null && v !== undefined ? v + unit : ""; }} />
+                  </Line>
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Bloco de Impressão: NÃO usa ResponsiveContainer, tem tamanho fixo e aparece apenas no print */}
+            <div className="print-only" style={{ marginBottom:10 }}>
+              <LineChart width={270} height={120} data={filtered} margin={{ top:18, right:20, left:-24, bottom:0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={T.border}/>
                 <XAxis dataKey="shortName" tick={{ fontSize:9, fill:T.muted }} padding={{ left: 15, right: 20 }}/>
                 <YAxis tick={{ fontSize:9, fill:T.muted }} domain={["auto","auto"]} padding={{ top: 15 }}/>
-                <Tooltip cursor={false} formatter={function(value) { return [value + unit, title]; }} contentStyle={{ background:T.surface, border:"1px solid "+T.border, borderRadius:8, fontSize:11 }}/>
-                <Line type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2} dot={{ fill:color, r:3 }} activeDot={{ r:5 }}>
-                  <LabelList dataKey={dataKey} position="top" offset={10} style={{ fill:T.text, fontSize:10, fontWeight:700 }} formatter={function(v) { return v !== null && v !== undefined ? v + unit : ""; }} />
+                <Line type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2} dot={{ fill:color, r:3 }}>
+                  <LabelList dataKey={dataKey} position="top" offset={10} style={{ fill:T.text, fontSize:9, fontWeight:700 }} formatter={function(v) { return v !== null && v !== undefined ? v + unit : ""; }} />
                 </Line>
               </LineChart>
-            </ResponsiveContainer>
-          </div>
+            </div>
+          </>
         )}
         {hasComparison ? (
           renderChartDeltaMessage(v1, v2, label, unit, goodDecreasing)
@@ -5893,19 +5877,34 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
                       })()}
                     </div>
                     {rcqHistory.length >= 2 && (
-                      <div style={{ height:110 }} className="print-chart-container-rcq">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={rcqHistory} margin={{ top:18, right:25, left:-28, bottom:0 }}>
+                      <>
+                        {/* Bloco de Tela */}
+                        <div style={{ height:110 }} className="no-print">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={rcqHistory} margin={{ top:18, right:25, left:-28, bottom:0 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke={T.border}/>
+                              <XAxis dataKey="shortName" tick={{ fontSize:9, fill:T.muted }} padding={{ left: 15, right: 20 }}/>
+                              <YAxis tick={{ fontSize:9, fill:T.muted }} domain={["auto","auto"]} padding={{ top: 15 }}/>
+                              <Tooltip cursor={false} contentStyle={{ background:T.surface, border:"1px solid "+T.border, borderRadius:8, fontSize:11 }}/>
+                              <Line type="monotone" dataKey="rcq" stroke={T.warning} strokeWidth={2} dot={{ fill:T.warning, r:3 }}>
+                                <LabelList dataKey="rcq" position="top" offset={10} style={{ fill:T.text, fontSize:10, fontWeight:700 }} />
+                              </Line>
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+
+                        {/* Bloco de Impressão */}
+                        <div className="print-only">
+                          <LineChart width={160} height={100} data={rcqHistory} margin={{ top:18, right:15, left:-28, bottom:0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke={T.border}/>
                             <XAxis dataKey="shortName" tick={{ fontSize:9, fill:T.muted }} padding={{ left: 15, right: 20 }}/>
                             <YAxis tick={{ fontSize:9, fill:T.muted }} domain={["auto","auto"]} padding={{ top: 15 }}/>
-                            <Tooltip cursor={false} contentStyle={{ background:T.surface, border:"1px solid "+T.border, borderRadius:8, fontSize:11 }}/>
                             <Line type="monotone" dataKey="rcq" stroke={T.warning} strokeWidth={2} dot={{ fill:T.warning, r:3 }}>
-                              <LabelList dataKey="rcq" position="top" offset={10} style={{ fill:T.text, fontSize:10, fontWeight:700 }} />
+                              <LabelList dataKey="rcq" position="top" offset={10} style={{ fill:T.text, fontSize:9, fontWeight:700 }} />
                             </Line>
                           </LineChart>
-                        </ResponsiveContainer>
-                      </div>
+                        </div>
+                      </>
                     )}
                   </div>
                   {renderChartDeltaMessage(rcq1, rcq2, "rcq_lbl", "", true)}
@@ -5969,27 +5968,42 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
                 <Card className="print-card" sx={{ padding:15 }} key={ex}>
                   <div style={{ fontSize:11, fontWeight:700, color:T.muted, textTransform:"uppercase", letterSpacing:0.5, marginBottom:10 }}>{t("teste_forca_pontos", lang) + (t(ex, lang) || ex)}</div>
                   {showChart && (
-                    <div style={{ height:120, marginBottom:10 }} className="print-chart-container-force">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={exHistory} margin={{ top:18, right:15, left:-22, bottom:0 }}>
+                    <>
+                      {/* Bloco de Tela */}
+                      <div style={{ height:120, marginBottom:10 }} className="no-print">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={exHistory} margin={{ top:18, right:15, left:-22, bottom:0 }}>
+                            <CartesianGrid strokeDasharray="2 2" stroke={T.border}/>
+                            <XAxis dataKey="shortName" tick={{ fontSize:9, fill:T.muted }}/>
+                            <YAxis tick={{ fontSize:9, fill:T.muted }} domain={[0, "auto"]}/>
+                            <Tooltip
+                              cursor={false}
+                              formatter={function(value, name, props) {
+                                var item = props.payload;
+                                var repsStr = item && item.reps ? " (" + item.reps + " reps)" : "";
+                                return [value + " " + getWeightUnit(unitSystem) + repsStr, t("carga", lang)];
+                              }}
+                              contentStyle={{ background:T.surface, border:"1px solid "+T.border, borderRadius:8, fontSize:11 }}
+                            />
+                            <Bar dataKey="carga" fill={acc} radius={[4, 4, 0, 0]} barSize={20}>
+                              <LabelList dataKey="carga" position="top" offset={6} style={{ fill:T.text, fontSize:10, fontWeight:700 }} formatter={function(v) { return v || ""; }} />
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* Bloco de Impressão */}
+                      <div className="print-only" style={{ marginBottom:10 }}>
+                        <BarChart width={270} height={110} data={exHistory} margin={{ top:18, right:15, left:-24, bottom:0 }}>
                           <CartesianGrid strokeDasharray="2 2" stroke={T.border}/>
                           <XAxis dataKey="shortName" tick={{ fontSize:9, fill:T.muted }}/>
                           <YAxis tick={{ fontSize:9, fill:T.muted }} domain={[0, "auto"]}/>
-                          <Tooltip
-                            cursor={false}
-                            formatter={function(value, name, props) {
-                              var item = props.payload;
-                              var repsStr = item && item.reps ? " (" + item.reps + " reps)" : "";
-                              return [value + " " + getWeightUnit(unitSystem) + repsStr, t("carga", lang)];
-                            }}
-                            contentStyle={{ background:T.surface, border:"1px solid "+T.border, borderRadius:8, fontSize:11 }}
-                          />
-                          <Bar dataKey="carga" fill={acc} radius={[4, 4, 0, 0]} barSize={20}>
-                            <LabelList dataKey="carga" position="top" offset={6} style={{ fill:T.text, fontSize:10, fontWeight:700 }} formatter={function(v) { return v || ""; }} />
+                          <Bar dataKey="carga" fill={acc} radius={[4, 4, 0, 0]} barSize={18}>
+                            <LabelList dataKey="carga" position="top" offset={6} style={{ fill:T.text, fontSize:9, fontWeight:700 }} formatter={function(v) { return v || ""; }} />
                           </Bar>
                         </BarChart>
-                      </ResponsiveContainer>
-                    </div>
+                      </div>
+                    </>
                   )}
                   {hasComparison ? (
                     <>
@@ -6030,19 +6044,34 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
               <Card className="print-card" sx={{ padding:15 }}>
                 <div style={{ fontSize:11, fontWeight:700, color:T.muted, textTransform:"uppercase", letterSpacing:0.5, marginBottom:12 }}>{t("condicionamento_vo2", lang)}</div>
                 {vo2History.length >= 1 && (
-                  <div style={{ height:120, marginBottom:10 }} className="print-chart-container-vo2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={vo2History} margin={{ top:18, right:25, left:-22, bottom:0 }}>
+                  <>
+                    {/* Bloco de Tela */}
+                    <div style={{ height:120, marginBottom:10 }} className="no-print">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={vo2History} margin={{ top:18, right:25, left:-22, bottom:0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke={T.border}/>
+                          <XAxis dataKey="shortName" tick={{ fontSize:9, fill:T.muted }} padding={{ left: 15, right: 20 }}/>
+                          <YAxis tick={{ fontSize:9, fill:T.muted }} domain={["auto","auto"]} padding={{ top: 15 }}/>
+                          <Tooltip cursor={false} contentStyle={{ background:T.surface, border:"1px solid "+T.border, borderRadius:8, fontSize:11 }}/>
+                          <Line type="monotone" dataKey="vo2" stroke={T.blue} strokeWidth={2} dot={{ fill:T.blue, r:3 }}>
+                            <LabelList dataKey="vo2" position="top" offset={10} style={{ fill:T.text, fontSize:10, fontWeight:700 }} formatter={function(v) { return v ? parseFloat(v).toFixed(1) : ""; }} />
+                          </Line>
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Bloco de Impressão */}
+                    <div className="print-only" style={{ marginBottom:10 }}>
+                      <LineChart width={270} height={110} data={vo2History} margin={{ top:18, right:20, left:-24, bottom:0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke={T.border}/>
                         <XAxis dataKey="shortName" tick={{ fontSize:9, fill:T.muted }} padding={{ left: 15, right: 20 }}/>
                         <YAxis tick={{ fontSize:9, fill:T.muted }} domain={["auto","auto"]} padding={{ top: 15 }}/>
-                        <Tooltip cursor={false} contentStyle={{ background:T.surface, border:"1px solid "+T.border, borderRadius:8, fontSize:11 }}/>
                         <Line type="monotone" dataKey="vo2" stroke={T.blue} strokeWidth={2} dot={{ fill:T.blue, r:3 }}>
-                          <LabelList dataKey="vo2" position="top" offset={10} style={{ fill:T.text, fontSize:10, fontWeight:700 }} formatter={function(v) { return v ? parseFloat(v).toFixed(1) : ""; }} />
+                          <LabelList dataKey="vo2" position="top" offset={10} style={{ fill:T.text, fontSize:9, fontWeight:700 }} formatter={function(v) { return v ? parseFloat(v).toFixed(1) : ""; }} />
                         </Line>
                       </LineChart>
-                    </ResponsiveContainer>
-                  </div>
+                    </div>
+                  </>
                 )}
                 {(function() {
                   var hasVO2Comparison = vo2History.length >= 2;
