@@ -1176,6 +1176,7 @@ function GlobalStyle() {
       @keyframes checkDraw { from{stroke-dashoffset:60} to{stroke-dashoffset:0} }
       @keyframes fall { 0%{transform:translateY(-10px) rotate(0deg);opacity:1} 100%{transform:translateY(140px) rotate(700deg);opacity:0} }
       @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+      @keyframes pulse { 0% { opacity: 0.35; } 100% { opacity: 1; } }
       @keyframes logoFill {
         0% { height: 0%; }
         45% { height: 100%; }
@@ -4057,7 +4058,8 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
   const [done, setDone] = useState(false);
   const [customActive, setCustomActive] = useState({});
   const tabsRef = useRef(null);
-  const [showLeaveWarning, setShowLeaveWarning] = useState(false);
+  
+  const [saveState, setSaveState] = useState("saved"); // 'saved', 'saving', 'unsaved', 'error'
 
   const upd = useCallback(function(path, val) {
     setAv(function(prev) {
@@ -4069,6 +4071,46 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
       return n;
     });
   }, []);
+
+  // Debounced auto-save effect
+  useEffect(function() {
+    const hasChanges = JSON.stringify(av) !== JSON.stringify(init);
+    if (!hasChanges || done) {
+      setSaveState("saved");
+      return;
+    }
+
+    setSaveState("unsaved");
+
+    const handler = setTimeout(async function() {
+      setSaveState("saving");
+      try {
+        await onSave(av);
+        setSaveState("saved");
+      } catch (err) {
+        console.error("Erro no salvamento automático:", err);
+        setSaveState("error");
+      }
+    }, 1200); // 1.2s debounce
+
+    return function() {
+      clearTimeout(handler);
+    };
+  }, [av, init, done, onSave]);
+
+  // Prevent browser close with unsaved changes
+  useEffect(function() {
+    function handleBeforeUnload(e) {
+      if (saveState === "unsaved" || saveState === "saving") {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return function() {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [saveState]);
 
   useEffect(function() {
     if (tabsRef.current) {
@@ -4102,33 +4144,79 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
       return n;
     });
   }
-  function finalizar() { onSave(av); setTab(9); setDone(true); }
-  function handleBack() {
+
+  async function finalizar() { 
+    setSaveState("saving"); 
+    try {
+      await onSave(av);
+      setSaveState("saved");
+    } catch (err) {
+      console.error("Erro ao finalizar:", err);
+    }
+    setTab(9); 
+    setDone(true); 
+  }
+
+  async function handleBack() {
     const hasChanges = JSON.stringify(av) !== JSON.stringify(init);
     if (hasChanges && !done) {
-      setShowLeaveWarning(true);
-    } else {
-      onBack();
+      setSaveState("saving");
+      try {
+        await onSave(av);
+      } catch (err) {
+        console.error("Erro ao salvar ao voltar:", err);
+      }
     }
+    onBack();
   }
+
+  const saveLabel = saveState === "saving" 
+    ? (lang === "pt" ? "Salvando..." : lang === "es" ? "Guardando..." : "Saving...")
+    : saveState === "unsaved"
+      ? (lang === "pt" ? "Modificado" : lang === "es" ? "Modificado" : "Unsaved")
+      : saveState === "error"
+        ? (lang === "pt" ? "Erro ao salvar" : lang === "es" ? "Error al guardar" : "Save error")
+        : (lang === "pt" ? "Salvo" : lang === "es" ? "Guardado" : "Saved");
+
+  const saveColor = saveState === "saving"
+    ? "#3B82F6" 
+    : saveState === "unsaved"
+      ? "#F59E0B" 
+      : saveState === "error"
+        ? "#EF4444" 
+        : "#10B981";
 
   return (
     <div style={{ paddingBottom:80 }}>
       {done && <CompletionOverlay onPDF={function() { window.print(); }} onClose={onBack} lang={lang}/>}
-      {showLeaveWarning && (
-        <ConfirmLeave
-          onConfirm={function() { setShowLeaveWarning(false); onBack(); }}
-          onCancel={function() { setShowLeaveWarning(false); }}
-          lang={lang}
-        />
-      )}
       <div className="no-print" style={{ position:"sticky", top:0, zIndex:60, background:T.bg, borderBottom:"1px solid "+T.border, padding:"11px 16px 0" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:11 }}>
           <button onClick={handleBack} style={{ background:"none", border:"1.5px solid "+T.border, borderRadius:8, padding:"7px 10px", cursor:"pointer", display:"flex", alignItems:"center" }}>
             <IcBack c={T.sub} s={18}/>
           </button>
-          <div style={{ flex:1, fontSize:13, color:T.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-            {isNew ? t("nova_avaliacao", lang) : (lang === "en" ? "Edit" : lang === "es" ? "Editar" : "Editar")} · {alunoNome}
+          <div style={{ flex:1, fontSize:13, color:T.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", display:"flex", alignItems:"center", gap:8 }}>
+            <span>{isNew ? t("nova_avaliacao", lang) : (lang === "en" ? "Edit" : lang === "es" ? "Editar" : "Editar")} · {alunoNome}</span>
+            <span style={{ 
+              fontSize: 10, 
+              fontWeight: 700, 
+              color: saveColor, 
+              background: saveColor + "14", 
+              padding: "2px 7px", 
+              borderRadius: 10,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              transition: "all 0.2s"
+            }}>
+              <span style={{ 
+                width: 5, 
+                height: 5, 
+                borderRadius: "50%", 
+                background: saveColor,
+                animation: saveState === "saving" ? "pulse 0.8s infinite alternate" : "none"
+              }}/>
+              {saveLabel}
+            </span>
           </div>
           <Btn small onClick={finalizar} icon={<IcCheck c="#fff" s={15}/>}>{lang === "en" ? "Finish" : lang === "es" ? "Finalizar" : "Finalizar"}</Btn>
         </div>
@@ -7280,7 +7368,7 @@ export default function App() {
       
       if (error) {
         console.error("Erro ao salvar avaliação no Supabase:", error);
-        alert("Erro ao salvar avaliação no banco de dados: " + error.message);
+        throw error;
       }
     }
   }
@@ -7438,7 +7526,7 @@ export default function App() {
       }
       avalData = alunoAv ? avList[curIdx] : null;
     }
-    content = <AvalForm av={avalData || newAval(null, null, null, null, settings)} alunoNome={alunoAv ? alunoAv.nome : ""} isNew={cur.isNew} onSave={function(av) { if (alunoAv) saveAval(alunoAv.id, av); }} onBack={pop} settings={settings} trainer={trainer} prevAval={prevAval}/>;
+    content = <AvalForm av={avalData || newAval(null, null, null, null, settings)} alunoNome={alunoAv ? alunoAv.nome : ""} isNew={cur.isNew} onSave={async function(av) { if (alunoAv) await saveAval(alunoAv.id, av); }} onBack={pop} settings={settings} trainer={trainer} prevAval={prevAval}/>;
   } else if (cur && cur.type === "aluno") {
     var alunoProf = alunos.find(function(a) { return String(a.id) === String(cur.id); });
     content = (
