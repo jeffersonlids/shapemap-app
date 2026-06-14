@@ -3228,7 +3228,7 @@ function HomeScreen({ alunos, trainer, onSelectAluno, onDeleteAluno, onAddAluno,
   const [newNome, setNewNome] = useState("");
   const [newSexo, setNewSexo] = useState("");
   const [newTelefone, setNewTelefone] = useState("");
-  const [newDataNascimento, setNewDataNascimento] = useState("");
+  const [newIdade, setNewIdade] = useState("");
   const [confirmId, setConfirmId] = useState(null);
   const [busca, setBusca] = useState("");
 
@@ -3250,7 +3250,7 @@ function HomeScreen({ alunos, trainer, onSelectAluno, onDeleteAluno, onAddAluno,
     <div style={{ padding:"24px 16px 100px" }}>
       {confirmId && <ConfirmDelete nome={toDelete ? toDelete.nome : ""} onCancel={function() { setConfirmId(null); }} onConfirm={function() { onDeleteAluno(confirmId); setConfirmId(null); }} lang={lang}/>}
       {showModal && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:200, display:"flex", alignItems:"flex-end" }} onClick={function() { setShowModal(false); setNewNome(""); setNewSexo(""); }}>
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:200, display:"flex", alignItems:"flex-end" }} onClick={function() { setShowModal(false); setNewNome(""); setNewSexo(""); setNewIdade(""); }}>
           <div onClick={function(e) { e.stopPropagation(); }} style={{ background:T.surface, borderRadius:"20px 20px 0 0", padding:"22px 20px 38px", width:"100%", boxShadow:T.shadowMd }}>
             <div style={{ width:34, height:4, borderRadius:2, background:T.border, margin:"0 auto 18px" }}/>
             <div style={{ fontSize:17, fontWeight:700, marginBottom:16 }}>{t("novo_aluno", lang)}</div>
@@ -3259,12 +3259,12 @@ function HomeScreen({ alunos, trainer, onSelectAluno, onDeleteAluno, onAddAluno,
               <ToggleGroup label={<span style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}><span>{t("genero", lang)}</span>{!newSexo && <span style={{ color:T.danger, fontSize:10, textTransform:"none", fontWeight:500 }}>{lang === "en" ? "(select gender before proceeding)" : lang === "es" ? "(selecciona género antes de continuar)" : "(selecione o gênero antes de prosseguir)"}</span>}</span>} value={newSexo} onChange={function(v) { setNewSexo(v); }} options={[{value:"M",label:t("masculino", lang)},{value:"F",label:t("feminino", lang)}]}/>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <FInput label={t("telefone", lang)} value={newTelefone} onChange={setNewTelefone} placeholder="(11) 99999-9999"/>
-                <FInput label={t("data_nascimento", lang)} value={newDataNascimento} onChange={setNewDataNascimento} type="date"/>
+                <FInput label={lang === "en" ? "Age (years)" : lang === "es" ? "Edad (años)" : "Idade (anos)"} value={newIdade} onChange={setNewIdade} type="number" required placeholder={lang === "en" ? "e.g. 28" : "Ex: 28"}/>
               </div>
             </div>
             <div style={{ display:"flex", gap:10, marginTop:20 }}>
-              <Btn variant="ghost" full onClick={function() { setShowModal(false); setNewNome(""); setNewSexo(""); setNewTelefone(""); setNewDataNascimento(""); }}>{t("cancelar", lang)}</Btn>
-              <Btn full onClick={function() { if(!newNome.trim() || !newSexo) return; onAddAluno(newNome.trim(), newSexo, newTelefone, newDataNascimento); setShowModal(false); setNewNome(""); setNewSexo(""); setNewTelefone(""); setNewDataNascimento(""); }} disabled={!newNome.trim() || !newSexo}>{t("cadastrar", lang)}</Btn>
+              <Btn variant="ghost" full onClick={function() { setShowModal(false); setNewNome(""); setNewSexo(""); setNewTelefone(""); setNewIdade(""); }}>{t("cancelar", lang)}</Btn>
+              <Btn full onClick={function() { if(!newNome.trim() || !newSexo || !newIdade) return; const anoNasc = new Date().getFullYear() - parseInt(newIdade); const dataNascimento = `${anoNasc}-01-01`; onAddAluno(newNome.trim(), newSexo, newTelefone, dataNascimento); setShowModal(false); setNewNome(""); setNewSexo(""); setNewTelefone(""); setNewIdade(""); }} disabled={!newNome.trim() || !newSexo || !newIdade}>{t("cadastrar", lang)}</Btn>
             </div>
           </div>
         </div>
@@ -3825,7 +3825,7 @@ function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare
   const [editNome, setEditNome] = useState("");
   const [editSexo, setEditSexo] = useState("M");
   const [editTelefone, setEditTelefone] = useState("");
-  const [editDataNascimento, setEditDataNascimento] = useState("");
+  const [editIdade, setEditIdade] = useState("");
 
   function toggleSel(id) {
     setSel(function(p) {
@@ -3847,13 +3847,15 @@ function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare
     setEditNome(aluno.nome || "");
     setEditSexo(aluno.sexo || "M");
     setEditTelefone(aluno.telefone || "");
-    setEditDataNascimento(aluno.dataNascimento || "");
+    setEditIdade(aluno.dataNascimento ? calcIdade(aluno.dataNascimento) : "");
     setShowEditModal(true);
   }
 
   function handleSaveEdit() {
-    if (!editNome.trim()) return;
-    onUpdateAluno(aluno.id, editNome.trim(), editSexo, editTelefone, editDataNascimento);
+    if (!editNome.trim() || !editIdade) return;
+    const anoNasc = new Date().getFullYear() - parseInt(editIdade);
+    const dataNascimento = `${anoNasc}-01-01`;
+    onUpdateAluno(aluno.id, editNome.trim(), editSexo, editTelefone, dataNascimento);
     setShowEditModal(false);
   }
 
@@ -3879,12 +3881,12 @@ function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare
               <ToggleGroup label={t("genero", lang)} value={editSexo} onChange={setEditSexo} options={[{value:"M",label:t("masculino", lang)},{value:"F",label:t("feminino", lang)}]}/>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <FInput label={t("telefone", lang)} value={editTelefone} onChange={setEditTelefone} placeholder="(11) 99999-9999"/>
-                <FInput label={t("data_nascimento", lang)} value={editDataNascimento} onChange={setEditDataNascimento} type="date"/>
+                <FInput label={lang === "en" ? "Age (years)" : lang === "es" ? "Edad (años)" : "Idade (anos)"} value={editIdade} onChange={setEditIdade} type="number" required placeholder="Ex: 28"/>
               </div>
             </div>
             <div style={{ display:"flex", gap:10, marginTop:20 }}>
               <Btn variant="ghost" full onClick={function() { setShowEditModal(false); }}>{t("cancelar", lang)}</Btn>
-              <Btn full onClick={handleSaveEdit} disabled={!editNome.trim()}>{t("salvar_alteracoes", lang)}</Btn>
+              <Btn full onClick={handleSaveEdit} disabled={!editNome.trim() || !editIdade}>{t("salvar_alteracoes", lang)}</Btn>
             </div>
           </div>
         </div>
