@@ -3226,7 +3226,7 @@ function HomeScreen({ alunos, trainer, onSelectAluno, onDeleteAluno, onAddAluno,
   const lang = (trainer && trainer.lang) || "pt";
   const [showModal, setShowModal] = useState(false);
   const [newNome, setNewNome] = useState("");
-  const [newSexo, setNewSexo] = useState("M");
+  const [newSexo, setNewSexo] = useState("");
   const [newTelefone, setNewTelefone] = useState("");
   const [newDataNascimento, setNewDataNascimento] = useState("");
   const [confirmId, setConfirmId] = useState(null);
@@ -3250,21 +3250,21 @@ function HomeScreen({ alunos, trainer, onSelectAluno, onDeleteAluno, onAddAluno,
     <div style={{ padding:"24px 16px 100px" }}>
       {confirmId && <ConfirmDelete nome={toDelete ? toDelete.nome : ""} onCancel={function() { setConfirmId(null); }} onConfirm={function() { onDeleteAluno(confirmId); setConfirmId(null); }} lang={lang}/>}
       {showModal && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:200, display:"flex", alignItems:"flex-end" }} onClick={function() { setShowModal(false); setNewNome(""); }}>
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:200, display:"flex", alignItems:"flex-end" }} onClick={function() { setShowModal(false); setNewNome(""); setNewSexo(""); }}>
           <div onClick={function(e) { e.stopPropagation(); }} style={{ background:T.surface, borderRadius:"20px 20px 0 0", padding:"22px 20px 38px", width:"100%", boxShadow:T.shadowMd }}>
             <div style={{ width:34, height:4, borderRadius:2, background:T.border, margin:"0 auto 18px" }}/>
             <div style={{ fontSize:17, fontWeight:700, marginBottom:16 }}>{t("novo_aluno", lang)}</div>
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
               <FInput label={t("nome_completo", lang)} value={newNome} onChange={function(v) { setNewNome(v); }} placeholder={t("nome_completo_placeholder", lang)} required/>
-              <ToggleGroup label={t("genero", lang)} value={newSexo} onChange={function(v) { setNewSexo(v); }} options={[{value:"M",label:t("masculino", lang)},{value:"F",label:t("feminino", lang)}]}/>
+              <ToggleGroup label={<span style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}><span>{t("genero", lang)}</span>{!newSexo && <span style={{ color:T.danger, fontSize:10, textTransform:"none", fontWeight:500 }}>{lang === "en" ? "(select gender before proceeding)" : lang === "es" ? "(selecciona género antes de continuar)" : "(selecione o gênero antes de prosseguir)"}</span>}</span>} value={newSexo} onChange={function(v) { setNewSexo(v); }} options={[{value:"M",label:t("masculino", lang)},{value:"F",label:t("feminino", lang)}]}/>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <FInput label={t("telefone", lang)} value={newTelefone} onChange={setNewTelefone} placeholder="(11) 99999-9999"/>
                 <FInput label={t("data_nascimento", lang)} value={newDataNascimento} onChange={setNewDataNascimento} type="date"/>
               </div>
             </div>
             <div style={{ display:"flex", gap:10, marginTop:20 }}>
-              <Btn variant="ghost" full onClick={function() { setShowModal(false); setNewNome(""); setNewTelefone(""); setNewDataNascimento(""); }}>{t("cancelar", lang)}</Btn>
-              <Btn full onClick={function() { if(!newNome.trim()) return; onAddAluno(newNome.trim(), newSexo, newTelefone, newDataNascimento); setShowModal(false); setNewNome(""); setNewTelefone(""); setNewDataNascimento(""); }} disabled={!newNome.trim()}>{t("cadastrar", lang)}</Btn>
+              <Btn variant="ghost" full onClick={function() { setShowModal(false); setNewNome(""); setNewSexo(""); setNewTelefone(""); setNewDataNascimento(""); }}>{t("cancelar", lang)}</Btn>
+              <Btn full onClick={function() { if(!newNome.trim() || !newSexo) return; onAddAluno(newNome.trim(), newSexo, newTelefone, newDataNascimento); setShowModal(false); setNewNome(""); setNewSexo(""); setNewTelefone(""); setNewDataNascimento(""); }} disabled={!newNome.trim() || !newSexo}>{t("cadastrar", lang)}</Btn>
             </div>
           </div>
         </div>
