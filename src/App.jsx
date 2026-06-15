@@ -634,6 +634,7 @@ const TR = {
     acesse_sua_area: "Accede a tu área profesional",
     email: "Correo electrónico",
     senha: "Contraseña",
+    mantenha_me_conectado: "Mantener sesión iniciada",
     entrando: "Entrando...",
     entrar: "Entrar",
     esqueci_senha: "Olvidé mi contraseña",
@@ -2918,13 +2919,13 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
   const titleText = isResetMode 
     ? (lang === "pt" ? "Recuperar senha" : lang === "es" ? "Recuperar contraseña" : "Recover password")
     : (isSignUp 
-        ? (lang === "pt" ? "Criar conta" : "Create account")
+        ? (lang === "pt" ? "Criar conta" : lang === "es" ? "Crear cuenta" : "Create account")
         : t("entrar_conta", lang));
 
   const subtitleText = isResetMode
     ? (lang === "pt" ? "Insira seu e-mail para receber o link de redefinição" : lang === "es" ? "Ingrese su correo para recibir el enlace de restablecimiento" : "Enter your email to receive the reset link")
     : (isSignUp
-        ? (lang === "pt" ? "Cadastre-se para começar" : "Sign up to get started")
+        ? (lang === "pt" ? "Cadastre-se para começar" : lang === "es" ? "Regístrese para comenzar" : "Sign up to get started")
         : t("acesse_sua_area", lang));
 
   const buttonText = loading 
@@ -2934,7 +2935,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
     : (isResetMode
         ? (lang === "pt" ? "Enviar Link de Recuperação" : lang === "es" ? "Enviar enlace" : "Send Recovery Link")
         : (isSignUp 
-            ? (lang === "pt" ? "Criar Conta" : "Create Account")
+            ? (lang === "pt" ? "Criar Conta" : lang === "es" ? "Crear Cuenta" : "Create Account")
             : t("entrar", lang)));
 
   return (
@@ -2995,7 +2996,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
             ) : (
               <>
                 {isSignUp && (
-                  <FInput label={lang === "pt" ? "Nome Completo" : "Full Name"} value={nome} onChange={setNome} placeholder="Seu nome completo"/>
+                  <FInput label={lang === "pt" ? "Nome Completo" : lang === "es" ? "Nombre Completo" : "Full Name"} value={nome} onChange={setNome} placeholder={lang === "pt" ? "Seu nome completo" : lang === "es" ? "Su nombre completo" : "Your full name"}/>
                 )}
                 <FInput label={t("email", lang)} value={email} onChange={setEmail} type="email" placeholder="seu@email.com"/>
                 {isSignUp && (
@@ -3061,7 +3062,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
         <div style={{ marginTop:28, textAlign:"center" }}>
           <span style={{ fontSize:13, color:T.muted }}>
             {isSignUp 
-              ? (lang === "pt" ? "Já tem uma conta?" : "Already have an account?")
+              ? (lang === "pt" ? "Já tem uma conta?" : lang === "es" ? "¿Ya tienes una cuenta?" : "Already have an account?")
               : t("nao_tem_conta", lang)}{" "}
           </span>
           <span 
@@ -3069,7 +3070,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
             onClick={function() { setIsSignUp(!isSignUp); setErrorMsg(""); }}
           >
             {isSignUp 
-              ? (lang === "pt" ? "Entrar" : "Log in")
+              ? (lang === "pt" ? "Entrar" : lang === "es" ? "Entrar" : "Log in")
               : t("criar_conta_gratis", lang)}
           </span>
         </div>
@@ -6997,10 +6998,25 @@ export default function App() {
   
   const [trainer, setTrainer] = useState(function() {
     const saved = localStorage.getItem("avaliapro_trainer");
+    let initialTrainer = { nome:"Prof. Jefferson", email:"prof@shapemap.com", foto:"", telefone:"", corPrimaria:"#1A1A2E", lang:"pt" };
     if (saved) {
-      try { return JSON.parse(saved); } catch(err) { console.warn(err); }
+      try { 
+        initialTrainer = JSON.parse(saved); 
+      } catch(err) { 
+        console.warn(err); 
+      }
     }
-    return { nome:"Prof. Jefferson", email:"prof@shapemap.com", foto:"", telefone:"", corPrimaria:"#1A1A2E" };
+    
+    // Check URL parameters for language override
+    const search = window.location.search;
+    if (search) {
+      const params = new URLSearchParams(search);
+      const urlLang = params.get("lang") || params.get("locale");
+      if (urlLang === "es" || urlLang === "en" || urlLang === "pt") {
+        initialTrainer.lang = urlLang;
+      }
+    }
+    return initialTrainer;
   });
 
   const [alunos, setAlunos] = useState(function() {
@@ -7137,7 +7153,7 @@ export default function App() {
           foto: "",
           telefone: "",
           cor_primaria: "#1A1A2E",
-          lang: "pt",
+          lang: trainer.lang || "pt",
           settings: defaultSettings
         };
 
