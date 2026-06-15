@@ -7104,7 +7104,9 @@ export default function App() {
         setUser(null);
         setLogged(false);
         setLoadingSession(false);
-        setTrainer({ nome:"Prof. Jefferson", email:"", foto:"", telefone:"", corPrimaria:"#1A1A2E" });
+        setTrainer(function(prev) {
+          return { nome:"Prof. Jefferson", email:"", foto:"", telefone:"", corPrimaria:"#1A1A2E", lang: prev?.lang || "pt" };
+        });
         setAlunos([]);
       }
     });
