@@ -7676,7 +7676,7 @@ export default function App() {
           
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <Btn full onClick={function() { setShowInstallModal(false); }}>
-              {lang === "pt" ? "Entendi, vou instalar" : "Got it, I'll install"}
+              {lang === "pt" ? "Entendi, vou seguir o passo a passo" : "Got it, I'll follow the steps"}
             </Btn>
             <button 
               onClick={function() {
