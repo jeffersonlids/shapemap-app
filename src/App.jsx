@@ -2863,6 +2863,9 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
         setLoading(false);
       } else {
         setLoading(false);
+        if (typeof window.fbq === 'function') {
+          window.fbq('track', 'CompleteRegistration');
+        }
         if (data.session) {
           localStorage.setItem("avaliapro_remember_me", rememberMe ? "true" : "false");
           sessionStorage.setItem("avaliapro_session_active", "true");
@@ -6705,6 +6708,9 @@ function PerfilScreen({ trainer, onUpdate, onLogout }) {
               <Btn 
                 small 
                 onClick={async function() {
+                  if (typeof window.fbq === 'function') {
+                    window.fbq('track', 'InitiateCheckout');
+                  }
                   try {
                     const res = await fetch("/api/create-checkout-session", {
                       method: "POST",
@@ -6858,6 +6864,11 @@ function PaywallScreen({ trainer, onLogout }) {
     setErrorMsg("");
     try {
       const endpoint = trainer.stripeCustomerId ? "/api/create-portal-session" : "/api/create-checkout-session";
+      if (endpoint === "/api/create-checkout-session") {
+        if (typeof window.fbq === 'function') {
+          window.fbq('track', 'InitiateCheckout');
+        }
+      }
       const body = trainer.stripeCustomerId 
         ? { customerId: trainer.stripeCustomerId }
         : { trainerId: trainer.id, email: trainer.email };
@@ -7068,6 +7079,23 @@ export default function App() {
 
   // Load session and onAuthStateChange
   useEffect(function() {
+    const search = window.location.search;
+    if (search && search.includes("success=true")) {
+      if (typeof window.fbq === 'function') {
+        window.fbq('track', 'Purchase', {
+          value: 99.00,
+          currency: 'BRL'
+        });
+      }
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("success");
+        window.history.replaceState({}, document.title, url.pathname + url.search);
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
     const rememberMe = localStorage.getItem("avaliapro_remember_me");
     const sessionActive = sessionStorage.getItem("avaliapro_session_active");
 

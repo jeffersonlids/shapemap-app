@@ -1,5 +1,58 @@
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
+
+function sha256(text) {
+  if (!text) return null;
+  return crypto.createHash('sha256').update(text.trim().toLowerCase()).digest('hex');
+}
+
+async function sendMetaCapiEvent(email, amount, currency, eventName = 'Purchase') {
+  const pixelId = process.env.META_PIXEL_ID;
+  const accessToken = process.env.META_ACCESS_TOKEN;
+
+  if (!pixelId || !accessToken) {
+    console.warn('⚠️ Meta Pixel ID ou Access Token não configurados no servidor. Pulando Conversions API.');
+    return;
+  }
+
+  try {
+    const hashedEmail = sha256(email);
+    const payload = {
+      data: [
+        {
+          event_name: eventName,
+          event_time: Math.floor(Date.now() / 1000),
+          action_source: 'website',
+          user_data: {
+            em: hashedEmail ? [hashedEmail] : []
+          },
+          custom_data: {
+            value: amount,
+            currency: currency ? currency.toUpperCase() : 'BRL'
+          }
+        }
+      ]
+    };
+
+    const response = await fetch(`https://graph.facebook.com/v19.0/${pixelId}/events?access_token=${accessToken}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const resData = await response.json();
+    if (!response.ok) {
+      console.error('❌ Erro Meta Conversions API:', resData);
+    } else {
+      console.log(`✅ Evento Meta CAPI '${eventName}' enviado com sucesso. Response:`, resData);
+    }
+  } catch (error) {
+    console.error('❌ Falha ao enviar evento Meta CAPI:', error);
+  }
+}
 
 export const config = {
   api: {
@@ -87,6 +140,14 @@ export default async function handler(req, res) {
 
         if (error) throw error;
         console.log(`✅ Assinatura Stripe ativada com sucesso para o Treinador: ${trainerId}`);
+
+        // Disparar evento de conversão para a Meta (Facebook) via CAPI
+        const buyerEmail = session.customer_details?.email || session.customer_email;
+        const totalAmount = session.amount_total ? session.amount_total / 100 : 99.00;
+        const totalCurrency = session.currency || 'brl';
+        if (buyerEmail) {
+          await sendMetaCapiEvent(buyerEmail, totalAmount, totalCurrency, 'Purchase');
+        }
         break;
       }
 
