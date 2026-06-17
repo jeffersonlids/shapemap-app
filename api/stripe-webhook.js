@@ -127,6 +127,8 @@ export default async function handler(req, res) {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         const currentPeriodEndISO = getIsoDate(subscription.current_period_end);
 
+        const buyerPhone = session.customer_details?.phone || '';
+
         // Atualizar perfil do treinador no Supabase
         const { error } = await supabase
           .from('trainers')
@@ -135,6 +137,7 @@ export default async function handler(req, res) {
             subscription_status: subscription.status,
             subscription_id: subscriptionId,
             current_period_end: currentPeriodEndISO,
+            telefone: buyerPhone,
           })
           .eq('id', trainerId);
 
@@ -210,6 +213,28 @@ export default async function handler(req, res) {
         const { error } = await query;
         if (error) throw error;
         console.log(`❌ Assinatura Stripe cancelada/deletada para o Treinador (TrainerId: ${trainerId || 'N/A'}, CustomerId: ${customerId})`);
+        break;
+      }
+
+      case 'checkout.session.expired': {
+        const session = event.data.object;
+        const trainerId = session.metadata?.trainerId;
+        const phone = session.customer_details?.phone;
+
+        if (trainerId && phone) {
+          const { error } = await supabase
+            .from('trainers')
+            .update({
+              telefone: phone,
+            })
+            .eq('id', trainerId);
+
+          if (error) {
+            console.error(`❌ Erro ao atualizar telefone de checkout expirado: ${error.message}`);
+          } else {
+            console.log(`✅ Telefone de lead recuperado com sucesso via checkout expirado: ${trainerId} -> ${phone}`);
+          }
+        }
         break;
       }
 

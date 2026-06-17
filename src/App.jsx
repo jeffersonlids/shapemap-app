@@ -2819,26 +2819,6 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
   const [confirmEmail, setConfirmEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
-  const [telefone, setTelefone] = useState("");
-
-  function formatPhone(value) {
-    if (!value) return value;
-    const cleaned = value.replace(/[^\d+\-\s]/g, '');
-    const digitsOnly = cleaned.replace(/\D/g, '');
-    if (cleaned.startsWith('+') || digitsOnly.length > 11) {
-      return cleaned;
-    }
-    const len = digitsOnly.length;
-    if (len === 0) return "";
-    if (len < 3) return digitsOnly;
-    if (len < 7) {
-      return `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2)}`;
-    }
-    if (len <= 10) {
-      return `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2, 6)}-${digitsOnly.slice(6)}`;
-    }
-    return `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2, 7)}-${digitsOnly.slice(7, 11)}`;
-  }
   const [isSignUp, setIsSignUp] = useState(function() {
     const search = window.location.search;
     const hash = window.location.hash;
@@ -2857,7 +2837,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
 
   async function go() {
     const trimmedEmail = email.trim();
-    if (!trimmedEmail || !senha || (isSignUp && (!nome || !confirmEmail || !telefone))) {
+    if (!trimmedEmail || !senha || (isSignUp && (!nome || !confirmEmail))) {
       setErrorMsg(lang === "pt" ? "Preencha todos os campos" : "Please fill in all fields");
       return;
     }
@@ -2874,8 +2854,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
         password: senha,
         options: {
           data: {
-            nome: nome,
-            telefone: telefone
+            nome: nome
           }
         }
       });
@@ -3025,27 +3004,6 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
                 <FInput label={t("email", lang)} value={email} onChange={setEmail} type="email" placeholder="seu@email.com"/>
                 {isSignUp && (
                   <FInput label={lang === "pt" ? "Confirmar E-mail" : lang === "es" ? "Confirmar Correo Electrónico" : "Confirm Email"} value={confirmEmail} onChange={setConfirmEmail} type="email" placeholder="seu@email.com"/>
-                )}
-                {isSignUp && (
-                  <FInput 
-                    label={
-                      lang === "pt" 
-                        ? "Telefone (com DDI + DDD)" 
-                        : lang === "es" 
-                          ? "Teléfono (con código de país)" 
-                          : "Phone (with country code)"
-                    } 
-                    value={telefone} 
-                    onChange={function(val) { setTelefone(formatPhone(val)); }} 
-                    type="tel" 
-                    placeholder={
-                      lang === "pt" 
-                        ? "(99) 99999-9999 ou +34..." 
-                        : lang === "es" 
-                          ? "+34 600 000 000" 
-                          : "+1 (555) 000-0000"
-                    }
-                  />
                 )}
                 <FInput label={t("senha", lang)} value={senha} onChange={setSenha} type="password" placeholder="••••••••"/>
                 
