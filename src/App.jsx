@@ -7637,7 +7637,25 @@ export default function App() {
         baseNew.peso = prevAval.peso || "";
         baseNew.altura = prevAval.altura || "";
         baseNew.objetivo = prevAval.objetivo || "";
-        baseNew.anamnese = (prevAval.anamnese && prevAval.anamnese.length > 0) ? JSON.parse(JSON.stringify(prevAval.anamnese)) : baseNew.anamnese;
+        
+        if (prevAval.anamnese && Array.isArray(prevAval.anamnese) && prevAval.anamnese.length > 0) {
+          const prevAnswers = {};
+          prevAval.anamnese.forEach(function(item) {
+            if (item && item.pergunta) {
+              prevAnswers[item.pergunta.trim()] = item.resposta;
+            }
+          });
+          
+          baseNew.anamnese = baseNew.anamnese.map(function(item) {
+            const cleanQ = item.pergunta ? item.pergunta.trim() : "";
+            const prevAns = prevAnswers[cleanQ];
+            return {
+              id: item.id,
+              pergunta: item.pergunta,
+              resposta: prevAns !== undefined ? prevAns : ""
+            };
+          });
+        }
       }
       avalData = baseNew;
     } else {
