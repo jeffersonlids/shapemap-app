@@ -2823,13 +2823,21 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
 
   function formatPhone(value) {
     if (!value) return value;
-    const phoneNumber = value.replace(/[^\d]/g, '');
-    const phoneNumberLength = phoneNumber.length;
-    if (phoneNumberLength < 3) return phoneNumber;
-    if (phoneNumberLength < 7) {
-      return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2)}`;
+    const cleaned = value.replace(/[^\d+\-\s]/g, '');
+    const digitsOnly = cleaned.replace(/\D/g, '');
+    if (cleaned.startsWith('+') || digitsOnly.length > 11) {
+      return cleaned;
     }
-    return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2, 7)}-${phoneNumber.slice(7, 11)}`;
+    const len = digitsOnly.length;
+    if (len === 0) return "";
+    if (len < 3) return digitsOnly;
+    if (len < 7) {
+      return `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2)}`;
+    }
+    if (len <= 10) {
+      return `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2, 6)}-${digitsOnly.slice(6)}`;
+    }
+    return `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2, 7)}-${digitsOnly.slice(7, 11)}`;
   }
   const [isSignUp, setIsSignUp] = useState(function() {
     const search = window.location.search;
@@ -3020,11 +3028,23 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
                 )}
                 {isSignUp && (
                   <FInput 
-                    label={lang === "pt" ? "Telefone (com DDD)" : lang === "es" ? "Teléfono (con código)" : "Phone Number"} 
+                    label={
+                      lang === "pt" 
+                        ? "Telefone (com DDI + DDD)" 
+                        : lang === "es" 
+                          ? "Teléfono (con código de país)" 
+                          : "Phone (with country code)"
+                    } 
                     value={telefone} 
                     onChange={function(val) { setTelefone(formatPhone(val)); }} 
                     type="tel" 
-                    placeholder="(99) 99999-9999"
+                    placeholder={
+                      lang === "pt" 
+                        ? "(99) 99999-9999 ou +34..." 
+                        : lang === "es" 
+                          ? "+34 600 000 000" 
+                          : "+1 (555) 000-0000"
+                    }
                   />
                 )}
                 <FInput label={t("senha", lang)} value={senha} onChange={setSenha} type="password" placeholder="••••••••"/>
