@@ -7202,7 +7202,6 @@ export default function App() {
 
         if (insertError) throw insertError;
         trainerData = inserted;
-        sessionStorage.setItem("just_signed_up", "true");
       }
 
       const mappedTrainer = {
@@ -7235,6 +7234,20 @@ export default function App() {
         }
       }
       setHasAccess(access);
+
+      if (!access && status === "inactive" && !trainerData.stripe_customer_id) {
+        const createdAt = new Date(sessionUser.created_at);
+        const diffMs = new Date() - createdAt;
+        const isNewUser = diffMs < 15 * 60 * 1000;
+        
+        const autoCheckoutKey = "auto_checkout_attempted_" + sessionUser.id;
+        const hasAttempted = sessionStorage.getItem(autoCheckoutKey) === "true";
+        
+        if (isNewUser && !hasAttempted) {
+          sessionStorage.setItem(autoCheckoutKey, "true");
+          sessionStorage.setItem("just_signed_up", "true");
+        }
+      }
       if (trainerData.settings) {
         var userSettings = trainerData.settings;
         var oldOrderStr = JSON.stringify(["Puxada Aberta", "Supino Reto", "Agachamento", "Leg Press 45\u00B0", "Rosca Direta", "Puxada Pulley", "Tr\u00EDceps Pulley"]);
