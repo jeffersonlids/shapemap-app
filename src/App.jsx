@@ -6899,11 +6899,105 @@ function PaywallScreen({ trainer, onLogout }) {
   }
 
   useEffect(function() {
-    if (sessionStorage.getItem("just_signed_up") === "true" && !isExpired) {
-      sessionStorage.removeItem("just_signed_up");
+    if (!isExpired) {
       handleCheckout();
     }
-  }, []);
+  }, [isExpired]);
+
+  if (!isExpired) {
+    return (
+      <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, fontFamily:"'Outfit', sans-serif" }}>
+        <GlobalStyle />
+        <div style={{ width:"100%", maxWidth:420, textAlign:"center", display:"flex", flexDirection:"column", alignItems:"center" }}>
+          <LogoShapeMap size={140} color={ac()} showText={true} style={{ marginBottom: 24, marginLeft: "auto", marginRight: "auto" }} />
+          
+          {errorMsg ? (
+            <div style={{ width: "100%" }}>
+              <div style={{ background:"#FEE2E2", color:"#991B1B", padding:16, borderRadius:12, fontSize:14, marginBottom:16, textAlign:"center", border: "1px solid #FCA5A5" }}>
+                {errorMsg}
+              </div>
+              <Btn full onClick={handleCheckout} disabled={loading}>
+                {lang === "pt" ? "Tentar Novamente" : "Try Again"}
+              </Btn>
+              <button 
+                onClick={onLogout}
+                style={{ 
+                  background: "transparent", 
+                  border: "none", 
+                  color: T.muted, 
+                  fontSize: 13, 
+                  marginTop: 16, 
+                  cursor: "pointer",
+                  textDecoration: "underline"
+                }}
+              >
+                {lang === "pt" ? "Sair da conta" : "Log out"}
+              </button>
+            </div>
+          ) : (
+            <>
+              <div style={{
+                position: "relative",
+                width: 80,
+                height: 80,
+                animation: "logoPulse 2s ease-in-out infinite",
+                marginBottom: 20
+              }}>
+                <div 
+                  style={{ 
+                    width: "100%", 
+                    height: "100%", 
+                    backgroundColor: ac(), 
+                    opacity: 0.1, 
+                    WebkitMaskImage: "url(/logo_transparent.png)",
+                    maskImage: "url(/logo_transparent.png)",
+                    WebkitMaskSize: "contain",
+                    maskSize: "contain",
+                    WebkitMaskRepeat: "no-repeat",
+                    maskRepeat: "no-repeat",
+                    display: "block"
+                  }} 
+                />
+                <div style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: "0%",
+                  overflow: "hidden",
+                  animation: "logoFill 2.5s ease-in-out infinite"
+                }}>
+                  <div 
+                    style={{ 
+                      position: "absolute", 
+                      bottom: 0, 
+                      left: 0, 
+                      width: 80, 
+                      height: 80, 
+                      backgroundColor: ac(), 
+                      WebkitMaskImage: "url(/logo_transparent.png)",
+                      maskImage: "url(/logo_transparent.png)",
+                      WebkitMaskSize: "contain",
+                      maskSize: "contain",
+                      WebkitMaskRepeat: "no-repeat",
+                      maskRepeat: "no-repeat",
+                      display: "block"
+                    }} 
+                  />
+                </div>
+              </div>
+              <div style={{ fontSize: 15, color: T.text, fontWeight: 600 }}>
+                {lang === "pt" ? "Redirecionando para o pagamento seguro..." : "Redirecting to secure checkout..."}
+              </div>
+              <div style={{ fontSize: 13, color: T.muted, marginTop: 6 }}>
+                {lang === "pt" ? "Conectando com a Stripe..." : "Connecting to Stripe..."}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, fontFamily:"'Outfit', sans-serif" }}>
@@ -7234,20 +7328,6 @@ export default function App() {
         }
       }
       setHasAccess(access);
-
-      if (!access && status === "inactive" && !trainerData.stripe_customer_id) {
-        const createdAt = new Date(sessionUser.created_at);
-        const diffMs = new Date() - createdAt;
-        const isNewUser = diffMs < 15 * 60 * 1000;
-        
-        const autoCheckoutKey = "auto_checkout_attempted_" + sessionUser.id;
-        const hasAttempted = sessionStorage.getItem(autoCheckoutKey) === "true";
-        
-        if (isNewUser && !hasAttempted) {
-          sessionStorage.setItem(autoCheckoutKey, "true");
-          sessionStorage.setItem("just_signed_up", "true");
-        }
-      }
       if (trainerData.settings) {
         var userSettings = trainerData.settings;
         var oldOrderStr = JSON.stringify(["Puxada Aberta", "Supino Reto", "Agachamento", "Leg Press 45\u00B0", "Rosca Direta", "Puxada Pulley", "Tr\u00EDceps Pulley"]);
