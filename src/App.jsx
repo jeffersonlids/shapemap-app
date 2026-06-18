@@ -2869,6 +2869,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
         if (data.session) {
           localStorage.setItem("avaliapro_remember_me", rememberMe ? "true" : "false");
           sessionStorage.setItem("avaliapro_session_active", "true");
+          sessionStorage.setItem("just_signed_up", "true");
           onLogin();
         } else {
           alert(lang === "pt" 
@@ -6898,13 +6899,18 @@ function PaywallScreen({ trainer, onLogout }) {
     }
   }
 
+  const [isAutoRedirecting, setIsAutoRedirecting] = useState(function() {
+    return sessionStorage.getItem("just_signed_up") === "true" && !isExpired;
+  });
+
   useEffect(function() {
-    if (!isExpired) {
+    if (isAutoRedirecting) {
+      sessionStorage.removeItem("just_signed_up");
       handleCheckout();
     }
-  }, [isExpired]);
+  }, [isAutoRedirecting]);
 
-  if (!isExpired) {
+  if (isAutoRedirecting) {
     return (
       <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, fontFamily:"'Outfit', sans-serif" }}>
         <GlobalStyle />
