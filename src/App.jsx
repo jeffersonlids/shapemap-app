@@ -6909,10 +6909,10 @@ function PaywallScreen({ trainer, onLogout }) {
       <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, fontFamily:"'Outfit', sans-serif" }}>
         <GlobalStyle />
         <div style={{ width:"100%", maxWidth:420, textAlign:"center", display:"flex", flexDirection:"column", alignItems:"center" }}>
-          <LogoShapeMap size={140} color={ac()} showText={true} style={{ marginBottom: 24, marginLeft: "auto", marginRight: "auto" }} />
           
           {errorMsg ? (
             <div style={{ width: "100%" }}>
+              <LogoShapeMap size={140} color={ac()} showText={true} style={{ marginBottom: 24, marginLeft: "auto", marginRight: "auto" }} />
               <div style={{ background:"#FEE2E2", color:"#991B1B", padding:16, borderRadius:12, fontSize:14, marginBottom:16, textAlign:"center", border: "1px solid #FCA5A5" }}>
                 {errorMsg}
               </div>
