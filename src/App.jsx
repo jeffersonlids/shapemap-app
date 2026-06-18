@@ -6898,6 +6898,13 @@ function PaywallScreen({ trainer, onLogout }) {
     }
   }
 
+  useEffect(function() {
+    if (sessionStorage.getItem("just_signed_up") === "true" && !isExpired) {
+      sessionStorage.removeItem("just_signed_up");
+      handleCheckout();
+    }
+  }, []);
+
   return (
     <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, fontFamily:"'Outfit', sans-serif" }}>
       <div style={{ width:"100%", maxWidth:420, textAlign:"center", marginBottom:24, display:"flex", flexDirection:"column", alignItems:"center" }}>
@@ -7195,6 +7202,7 @@ export default function App() {
 
         if (insertError) throw insertError;
         trainerData = inserted;
+        sessionStorage.setItem("just_signed_up", "true");
       }
 
       const mappedTrainer = {
