@@ -6872,7 +6872,7 @@ function PaywallScreen({ trainer, onLogout }) {
       }
       const body = trainer.stripeCustomerId 
         ? { customerId: trainer.stripeCustomerId }
-        : { trainerId: trainer.id, email: trainer.email };
+        : { trainerId: trainer.id, email: trainer.email, nome: trainer.nome };
 
       const res = await fetch(endpoint, {
         method: "POST",

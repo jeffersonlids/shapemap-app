@@ -21,8 +21,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { trainerId, email } = req.body;
-
+  const { trainerId, email, nome } = req.body;
+  
   if (!trainerId || !email) {
     return res.status(400).json({ error: 'Dados insuficientes (trainerId ou email ausentes).' });
   }
@@ -43,10 +43,14 @@ export default async function handler(req, res) {
     
     if (customers.data.length > 0) {
       customer = customers.data[0];
+      if (nome && customer.name !== nome) {
+        customer = await stripe.customers.update(customer.id, { name: nome });
+      }
     } else {
       // Criar novo cliente
       customer = await stripe.customers.create({
         email: email,
+        name: nome,
         metadata: {
           trainerId: trainerId,
         },
