@@ -6864,17 +6864,19 @@ function PaywallScreen({ trainer, onLogout }) {
     setLoading(true);
     setErrorMsg("");
     try {
-      const hasActiveSub = trainer.stripeCustomerId && (
+      const shouldGoToPortal = trainer.stripeCustomerId && (
         trainer.subscriptionStatus === "active" || 
-        trainer.subscriptionStatus === "trialing"
+        trainer.subscriptionStatus === "trialing" ||
+        trainer.subscriptionStatus === "past_due" ||
+        trainer.subscriptionStatus === "unpaid"
       );
-      const endpoint = hasActiveSub ? "/api/create-portal-session" : "/api/create-checkout-session";
+      const endpoint = shouldGoToPortal ? "/api/create-portal-session" : "/api/create-checkout-session";
       if (endpoint === "/api/create-checkout-session") {
         if (typeof window.fbq === 'function') {
           window.fbq('track', 'InitiateCheckout');
         }
       }
-      const body = hasActiveSub 
+      const body = shouldGoToPortal 
         ? { customerId: trainer.stripeCustomerId }
         : { trainerId: trainer.id, email: trainer.email, nome: trainer.nome };
 
