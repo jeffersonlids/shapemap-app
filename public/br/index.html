@@ -210,8 +210,7 @@
         <!-- Background Video Header Container -->
         <div class="benefits-video-hero">
             <div class="video-hero-bg">
-                <video class="video-hero-media" autoplay loop muted playsinline>
-                    <source src="/br/vídeocelular.mp4" type="video/mp4">
+                <video class="video-hero-media" id="benefitsBgVideo" loop muted playsinline poster="/br/beneficio1.png">
                 </video>
                 <div class="video-hero-overlay"></div>
             </div>
@@ -599,5 +598,23 @@
 
     <!-- Custom Script -->
     <script src="/br/script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Carrega o vídeo de fundo dinamicamente apenas em telas maiores que 768px (desktop/tablet)
+            if (window.innerWidth > 768) {
+                var video = document.getElementById("benefitsBgVideo");
+                if (video) {
+                    var source = document.createElement("source");
+                    source.src = "/br/vídeocelular.mp4";
+                    source.type = "video/mp4";
+                    video.appendChild(source);
+                    video.preload = "auto";
+                    video.play().catch(function(err) {
+                        console.log("Autoplay bloqueado ou falhou:", err);
+                    });
+                }
+            }
+        });
+    </script>
 </body>
 </html>
