@@ -2214,6 +2214,9 @@ function newAval(nome, sexo, telefone, idade, settings) {
     cardiovascular: { tipoTeste: "cooper", cooper: "", esteiraVelocidade: "", esteiraInclinacao: "", fcRepouso: "", fcRecuperacao: "", fcMax: "", pressaoArterial: "" },
     fotos: { frente: null, lado: null, costas: null },
     observacaoFotos: "",
+    tipo: "presencial",
+    status: "finalizada",
+    config: {},
   };
 }
 const PERGUNTAS_PADRAO = [
@@ -3355,6 +3358,38 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
   const [draggedExerciseIdx, setDraggedExerciseIdx] = useState(null);
   const [draggedPerimIdx, setDraggedPerimIdx] = useState(null);
 
+  const onlineConfig = (settings && settings.defaultOnlineConfig) || {
+    sections: {
+      anamnese: true,
+      composicao: true,
+      perimetria: true,
+      testes: true,
+      cardiovascular: true,
+      metabolismo: true,
+      fotos: true
+    },
+    composicaoMethod: (settings && settings.defaultMetodo) || "pollock7",
+    fotosTypes: {
+      frente: true,
+      lado: true,
+      costas: true
+    }
+  };
+
+  function updateOnlineConfig(key, value) {
+    const nextConfig = Object.assign({}, onlineConfig);
+    if (key.startsWith("sections.")) {
+      const secKey = key.split(".")[1];
+      nextConfig.sections = Object.assign({}, onlineConfig.sections, { [secKey]: value });
+    } else if (key.startsWith("fotosTypes.")) {
+      const fotoKey = key.split(".")[1];
+      nextConfig.fotosTypes = Object.assign({}, onlineConfig.fotosTypes, { [fotoKey]: value });
+    } else {
+      nextConfig[key] = value;
+    }
+    onUpdateSettings(Object.assign({}, settings, { defaultOnlineConfig: nextConfig }));
+  }
+
   function togglePerim(key) {
     var nextFields = settings.perimetriaCampos.map(function(f) {
       if (f.key === key) return Object.assign({}, f, { active: !f.active });
@@ -3711,6 +3746,150 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
           </Card>
         </div>
 
+        {/* 6. MODELO DE AVALIAÇÃO ONLINE */}
+        <div>
+          <SecHead 
+            title={lang === "es" ? "Modelo de Evaluación Online" : lang === "en" ? "Online Evaluation Template" : "Modelo de Avaliação Online"} 
+            sub={lang === "es" ? "Defina qué secciones y campos vendrán marcados por defecto al enviar una evaluación online." : lang === "en" ? "Define which sections and fields will be checked by default when sending an online evaluation." : "Defina quais seções e campos virão marcados por padrão ao enviar uma avaliação online."} 
+          />
+          <Card sx={{ padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              
+              {/* Seção: Anamnese */}
+              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: T.text }}>
+                <input 
+                  type="checkbox" 
+                  checked={onlineConfig.sections.anamnese} 
+                  onChange={function(e) { updateOnlineConfig("sections.anamnese", e.target.checked); }}
+                  style={{ accentColor: ac(), width: 18, height: 18 }}
+                />
+                {lang === "es" ? "Anamnesis" : lang === "en" ? "Anamnesis" : "Anamnese"}
+              </label>
+
+              {/* Seção: Composição Corporal */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: T.text }}>
+                  <input 
+                    type="checkbox" 
+                    checked={onlineConfig.sections.composicao} 
+                    onChange={function(e) { updateOnlineConfig("sections.composicao", e.target.checked); }}
+                    style={{ accentColor: ac(), width: 18, height: 18 }}
+                  />
+                  {lang === "es" ? "Composición Corporal" : lang === "en" ? "Body Composition" : "Composição Corporal"}
+                </label>
+                {onlineConfig.sections.composicao && (
+                  <div style={{ paddingLeft: 28, marginTop: 4 }}>
+                    <FSelect
+                      label={lang === "es" ? "Método por defecto" : lang === "en" ? "Default Method" : "Método padrão"}
+                      value={onlineConfig.composicaoMethod}
+                      onChange={function(v) { updateOnlineConfig("composicaoMethod", v); }}
+                      options={[
+                        { value: "", label: lang === "es" ? "Ninguno" : lang === "en" ? "None" : "Nenhum (selecionar na hora)" },
+                        { value: "pollock7", label: "Pollock 7 Dobras" },
+                        { value: "pollock3", label: "Pollock 3 Dobras" },
+                        { value: "faulkner", label: "Faulkner" },
+                        { value: "petroski", label: "Petroski" },
+                        { value: "durnin_womersley", label: "Durnin-Womersley" },
+                        { value: "marinha", label: "Marinha Americana" },
+                        { value: "bioimpedancia", label: "Bioimpedância" }
+                      ]}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Seção: Perimetria */}
+              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: T.text }}>
+                <input 
+                  type="checkbox" 
+                  checked={onlineConfig.sections.perimetria} 
+                  onChange={function(e) { updateOnlineConfig("sections.perimetria", e.target.checked); }}
+                  style={{ accentColor: ac(), width: 18, height: 18 }}
+                />
+                {lang === "es" ? "Perímetro / Medidas" : lang === "en" ? "Perimetry / Measurements" : "Perimetria / Medidas"}
+              </label>
+
+              {/* Seção: Testes de Força */}
+              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: T.text }}>
+                <input 
+                  type="checkbox" 
+                  checked={onlineConfig.sections.testes} 
+                  onChange={function(e) { updateOnlineConfig("sections.testes", e.target.checked); }}
+                  style={{ accentColor: ac(), width: 18, height: 18 }}
+                />
+                {lang === "es" ? "Testes de Fuerza" : lang === "en" ? "Strength Tests" : "Testes de Força"}
+              </label>
+
+              {/* Seção: Cardiovascular */}
+              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: T.text }}>
+                <input 
+                  type="checkbox" 
+                  checked={onlineConfig.sections.cardiovascular} 
+                  onChange={function(e) { updateOnlineConfig("sections.cardiovascular", e.target.checked); }}
+                  style={{ accentColor: ac(), width: 18, height: 18 }}
+                />
+                {lang === "es" ? "Cardiovascular & VO2" : lang === "en" ? "Cardiovascular & VO2" : "Cardiovascular & VO2"}
+              </label>
+
+              {/* Seção: Metabolismo */}
+              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: T.text }}>
+                <input 
+                  type="checkbox" 
+                  checked={onlineConfig.sections.metabolismo} 
+                  onChange={function(e) { updateOnlineConfig("sections.metabolismo", e.target.checked); }}
+                  style={{ accentColor: ac(), width: 18, height: 18 }}
+                />
+                {lang === "es" ? "Tasa Metabólica Basal" : lang === "en" ? "Basal Metabolic Rate" : "Taxa Metabólica Basal"}
+              </label>
+
+              {/* Seção: Fotos */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: T.text }}>
+                  <input 
+                    type="checkbox" 
+                    checked={onlineConfig.sections.fotos} 
+                    onChange={function(e) { updateOnlineConfig("sections.fotos", e.target.checked); }}
+                    style={{ accentColor: ac(), width: 18, height: 18 }}
+                  />
+                  {lang === "es" ? "Registro Fotográfico" : lang === "en" ? "Photos" : "Registro Fotográfico (Fotos)"}
+                </label>
+                {onlineConfig.sections.fotos && (
+                  <div style={{ display: "flex", gap: 16, paddingLeft: 28, marginTop: 4 }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: T.sub }}>
+                      <input 
+                        type="checkbox" 
+                        checked={onlineConfig.fotosTypes.frente} 
+                        onChange={function(e) { updateOnlineConfig("fotosTypes.frente", e.target.checked); }}
+                        style={{ accentColor: ac(), width: 16, height: 16 }}
+                      />
+                      {lang === "es" ? "Frente" : lang === "en" ? "Front" : "Frente"}
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: T.sub }}>
+                      <input 
+                        type="checkbox" 
+                        checked={onlineConfig.fotosTypes.lado} 
+                        onChange={function(e) { updateOnlineConfig("fotosTypes.lado", e.target.checked); }}
+                        style={{ accentColor: ac(), width: 16, height: 16 }}
+                      />
+                      {lang === "es" ? "Perfil" : lang === "en" ? "Side" : "Lado"}
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: T.sub }}>
+                      <input 
+                        type="checkbox" 
+                        checked={onlineConfig.fotosTypes.costas} 
+                        onChange={function(e) { updateOnlineConfig("fotosTypes.costas", e.target.checked); }}
+                        style={{ accentColor: ac(), width: 16, height: 16 }}
+                      />
+                      {lang === "es" ? "Espalda" : lang === "en" ? "Back" : "Costas"}
+                    </label>
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </Card>
+        </div>
+
       </div>
     </div>
   );
@@ -3818,12 +3997,13 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
 }
 
 // ── ALUNO PROFILE ─────────────────────────────────────────────────────────────
-function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare, onDeleteAval, onUpdateAluno, trainer }) {
+function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare, onDeleteAval, onUpdateAluno, onUpdateAlunoAvalStatus, trainer }) {
   const lang = (trainer && trainer.lang) || "pt";
   const [comparing, setComparing] = useState(false);
   const [sel, setSel] = useState([]);
   const [confirmDel, setConfirmDel] = useState(false);
   const [confirmDelAvalId, setConfirmDelAvalId] = useState(null);
+  const [selectedPendingAval, setSelectedPendingAval] = useState(null);
 
   const [showMenu, setShowMenu] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -4017,7 +4197,17 @@ function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare
             var checked = sel.indexOf(av.id) >= 0;
             var num = (aluno.avaliacoes ? aluno.avaliacoes.length : 0) - i;
             return (
-              <div key={av.id} onClick={function() { if (comparing) toggleSel(av.id); else onOpenAval(av.id); }}>
+              <div key={av.id} onClick={function() { 
+                if (comparing) {
+                  toggleSel(av.id); 
+                } else {
+                  if (av.tipo === "online" && av.status === "aguardando_resposta") {
+                    setSelectedPendingAval(av);
+                  } else {
+                    onOpenAval(av.id);
+                  }
+                }
+              }}>
                 <Card hover sx={{ padding:"15px", border:"1.5px solid "+(checked ? ac() : T.border), background: checked ? acL() : T.surface }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0 }}>
@@ -4028,8 +4218,15 @@ function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare
                       )}
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ fontSize:15, fontWeight:700, color:T.text }}>{fmtDate(av.data)}</div>
-                        <div style={{ display:"flex", alignItems:"center", gap:7, marginTop:3 }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:7, marginTop:3, flexWrap: "wrap" }}>
                           <div style={{ fontSize:13, color:T.muted, fontWeight:400 }}>{t("avaliacao_num", lang) + num}</div>
+                          {av.tipo === "online" ? (
+                            av.status === "aguardando_resposta" ? (
+                              <Chip color={T.warning}>{lang === "es" ? "Esperando respuesta" : lang === "en" ? "Waiting response" : "Aguardando resposta"}</Chip>
+                            ) : (
+                              <Chip color={T.success}>{lang === "es" ? "Respondida" : lang === "en" ? "Answered" : "Respondida"}</Chip>
+                            )
+                          ) : null}
                           {isLatest && <Chip color={T.success}>{lang === "en" ? "Recent" : lang === "es" ? "Reciente" : "Recente"}</Chip>}
                         </div>
                       </div>
@@ -4047,6 +4244,68 @@ function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare
               </div>
             );
           })}
+        </div>
+      )}
+
+      {selectedPendingAval && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", backdropFilter:"blur(4px)", zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }} onClick={function() { setSelectedPendingAval(null); }}>
+          <Card onClick={function(e) { e.stopPropagation(); }} sx={{ padding:24, width:"100%", maxWidth:380, border:"1px solid "+T.border, textAlign:"center", display:"flex", flexDirection:"column", gap:16, boxShadow:T.shadowLg }}>
+            <div style={{ fontSize:36 }}>⏳</div>
+            <div style={{ fontSize:17, fontWeight:800, color:T.text }}>
+              {lang === "es" ? "Evaluación Online Pendiente" : lang === "en" ? "Pending Online Evaluation" : "Avaliação Online Pendente"}
+            </div>
+            <div style={{ fontSize:13, color:T.sub, lineHeight:1.5 }}>
+              {lang === "es" ? "Esta evaluación fue enviada al alumno y está esperando respuesta." : lang === "en" ? "This evaluation was sent to the student and is waiting for a response." : "Esta avaliação foi enviada ao aluno e está aguardando resposta."}
+            </div>
+            
+            <div style={{ display:"flex", flexDirection:"column", gap:10, marginTop:8 }}>
+              {/* Copiar Link */}
+              <Btn full onClick={function() {
+                const generatedUrl = window.location.origin + "/?responder=true&id=" + selectedPendingAval.id + "&lang=" + lang;
+                navigator.clipboard.writeText(generatedUrl);
+                alert(lang === "es" ? "¡Enlace copiado al portapapeles!" : lang === "en" ? "Link copied to clipboard!" : "Link copiado para a área de transferência!");
+              }}>
+                {lang === "es" ? "Copiar Enlace" : lang === "en" ? "Copy Link" : "Copiar Link"}
+              </Btn>
+              
+              {/* Enviar Lembrete */}
+              <Btn full variant="outline" onClick={function() {
+                const generatedUrl = window.location.origin + "/?responder=true&id=" + selectedPendingAval.id + "&lang=" + lang;
+                const text = encodeURIComponent(
+                  lang === "es" 
+                    ? `Hola, recuerda responder tu evaluación física cuando puedas: ${generatedUrl}` 
+                    : lang === "pt" 
+                    ? `Olá, lembrete para responder a sua avaliação física quando puder: ${generatedUrl}`
+                    : `Hello, reminder to answer your physical evaluation when you can: ${generatedUrl}`
+                );
+                const waUrl = "https://wa.me/" + (aluno.telefone ? aluno.telefone.replace(/\D/g, "") : "") + "?text=" + text;
+                window.open(waUrl, "_blank");
+              }}>
+                {lang === "es" ? "Enviar Recordatorio" : lang === "en" ? "Send Reminder" : "Enviar Lembrete por WhatsApp"}
+              </Btn>
+              
+              {/* Preencher Manualmente */}
+              <Btn full variant="ghost" onClick={async function() {
+                try {
+                  setSelectedPendingAval(null);
+                  await onUpdateAlunoAvalStatus(aluno.id, selectedPendingAval.id, "presencial", "finalizada");
+                  onOpenAval(selectedPendingAval.id);
+                } catch(err) {
+                  alert("Erro ao atualizar avaliação: " + err.message);
+                }
+              }}>
+                {lang === "es" ? "Llenar Manualmente" : lang === "en" ? "Fill Manually" : "Preencher Manualmente (Presencial)"}
+              </Btn>
+
+              {/* Fechar */}
+              <button 
+                onClick={function() { setSelectedPendingAval(null); }}
+                style={{ background:"none", border:"none", color:T.muted, fontSize:13, fontWeight:600, cursor:"pointer", textDecoration:"underline", padding:"8px 0" }}
+              >
+                {lang === "es" ? "Volver" : lang === "en" ? "Back" : "Voltar"}
+              </button>
+            </div>
+          </Card>
         </div>
       )}
     </div>
@@ -7108,6 +7367,912 @@ function PaywallScreen({ trainer, onLogout }) {
   );
 }
 
+// ── COMPONENTES DE AVALIAÇÃO ONLINE ──────────────────────────────────────────
+
+// 1. TELA DE ESCOLHA DE TIPO
+function EscolhaTipoAvaliacaoScreen({ aluno, onBack, onSelectPresencial, onSelectOnline, trainer }) {
+  const lang = (trainer && trainer.lang) || "pt";
+  return (
+    <div style={{ padding: "24px 16px 100px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+        <button onClick={onBack} style={{ background: "none", border: "1.5px solid " + T.border, borderRadius: 10, padding: "8px 10px", cursor: "pointer", display: "flex", alignItems: "center" }}>
+          <IcBack c={T.sub} s={18} />
+        </button>
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 800 }}>
+            {lang === "es" ? "Nueva Evaluación" : lang === "en" ? "New Evaluation" : "Nova Avaliação"}
+          </div>
+          <div style={{ fontSize: 12, color: T.muted }}>{aluno.nome}</div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        
+        {/* Opção 1: Presencial */}
+        <Card hover onClick={onSelectPresencial} sx={{ padding: 20, cursor: "pointer", border: "1.5px solid " + T.border, display: "flex", gap: 16, alignItems: "flex-start" }}>
+          <div style={{ background: ac() + "14", padding: 12, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={ac()} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+              <line x1="9" y1="12" x2="15" y2="12"></line>
+              <line x1="9" y1="16" x2="15" y2="16"></line>
+              <line x1="9" y1="8" x2="10" y2="8"></line>
+            </svg>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 4 }}>
+              {lang === "es" ? "Presencial (En el Consultorio)" : lang === "en" ? "In-Person (Office)" : "Presencial (No Consultório)"}
+            </div>
+            <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.5, marginBottom: 12 }}>
+              {lang === "es" ? "Usted realiza las mediciones físicas e ingresa los datos en tiempo real junto con el evaluado." : lang === "en" ? "You perform the physical measurements and enter the data in real-time with the student." : "Você realiza as medições físicas e insere os dados em tempo real junto com o aluno."}
+            </div>
+            <Btn small onClick={onSelectPresencial}>{lang === "es" ? "Iniciar Presencial" : lang === "en" ? "Start In-Person" : "Iniciar Presencial"}</Btn>
+          </div>
+        </Card>
+
+        {/* Opção 2: Online */}
+        <Card hover onClick={onSelectOnline} sx={{ padding: 20, cursor: "pointer", border: "1.5px solid " + T.border, display: "flex", gap: 16, alignItems: "flex-start" }}>
+          <div style={{ background: ac() + "14", padding: 12, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={ac()} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+              <line x1="12" y1="18" x2="12.01" y2="18"></line>
+            </svg>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 4 }}>
+              {lang === "es" ? "A Distancia (Online)" : lang === "en" ? "Remote (Online)" : "À Distância (Online)"}
+            </div>
+            <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.5, marginBottom: 12 }}>
+              {lang === "es" ? "Envíe un enlace para que el aluno responda la anamnesis, peso, altura, medidas y suba fotos desde su celular." : lang === "en" ? "Send a link for the student to answer anamnesis, weight, height, measurements, and upload photos from their phone." : "Envie um link para o aluno responder a anamnese, peso, altura, medidas e enviar fotos diretamente pelo celular."}
+            </div>
+            <Btn small onClick={onSelectOnline}>{lang === "es" ? "Configurar e Enviar" : lang === "en" ? "Configure & Send" : "Configurar e Enviar"}</Btn>
+          </div>
+        </Card>
+
+      </div>
+    </div>
+  );
+}
+
+// 2. TELA DE CONFIGURAÇÃO DE ENVIO ONLINE
+function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
+  const lang = (trainer && trainer.lang) || "pt";
+  const [activeTab, setActiveTab] = useState("");
+
+  const defaultOnlineConfig = (settings && settings.defaultOnlineConfig) || {
+    sections: {
+      anamnese: true,
+      composicao: true,
+      perimetria: true,
+      testes: true,
+      cardiovascular: true,
+      metabolismo: true,
+      fotos: true
+    },
+    composicaoMethod: (settings && settings.defaultMetodo) || "pollock7",
+    fotosTypes: {
+      frente: true,
+      lado: true,
+      costas: true
+    }
+  };
+
+  const [sections, setSections] = useState(Object.assign({}, defaultOnlineConfig.sections));
+  const [composicaoMethod, setComposicaoMethod] = useState(defaultOnlineConfig.composicaoMethod);
+  const [fotosTypes, setFotosTypes] = useState(Object.assign({}, defaultOnlineConfig.fotosTypes));
+
+  const qList = (settings && settings.anamnesePerguntas) || PERGUNTAS_PADRAO;
+  const [selectedQuestions, setSelectedQuestions] = useState(qList.map(function(q) {
+    return { question: q, checked: true };
+  }));
+
+  const pFields = (settings && settings.perimetriaCampos) || [];
+  const [selectedPerim, setSelectedPerim] = useState(pFields.map(function(f) {
+    return { key: f.key, label: f.label, checked: f.active };
+  }));
+
+  const eList = (settings && settings.exerciciosForca) || [];
+  const [selectedForce, setSelectedForce] = useState(eList.map(function(ex) {
+    return { exercise: ex, checked: true };
+  }));
+
+  function handleSend() {
+    const finalConfig = {
+      sections: sections,
+      anamneseQuestions: selectedQuestions.filter(function(x) { return x.checked; }).map(function(x) { return x.question; }),
+      composicaoMethod: composicaoMethod,
+      perimetriaFields: selectedPerim.filter(function(x) { return x.checked; }).map(function(x) { return { key: x.key, label: x.label }; }),
+      testesExercises: selectedForce.filter(function(x) { return x.checked; }).map(function(x) { return x.exercise; }),
+      fotosTypes: fotosTypes,
+      trainerNome: trainer.nome || "Prof. ShapeMap",
+      trainerCor: trainer.corPrimaria || "#1A1A2E",
+      studentNome: aluno.nome || ""
+    };
+    onSend(finalConfig);
+  }
+
+  function toggleQuestion(idx) {
+    setSelectedQuestions(function(prev) {
+      return prev.map(function(q, i) {
+        if (i === idx) return Object.assign({}, q, { checked: !q.checked });
+        return q;
+      });
+    });
+  }
+
+  function togglePerim(key) {
+    setSelectedPerim(function(prev) {
+      return prev.map(function(f) {
+        if (f.key === key) return Object.assign({}, f, { checked: !f.checked });
+        return f;
+      });
+    });
+  }
+
+  function toggleForce(idx) {
+    setSelectedForce(function(prev) {
+      return prev.map(function(ex, i) {
+        if (i === idx) return Object.assign({}, ex, { checked: !ex.checked });
+        return ex;
+      });
+    });
+  }
+
+  function toggleSection(key) {
+    setSections(function(prev) {
+      return Object.assign({}, prev, { [key]: !prev[key] });
+    });
+  }
+
+  function toggleFotoType(key) {
+    setFotosTypes(function(prev) {
+      return Object.assign({}, prev, { [key]: !prev[key] });
+    });
+  }
+
+  function toggleAccordion(tabName) {
+    setActiveTab(function(current) {
+      return current === tabName ? "" : tabName;
+    });
+  }
+
+  return (
+    <div style={{ padding: "24px 16px 100px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <button onClick={onBack} style={{ background: "none", border: "1.5px solid " + T.border, borderRadius: 10, padding: "8px 10px", cursor: "pointer", display: "flex", alignItems: "center" }}>
+          <IcBack c={T.sub} s={18} />
+        </button>
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 800 }}>
+            {lang === "es" ? "Configurar Envío" : lang === "en" ? "Configure Online" : "Configurar Envio Online"}
+          </div>
+          <div style={{ fontSize: 12, color: T.muted }}>{aluno.nome}</div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 30 }}>
+        
+        {/* Bloco 1: Anamnese */}
+        <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
+          <div onClick={function() { toggleAccordion("anamnese"); }} style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", background: activeTab === "anamnese" ? T.bg : "transparent" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }} onClick={function(e) { e.stopPropagation(); }}>
+              <input type="checkbox" checked={sections.anamnese} onChange={function(e) { toggleSection("anamnese"); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
+              <span style={{ color: sections.anamnese ? T.text : T.muted }}>{lang === "es" ? "Anamnesis" : lang === "en" ? "Anamnesis" : "Anamnese"}</span>
+            </label>
+            <IcChevron c={T.muted} s={16} rotate={activeTab === "anamnese" ? 90 : 0} />
+          </div>
+          {activeTab === "anamnese" && (
+            <div style={{ padding: "0 16px 16px", borderTop: "1px solid " + T.borderLight, maxHeight: 220, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+              {selectedQuestions.map(function(q, idx) {
+                return (
+                  <label key={idx} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: q.checked ? T.text : T.sub }} onClick={function(e) { e.stopPropagation(); }}>
+                    <input type="checkbox" checked={q.checked} onChange={function() { toggleQuestion(idx); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!sections.anamnese} />
+                    {q.question}
+                  </label>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+
+        {/* Bloco 2: Composição Corporal */}
+        <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
+          <div onClick={function() { toggleAccordion("composicao"); }} style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", background: activeTab === "composicao" ? T.bg : "transparent" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }} onClick={function(e) { e.stopPropagation(); }}>
+              <input type="checkbox" checked={sections.composicao} onChange={function(e) { toggleSection("composicao"); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
+              <span style={{ color: sections.composicao ? T.text : T.muted }}>{lang === "es" ? "Composición Corporal" : lang === "en" ? "Body Composition" : "Composição Corporal"}</span>
+            </label>
+            <IcChevron c={T.muted} s={16} rotate={activeTab === "composicao" ? 90 : 0} />
+          </div>
+          {activeTab === "composicao" && (
+            <div style={{ padding: "16px", borderTop: "1px solid " + T.borderLight }}>
+              <FSelect
+                label={lang === "es" ? "Método de composición corporal" : lang === "en" ? "Composition Method" : "Método de composição corporal"}
+                value={composicaoMethod}
+                onChange={setComposicaoMethod}
+                disabled={!sections.composicao}
+                options={[
+                  { value: "", label: lang === "es" ? "Ninguno (solo Peso/Altura)" : lang === "en" ? "None (Weight/Height only)" : "Nenhum (apenas Peso/Altura)" },
+                  { value: "pollock7", label: "Pollock 7 Dobras" },
+                  { value: "pollock3", label: "Pollock 3 Dobras" },
+                  { value: "faulkner", label: "Faulkner" },
+                  { value: "petroski", label: "Petroski" },
+                  { value: "durnin_womersley", label: "Durnin-Womersley" },
+                  { value: "marinha", label: "Marinha Americana" },
+                  { value: "bioimpedancia", label: "Bioimpedância" }
+                ]}
+              />
+            </div>
+          )}
+        </Card>
+
+        {/* Bloco 3: Perimetria */}
+        <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
+          <div onClick={function() { toggleAccordion("perimetria"); }} style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", background: activeTab === "perimetria" ? T.bg : "transparent" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }} onClick={function(e) { e.stopPropagation(); }}>
+              <input type="checkbox" checked={sections.perimetria} onChange={function(e) { toggleSection("perimetria"); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
+              <span style={{ color: sections.perimetria ? T.text : T.muted }}>{lang === "es" ? "Perimetría (Medidas)" : lang === "en" ? "Perimetry (Measurements)" : "Perimetria (Medidas)"}</span>
+            </label>
+            <IcChevron c={T.muted} s={16} rotate={activeTab === "perimetria" ? 90 : 0} />
+          </div>
+          {activeTab === "perimetria" && (
+            <div style={{ padding: "0 16px 16px", borderTop: "1px solid " + T.borderLight, maxHeight: 220, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+              {selectedPerim.map(function(f) {
+                return (
+                  <label key={f.key} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: f.checked ? T.text : T.sub }} onClick={function(e) { e.stopPropagation(); }}>
+                    <input type="checkbox" checked={f.checked} onChange={function() { togglePerim(f.key); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!sections.perimetria} />
+                    {f.label}
+                  </label>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+
+        {/* Bloco 4: Testes de Força */}
+        <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
+          <div onClick={function() { toggleAccordion("testes"); }} style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", background: activeTab === "testes" ? T.bg : "transparent" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }} onClick={function(e) { e.stopPropagation(); }}>
+              <input type="checkbox" checked={sections.testes} onChange={function(e) { toggleSection("testes"); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
+              <span style={{ color: sections.testes ? T.text : T.muted }}>{lang === "es" ? "Testes de Fuerza" : lang === "en" ? "Strength Tests" : "Testes de Força"}</span>
+            </label>
+            <IcChevron c={T.muted} s={16} rotate={activeTab === "testes" ? 90 : 0} />
+          </div>
+          {activeTab === "testes" && (
+            <div style={{ padding: "0 16px 16px", borderTop: "1px solid " + T.borderLight, maxHeight: 220, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+              {selectedForce.map(function(ex, idx) {
+                return (
+                  <label key={idx} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: ex.checked ? T.text : T.sub }} onClick={function(e) { e.stopPropagation(); }}>
+                    <input type="checkbox" checked={ex.checked} onChange={function() { toggleForce(idx); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!sections.testes} />
+                    {ex.exercise}
+                  </label>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+
+        {/* Bloco 5: Cardiovascular */}
+        <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
+          <div style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }}>
+              <input type="checkbox" checked={sections.cardiovascular} onChange={function(e) { toggleSection("cardiovascular"); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
+              <span style={{ color: sections.cardiovascular ? T.text : T.muted }}>{lang === "es" ? "Cardiovascular & VO2" : lang === "en" ? "Cardiovascular & VO2" : "Cardiovascular & VO2"}</span>
+            </label>
+          </div>
+        </Card>
+
+        {/* Bloco 6: Metabolismo */}
+        <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
+          <div style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }}>
+              <input type="checkbox" checked={sections.metabolismo} onChange={function(e) { toggleSection("metabolismo"); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
+              <span style={{ color: sections.metabolismo ? T.text : T.muted }}>{lang === "es" ? "Tasa Metabólica Basal" : lang === "en" ? "Basal Metabolic Rate" : "Taxa Metabólica Basal"}</span>
+            </label>
+          </div>
+        </Card>
+
+        {/* Bloco 7: Fotos */}
+        <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
+          <div onClick={function() { toggleAccordion("fotos"); }} style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", background: activeTab === "fotos" ? T.bg : "transparent" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }} onClick={function(e) { e.stopPropagation(); }}>
+              <input type="checkbox" checked={sections.fotos} onChange={function(e) { toggleSection("fotos"); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
+              <span style={{ color: sections.fotos ? T.text : T.muted }}>{lang === "es" ? "Registro Fotográfico (Fotos)" : lang === "en" ? "Photos" : "Registro Fotográfico (Fotos)"}</span>
+            </label>
+            <IcChevron c={T.muted} s={16} rotate={activeTab === "fotos" ? 90 : 0} />
+          </div>
+          {activeTab === "fotos" && (
+            <div style={{ padding: "16px", borderTop: "1px solid " + T.borderLight, display: "flex", gap: 16 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: fotosTypes.frente ? T.text : T.sub }}>
+                <input type="checkbox" checked={fotosTypes.frente} onChange={function() { toggleFotoType("frente"); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!sections.fotos} />
+                {lang === "es" ? "Frente" : lang === "en" ? "Front" : "Frente"}
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: fotosTypes.lado ? T.text : T.sub }}>
+                <input type="checkbox" checked={fotosTypes.lado} onChange={function() { toggleFotoType("lado"); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!sections.fotos} />
+                {lang === "es" ? "Perfil" : lang === "en" ? "Side" : "Lado"}
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: fotosTypes.costas ? T.text : T.sub }}>
+                <input type="checkbox" checked={fotosTypes.costas} onChange={function() { toggleFotoType("costas"); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!sections.fotos} />
+                {lang === "es" ? "Espalda" : lang === "en" ? "Back" : "Costas"}
+              </label>
+            </div>
+          )}
+        </Card>
+
+      </div>
+
+      <div style={{ display: "flex", gap: 12 }}>
+        <Btn variant="outline" full onClick={onBack}>{lang === "es" ? "Cancelar" : lang === "en" ? "Cancel" : "Cancelar"}</Btn>
+        <Btn full onClick={handleSend} disabled={!sections.anamnese && !sections.composicao && !sections.perimetria && !sections.testes && !sections.cardiovascular && !sections.metabolismo && !sections.fotos}>
+          {lang === "es" ? "Enviar al Aluno" : lang === "en" ? "Send to Student" : "Enviar para o Aluno"}
+        </Btn>
+      </div>
+    </div>
+  );
+}
+
+// 3. MODAL DE LINK GERADO
+function LinkGeradoModal({ url, onSendWhatsApp, onClose, trainer }) {
+  const lang = (trainer && trainer.lang) || "pt";
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(function() { setCopied(false); }, 2000);
+  }
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <Card sx={{ padding: 24, width: "100%", maxWidth: 400, border: "1px solid " + T.border, textAlign: "center", display: "flex", flexDirection: "column", gap: 16, boxShadow: T.shadowLg }}>
+        
+        <div style={{ fontSize: 48 }}>📲</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: T.text, letterSpacing: -0.4 }}>
+          {lang === "es" ? "¡Enlace de Evaluación Creado!" : lang === "en" ? "Evaluation Link Created!" : "Link de Avaliação Criado!"}
+        </div>
+        <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.5 }}>
+          {lang === "es" ? "Copie el siguiente enlace y envíelo al evaluado para que complete sus datos físicos y fotos:" : lang === "en" ? "Copy the link below and send it to the student for them to fill out their physical data and photos:" : "Copie o link abaixo e envie para o aluno preencher os dados físicos e fotos:"}
+        </div>
+
+        <div style={{ display: "flex", background: T.bg, border: "1.5px solid " + T.border, borderRadius: 10, padding: 4, alignItems: "center" }}>
+          <input 
+            type="text" 
+            readOnly 
+            value={url} 
+            style={{ flex: 1, background: "none", border: "none", outline: "none", fontSize: 13, color: T.text, padding: "8px 10px", textOverflow: "ellipsis" }}
+          />
+          <button 
+            onClick={handleCopy}
+            style={{ background: copied ? T.success : ac(), border: "none", borderRadius: 8, color: "#fff", padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", minWidth: 80, transition: "background-color 0.15s" }}
+          >
+            {copied ? (lang === "es" ? "Copiado" : lang === "en" ? "Copied" : "Copiado") : (lang === "es" ? "Copiar" : lang === "en" ? "Copy" : "Copiar")}
+          </button>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
+          <Btn full onClick={onSendWhatsApp} icon={
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 2, display: "inline-block", verticalAlign: "middle" }}>
+              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.053 5.348 5.397.007 11.993 0c3.2 0 6.2 1.24 8.461 3.499C22.716 5.76 24 8.76 24 11.972c-.004 6.643-5.348 11.985-11.947 11.985-2.005-.001-3.973-.504-5.714-1.463L0 24zm6.586-2.522l.41.243c1.48.878 3.125 1.342 4.81 1.343 5.373 0 9.742-4.363 9.745-9.729.002-2.599-1.01-5.044-2.85-6.885-1.839-1.84-4.286-2.853-6.887-2.853-5.378 0-9.749 4.363-9.752 9.73-.001 1.761.46 3.478 1.334 4.981l.267.46-1.002 3.659 3.755-.989zM18.01 15.11c-.329-.165-1.947-.96-2.247-1.07-.299-.11-.517-.165-.736.165-.219.329-.846 1.07-1.037 1.289-.19.219-.382.247-.711.082-1.887-.945-3.136-1.684-4.385-3.824-.329-.564-.329-.965-.011-1.258.286-.264.63-.736.946-1.1.314-.364.419-.624.628-1.036.208-.413.104-.775-.052-1.103-.156-.328-.736-1.774-.99-2.39-.247-.597-.502-.516-.688-.525-.178-.009-.382-.01-.587-.01-.205 0-.539.077-.821.383-.282.306-1.077 1.053-1.077 2.567s1.102 2.977 1.256 3.183c.154.205 2.167 3.31 5.251 4.641.734.316 1.306.505 1.751.646.737.234 1.407.2 1.938.12.59-.09 1.948-.797 2.221-1.53.273-.733.273-1.362.191-1.493-.082-.13-.301-.21-.63-.375z"/>
+            </svg>
+          }>
+            {lang === "es" ? "Enviar por WhatsApp" : lang === "en" ? "Send via WhatsApp" : "Enviar via WhatsApp"}
+          </Btn>
+          <Btn variant="ghost" full onClick={onClose}>
+            {lang === "es" ? "Cerrar" : lang === "en" ? "Close" : "Fechar"}
+          </Btn>
+        </div>
+
+      </Card>
+    </div>
+  );
+}
+
+// 4. SLOT DE FOTO DO ALUNO (AUXILIAR)
+function StudentFotoSlot({ label, foto, onSet, lang }) {
+  const ref = useRef();
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:6, flex: 1, minWidth: 100 }}>
+      <div style={{ fontSize:10, fontWeight:700, color:T.sub, textTransform:"uppercase", letterSpacing:0.4, textAlign:"center" }}>{label}</div>
+      <div
+        onClick={function() { ref.current.click(); }}
+        style={{ aspectRatio:"3/4", borderRadius:12, overflow:"hidden", cursor:"pointer", border:"1.5px dashed "+(foto ? ac() : T.border), background: foto ? "transparent" : T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", position:"relative", transition:"border-color 0.15s" }}
+      >
+        {foto ? (
+          <>
+            <img src={foto} alt={label} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+            <button
+              onClick={function(e) { e.stopPropagation(); onSet(null); }}
+              style={{ position:"absolute", top:5, right:5, background:"rgba(0,0,0,0.55)", border:"none", borderRadius:"50%", width:24, height:24, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:14 }}
+            >x</button>
+          </>
+        ) : (
+          <>
+            <IcCamera c={T.muted} s={24}/>
+            <span style={{ fontSize:10, color:T.muted, marginTop:5 }}>
+              {lang === "es" ? "Añadir" : lang === "en" ? "Add" : "Adicionar"}
+            </span>
+          </>
+        )}
+      </div>
+      <input
+        ref={ref}
+        type="file"
+        accept="image/*"
+        style={{ display:"none" }}
+        onChange={function(e) {
+          var f = e.target.files[0];
+          if (!f) return;
+          compressImage(f, function(compressedUrl) {
+            onSet(compressedUrl);
+          });
+        }}
+      />
+    </div>
+  );
+}
+
+// 5. PORTAL DE RESPOSTA DO ALUNO (PÁGINA PÚBLICA)
+function StudentResponseScreen({ evalId }) {
+  const search = window.location.search;
+  let lang = "pt";
+  if (search) {
+    const params = new URLSearchParams(search);
+    lang = params.get("lang") || params.get("locale") || "pt";
+  }
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+  const [evaluation, setEvaluation] = useState(null);
+  const [config, setConfig] = useState(null);
+
+  // Form states
+  const [anamneseAnswers, setAnamneseAnswers] = useState({});
+  const [peso, setPeso] = useState("");
+  const [altura, setAltura] = useState("");
+  const [perimetria, setPerimetria] = useState({});
+  const [testes, setTestes] = useState({});
+  const [cardiovascular, setCardiovascular] = useState({ fcRepouso: "", pressaoArterial: "" });
+  const [fotos, setFotos] = useState({ frente: null, lado: null, costas: null });
+  const [submitting, setSubmitting] = useState(false);
+  const [showPhotoGuide, setShowPhotoGuide] = useState(false);
+
+  useEffect(function() {
+    async function loadData() {
+      try {
+        const { data: ev, error: evError } = await supabase
+          .from('evaluations')
+          .select('*')
+          .eq('id', evalId)
+          .single();
+
+        if (evError || !ev) {
+          throw new Error(lang === "es" ? "Evaluación no encontrada." : lang === "en" ? "Evaluation not found." : "Avaliação não encontrada.");
+        }
+
+        if (ev.status === "respondida" || ev.status === "finalizada") {
+          setSuccess(true);
+          setLoading(false);
+          return;
+        }
+
+        setEvaluation(ev);
+        const evConfig = ev.config || {};
+        setConfig(evConfig);
+
+        // Apply trainer's branding dynamically
+        if (evConfig.trainerCor) {
+          _ACC = evConfig.trainerCor;
+        }
+
+        // Initialize Anamnese Answers
+        if (evConfig.anamneseQuestions) {
+          const initialAns = {};
+          evConfig.anamneseQuestions.forEach(function(q) {
+            initialAns[q] = "";
+          });
+          setAnamneseAnswers(initialAns);
+        }
+
+        // Initialize Perimetria
+        if (evConfig.perimetriaFields) {
+          const initialPerim = {};
+          evConfig.perimetriaFields.forEach(function(f) {
+            initialPerim[f.key] = "";
+          });
+          setPerimetria(initialPerim);
+        }
+
+        // Initialize Testes
+        if (evConfig.testesExercises) {
+          const initialTestes = {};
+          evConfig.testesExercises.forEach(function(ex) {
+            initialTestes[ex] = { reps: "", carga: "" };
+          });
+          setTestes(initialTestes);
+        }
+
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, [evalId]);
+
+  async function handleSubmit(e) {
+    if (e) e.preventDefault();
+
+    if (config.sections.composicao && (!peso || !altura)) {
+      alert(lang === "es" ? "Por favor ingrese Peso y Altura." : lang === "en" ? "Please fill Weight and Height." : "Por favor insira Peso e Altura.");
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      // 1. Format Anamnese
+      const formattedAnamnese = Object.keys(anamneseAnswers).map(function(q, idx) {
+        return { id: idx + 1, pergunta: q, resposta: anamneseAnswers[q] };
+      });
+
+      // 2. Format Testes
+      const formattedTestes = Object.keys(testes).map(function(ex, idx) {
+        return { id: idx + 1, exercicio: ex, reps: testes[ex].reps, carga: testes[ex].carga };
+      });
+
+      // 3. Format Composition Slot if enabled
+      let formattedComposicoes = [];
+      if (config.sections.composicao) {
+        formattedComposicoes = [{
+          id: Date.now(),
+          metodo: config.composicaoMethod || "",
+          dobras: { tricipital:"", subescapular:"", peitoral:"", axilarMedia:"", suprailiaca:"", abdominal:"", coxa:"", bicipital:"", panturrilha:"" },
+          bioimpedancia: { gordura:"", massaMagra:"", massaGorda:"" }
+        }];
+      }
+
+      // 4. Update Database
+      const { error: updateError } = await supabase
+        .from('evaluations')
+        .update({
+          status: 'respondida',
+          anamnese: formattedAnamnese,
+          peso: String(peso),
+          altura: String(altura),
+          perimetria: perimetria,
+          testes: formattedTestes,
+          cardiovascular: {
+            tipoTeste: "cooper",
+            cooper: "",
+            esteiraVelocidade: "",
+            esteiraInclinacao: "",
+            fcRepouso: cardiovascular.fcRepouso || "",
+            fcRecuperacao: "",
+            fcMax: "",
+            pressaoArterial: cardiovascular.pressaoArterial || ""
+          },
+          fotos: fotos,
+          composicoes: formattedComposicoes
+        })
+        .eq('id', evalId);
+
+      if (updateError) throw updateError;
+      setSuccess(true);
+    } catch (err) {
+      alert("Erro ao enviar avaliação: " + err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap: 20 }}>
+        <div style={{ width: 40, height: 40, border: "3px solid " + T.border, borderTopColor: ac(), borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ minHeight:"100vh", padding: 24, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: T.bg, textAlign: "center" }}>
+        <Card sx={{ padding: 32, maxWidth: 380, display: "flex", flexDirection: "column", alignItems: "center", gap: 16, border: "1px solid " + T.border }}>
+          <div style={{ fontSize: 44, color: T.danger }}>⚠️</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{lang === "es" ? "Enlace Inválido" : lang === "en" ? "Invalid Link" : "Link Inválido"}</div>
+          <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.5 }}>{error}</div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (success) {
+    return (
+      <div style={{ minHeight:"100vh", padding: 24, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: T.bg, textAlign: "center" }}>
+        <Card sx={{ padding: 32, maxWidth: 380, display: "flex", flexDirection: "column", alignItems: "center", gap: 16, border: "1px solid " + T.border, boxShadow: T.shadowMd }}>
+          <div style={{ fontSize: 48, animation: "bounce 1s infinite" }}>🎉</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>
+            {lang === "es" ? "¡Evaluación Enviada!" : lang === "en" ? "Evaluation Sent!" : "Avaliação Enviada!"}
+          </div>
+          <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.5 }}>
+            {lang === "es" ? "Sus datos físicos y fotos fueron enviados de forma segura a su entrenador. Ya puede cerrar esta pestaña." : lang === "en" ? "Your physical data and photos have been sent securely to your trainer. You can now close this tab." : "Seus dados físicos e fotos foram enviados com segurança para o seu treinador. Você já pode fechar esta aba."}
+          </div>
+          <style>{`@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }`}</style>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: "24px 16px 80px", display: "flex", flexDirection: "column", gap: 20 }}>
+      <Card sx={{ padding: 20, border: "1.5px solid " + T.border, background: "linear-gradient(135deg, " + ac() + "0a, " + ac() + "18)", textAlign: "center" }}>
+        <div style={{ width: 50, height: 50, borderRadius: "50%", background: ac(), color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800, margin: "0 auto 12px" }}>
+          {config.trainerNome ? config.trainerNome.charAt(0).toUpperCase() : "T"}
+        </div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>
+          {lang === "es" ? "Evaluación Física Online" : lang === "en" ? "Online Physical Evaluation" : "Avaliação Física Online"}
+        </div>
+        <div style={{ fontSize: 13, color: T.sub, marginTop: 4, lineHeight: 1.4 }}>
+          {lang === "es" ? `Hola ${config.studentNome || ""}, por favor completa los datos solicitados por tu entrenador ${config.trainerNome}:` : lang === "en" ? `Hello ${config.studentNome || ""}, please fill in the physical data requested by your trainer ${config.trainerNome}:` : `Olá ${config.studentNome || ""}, por favor preencha os dados físicos solicitados pelo seu treinador ${config.trainerNome}:`}
+        </div>
+      </Card>
+
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        
+        {/* SEÇÃO: ANAMNESE */}
+        {config.sections.anamnese && config.anamneseQuestions && config.anamneseQuestions.length > 0 && (
+          <div>
+            <div style={{ fontSize:12, fontWeight:700, color:T.sub, letterSpacing:0.5, textTransform: "uppercase", marginBottom: 8, paddingLeft: 4 }}>
+              {lang === "es" ? "Anamnesis" : lang === "en" ? "Anamnesis" : "Anamnese"}
+            </div>
+            <Card sx={{ padding: 16, display: "flex", flexDirection: "column", gap: 14, border: "1.5px solid " + T.border }}>
+              {config.anamneseQuestions.map(function(q, idx) {
+                return (
+                  <div key={idx} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{q}</div>
+                    <textarea
+                      value={anamneseAnswers[q] || ""}
+                      onChange={function(e) {
+                        const next = Object.assign({}, anamneseAnswers, { [q]: e.target.value });
+                        setAnamneseAnswers(next);
+                      }}
+                      rows={2}
+                      style={{ width: "100%", background: T.bg, border: "1.5px solid " + T.border, borderRadius: 10, padding: "10px 12px", fontSize: 13, outline: "none", color: T.text, fontFamily: "inherit", resize: "vertical" }}
+                      placeholder={lang === "es" ? "Escriba su respuesta aquí..." : lang === "en" ? "Write your answer here..." : "Escreva sua resposta aqui..."}
+                    />
+                  </div>
+                );
+              })}
+            </Card>
+          </div>
+        )}
+
+        {/* SEÇÃO: COMPOSIÇÃO (PESO & ALTURA) */}
+        {config.sections.composicao && (
+          <div>
+            <div style={{ fontSize:12, fontWeight:700, color:T.sub, letterSpacing:0.5, textTransform: "uppercase", marginBottom: 8, paddingLeft: 4 }}>
+              {lang === "es" ? "Datos Básicos" : lang === "en" ? "Basic Stats" : "Dados Básicos"}
+            </div>
+            <Card sx={{ padding: 16, display: "flex", flexDirection: "column", gap: 14, border: "1.5px solid " + T.border }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <FInput 
+                  label={lang === "es" ? "Peso (kg)" : lang === "en" ? "Weight (kg)" : "Peso (kg)"} 
+                  value={peso} 
+                  onChange={setPeso} 
+                  type="number" 
+                  step="0.1" 
+                  placeholder="Ex: 75.5" 
+                  required 
+                />
+                <FInput 
+                  label={lang === "es" ? "Altura (cm)" : lang === "en" ? "Height (cm)" : "Altura (cm)"} 
+                  value={altura} 
+                  onChange={setAltura} 
+                  type="number" 
+                  placeholder="Ex: 175" 
+                  required 
+                />
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* SEÇÃO: PERIMETRIA */}
+        {config.sections.perimetria && config.perimetriaFields && config.perimetriaFields.length > 0 && (
+          <div>
+            <div style={{ fontSize:12, fontWeight:700, color:T.sub, letterSpacing:0.5, textTransform: "uppercase", marginBottom: 8, paddingLeft: 4 }}>
+              {lang === "es" ? "Medidas Corporal (cm)" : lang === "en" ? "Body Measurements (cm)" : "Medidas Corporais (cm)"}
+            </div>
+            <Card sx={{ padding: 16, border: "1.5px solid " + T.border }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                {config.perimetriaFields.map(function(f) {
+                  return (
+                    <FInput
+                      key={f.key}
+                      label={f.label}
+                      value={perimetria[f.key] || ""}
+                      onChange={function(v) {
+                        const next = Object.assign({}, perimetria, { [f.key]: v });
+                        setPerimetria(next);
+                      }}
+                      type="number"
+                      step="0.1"
+                      placeholder="0.0"
+                    />
+                  );
+                })}
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* SEÇÃO: TESTES DE FORÇA */}
+        {config.sections.testes && config.testesExercises && config.testesExercises.length > 0 && (
+          <div>
+            <div style={{ fontSize:12, fontWeight:700, color:T.sub, letterSpacing:0.5, textTransform: "uppercase", marginBottom: 8, paddingLeft: 4 }}>
+              {lang === "es" ? "Testes de Fuerza" : lang === "en" ? "Strength Tests" : "Testes de Força"}
+            </div>
+            <Card sx={{ padding: 16, display: "flex", flexDirection: "column", gap: 16, border: "1.5px solid " + T.border }}>
+              {config.testesExercises.map(function(ex) {
+                return (
+                  <div key={ex} style={{ display: "flex", flexDirection: "column", gap: 6, borderBottom: "1px solid " + T.borderLight, paddingBottom: 12 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{ex}</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                      <FInput
+                        label={lang === "es" ? "Carga (kg)" : lang === "en" ? "Load (kg)" : "Carga (kg)"}
+                        value={testes[ex]?.carga || ""}
+                        onChange={function(v) {
+                          const nextVal = Object.assign({}, testes[ex], { carga: v });
+                          const next = Object.assign({}, testes, { [ex]: nextVal });
+                          setTestes(next);
+                        }}
+                        type="number"
+                        placeholder="Ex: 50"
+                      />
+                      <FInput
+                        label={lang === "es" ? "Repeticiones" : lang === "en" ? "Reps" : "Repetições"}
+                        value={testes[ex]?.reps || ""}
+                        onChange={function(v) {
+                          const nextVal = Object.assign({}, testes[ex], { reps: v });
+                          const next = Object.assign({}, testes, { [ex]: nextVal });
+                          setTestes(next);
+                        }}
+                        type="number"
+                        placeholder="Ex: 12"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </Card>
+          </div>
+        )}
+
+        {/* SEÇÃO: CARDIOVASCULAR */}
+        {config.sections.cardiovascular && (
+          <div>
+            <div style={{ fontSize:12, fontWeight:700, color:T.sub, letterSpacing:0.5, textTransform: "uppercase", marginBottom: 8, paddingLeft: 4 }}>
+              {lang === "es" ? "Cardiovascular" : lang === "en" ? "Cardiovascular" : "Cardiovascular"}
+            </div>
+            <Card sx={{ padding: 16, display: "flex", flexDirection: "column", gap: 14, border: "1.5px solid " + T.border }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <FInput
+                  label={lang === "es" ? "Frec. Cardíaca Reposo (bpm)" : lang === "en" ? "Resting Heart Rate (bpm)" : "Frec. Cardíaca Repouso (bpm)"}
+                  value={cardiovascular.fcRepouso}
+                  onChange={function(v) { setCardiovascular(Object.assign({}, cardiovascular, { fcRepouso: v })); }}
+                  type="number"
+                  placeholder="Ex: 70"
+                />
+                <FInput
+                  label={lang === "es" ? "Presión Arterial" : lang === "en" ? "Blood Pressure" : "Pressão Arterial"}
+                  value={cardiovascular.pressaoArterial}
+                  onChange={function(v) { setCardiovascular(Object.assign({}, cardiovascular, { pressaoArterial: v })); }}
+                  placeholder="Ex: 12/8"
+                />
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* SEÇÃO: FOTOS */}
+        {config.sections.fotos && config.fotosTypes && (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, paddingLeft: 4 }}>
+              <span style={{ fontSize:12, fontWeight:700, color:T.sub, letterSpacing:0.5, textTransform: "uppercase" }}>
+                {lang === "es" ? "Fotos de Acompañamiento" : lang === "en" ? "Follow-up Photos" : "Fotos de Acompanhamento"}
+              </span>
+              <button
+                type="button"
+                onClick={function() { setShowPhotoGuide(true); }}
+                style={{ background: "none", border: "none", color: ac(), fontSize: 12, fontWeight: 700, cursor: "pointer", textDecoration: "underline" }}
+              >
+                {lang === "es" ? "Ver Guía de Fotos" : lang === "en" ? "View Photo Guide" : "Ver Guia de Fotos"}
+              </button>
+            </div>
+            <Card sx={{ padding: 16, border: "1.5px solid " + T.border }}>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                {config.fotosTypes.frente && (
+                  <StudentFotoSlot
+                    label={lang === "es" ? "Frente" : lang === "en" ? "Front" : "Frente"}
+                    foto={fotos.frente}
+                    onSet={function(v) { setFotos(Object.assign({}, fotos, { frente: v })); }}
+                    lang={lang}
+                  />
+                )}
+                {config.fotosTypes.lado && (
+                  <StudentFotoSlot
+                    label={lang === "es" ? "Perfil" : lang === "en" ? "Side" : "Lado"}
+                    foto={fotos.lado}
+                    onSet={function(v) { setFotos(Object.assign({}, fotos, { lado: v })); }}
+                    lang={lang}
+                  />
+                )}
+                {config.fotosTypes.costas && (
+                  <StudentFotoSlot
+                    label={lang === "es" ? "Espalda" : lang === "en" ? "Back" : "Costas"}
+                    foto={fotos.costas}
+                    onSet={function(v) { setFotos(Object.assign({}, fotos, { costas: v })); }}
+                    lang={lang}
+                  />
+                )}
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <Btn full type="submit" disabled={submitting} className="btn-pulse" style={{ marginTop: 10, height: 48 }}>
+          {submitting 
+            ? (lang === "es" ? "Comprimiendo y Enviando..." : lang === "en" ? "Compressing & Sending..." : "Comprimindo e Enviando...") 
+            : (lang === "es" ? "Enviar Evaluación Física" : lang === "en" ? "Submit Physical Evaluation" : "Enviar Avaliação Física")}
+        </Btn>
+
+      </form>
+
+      {/* GUIA DE FOTOS MODAL */}
+      {showPhotoGuide && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={function() { setShowPhotoGuide(false); }}>
+          <Card onClick={function(e) { e.stopPropagation(); }} sx={{ padding: 24, width: "100%", maxWidth: 380, border: "1px solid " + T.border, display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid " + T.borderLight, paddingBottom: 10 }}>
+              <div style={{ fontWeight: 800, fontSize: 16 }}>
+                {lang === "es" ? "Guía de Fotos" : lang === "en" ? "Photo Guide" : "Guia de Fotos"}
+              </div>
+              <button onClick={function() { setShowPhotoGuide(false); }} style={{ background: "none", border: "none", fontSize: 16, fontWeight: "bold", cursor: "pointer", color: T.muted }}>✕</button>
+            </div>
+            
+            <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.6, display: "flex", flexDirection: "column", gap: 12 }}>
+              <div>
+                <strong>1. {lang === "es" ? "Ángulo de la Cámara:" : lang === "en" ? "Camera Angle:" : "Ângulo da Câmera:"}</strong>
+                <div>{lang === "es" ? "Posicione el celular en línea recta, idealmente a la altura del ombligo." : lang === "en" ? "Position the phone in a straight line, ideally at belly button height." : "Posicione o celular em linha reta, idealmente na altura do umbigo."}</div>
+              </div>
+              <div>
+                <strong>2. {lang === "es" ? "Distancia:" : lang === "en" ? "Distance:" : "Distância:"}</strong>
+                <div>{lang === "es" ? "Párese a unos 2 metros de distancia para encuadrar todo su cuerpo." : lang === "en" ? "Stand about 2 meters away to frame your entire body." : "Fique a cerca de 2 metros de distância para enquadrar o corpo inteiro."}</div>
+              </div>
+              <div>
+                <strong>3. {lang === "es" ? "Iluminación y Fondo:" : lang === "en" ? "Lighting & Background:" : "Iluminação e Fundo:"}</strong>
+                <div>{lang === "es" ? "Tómese las fotos en un lugar bien iluminado frente a una pared neutra o lisa." : lang === "en" ? "Take photos in a well-lit place facing a neutral or solid wall." : "Tire as fotos em um local bem iluminado de frente para uma parede neutra ou lisa."}</div>
+              </div>
+              <div>
+                <strong>4. {lang === "es" ? "Vestimenta Recomendada:" : lang === "en" ? "Recommended Clothing:" : "Vestimenta Recomendada:"}</strong>
+                <div>{lang === "es" ? "Use ropa deportiva cómoda (por ejemplo, shorts y top/camiseta sin mangas) para facilitar la evaluación postural." : lang === "en" ? "Wear comfortable athletic clothing (e.g., shorts and sports bra/tank top) to facilitate postural evaluation." : "Use roupas de treino curtas (ex: shorts e top/regata) para facilitar a visualização postural e de composição."}</div>
+              </div>
+            </div>
+
+            <Btn full onClick={function() { setShowPhotoGuide(false); }}>
+              {lang === "es" ? "Entendido" : lang === "en" ? "Understood" : "Entendi"}
+            </Btn>
+          </Card>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
 // ── ROOT APP ──────────────────────────────────────────────────────────────────
 export default function App() {
   const [logged, setLogged] = useState(false);
@@ -7394,7 +8559,10 @@ export default function App() {
               flexibilidade: e.flexibilidade || {},
               cardiovascular: e.cardiovascular || {},
               fotos: e.fotos || { frente: null, lado: null, costas: null },
-              observacaoFotos: e.observacao_fotos || ""
+              observacaoFotos: e.observacao_fotos || "",
+              tipo: e.tipo || "presencial",
+              status: e.status || "finalizada",
+              config: e.config || {}
             };
           }).sort(function(a, b) {
             return a.data.localeCompare(b.data);
@@ -7593,7 +8761,10 @@ export default function App() {
         flexibilidade: av.flexibilidade || {},
         cardiovascular: av.cardiovascular || {},
         fotos: av.fotos || { frente: null, lado: null, costas: null },
-        observacao_fotos: av.observacaoFotos || ""
+        observacao_fotos: av.observacaoFotos || "",
+        tipo: av.tipo || "presencial",
+        status: av.status || "finalizada",
+        config: av.config || {}
       };
 
       const { error } = await supabase
@@ -7638,6 +8809,30 @@ export default function App() {
         .eq('id', avalId);
       if (error) {
         console.error("Erro ao excluir avaliação do Supabase:", error);
+      }
+    }
+  }
+
+  async function updateAlunoAvalStatus(alunoId, avalId, tipo, status) {
+    setAlunos(function(p) {
+      return p.map(function(a) {
+        if (String(a.id) !== String(alunoId)) return a;
+        var avList = a.avaliacoes || [];
+        var newAvs = avList.map(function(av) {
+          if (String(av.id) !== String(avalId)) return av;
+          return Object.assign({}, av, { tipo: tipo, status: status });
+        });
+        return Object.assign({}, a, { avaliacoes: newAvs });
+      });
+    });
+
+    if (logged && user) {
+      const { error } = await supabase
+        .from('evaluations')
+        .update({ tipo: tipo, status: status })
+        .eq('id', avalId);
+      if (error) {
+        console.error("Erro ao atualizar status da avaliação no Supabase:", error);
       }
     }
   }
@@ -7722,6 +8917,19 @@ export default function App() {
     );
   }
 
+  const searchParams = new URLSearchParams(window.location.search);
+  const isResponder = searchParams.get("responder") === "true";
+  const evalId = searchParams.get("id");
+
+  if (isResponder && evalId) {
+    return (
+      <>
+        <GlobalStyle />
+        <StudentResponseScreen evalId={evalId} />
+      </>
+    );
+  }
+
   if (!logged) return <><GlobalStyle/><LoginScreen onLogin={function() { setLogged(true); }} trainer={trainer} onUpdateTrainer={handleUpdateTrainer}/></>;
 
   if (!hasAccess) {
@@ -7785,12 +8993,144 @@ export default function App() {
       <AlunoScreen
         aluno={alunoProf}
         onBack={pop}
-        onNewAval={function() { if (alunoProf) push({ type:"avaliacao", alunoId: alunoProf.id, isNew: true }); }}
-        onOpenAval={function(id) { if (alunoProf) push({ type:"avaliacao", alunoId: alunoProf.id, avalId: id, isNew: false }); }}
+        onNewAval={function() { if (alunoProf) push({ type: "escolha_tipo_avaliacao", alunoId: alunoProf.id }); }}
+        onOpenAval={function(id) { if (alunoProf) push({ type: "avaliacao", alunoId: alunoProf.id, avalId: id, isNew: false }); }}
         onDelete={function() { if (alunoProf) deleteAluno(alunoProf.id); }}
         onDeleteAval={function(id) { if (alunoProf) deleteAval(alunoProf.id, id); }}
-        onCompare={function(indices) { if (alunoProf) push({ type:"comparar", alunoId: alunoProf.id, selectedIndices: indices }); }}
+        onCompare={function(indices) { if (alunoProf) push({ type: "comparar", alunoId: alunoProf.id, selectedIndices: indices }); }}
         onUpdateAluno={updateAluno}
+        onUpdateAlunoAvalStatus={updateAlunoAvalStatus}
+        trainer={trainer}
+      />
+    );
+  } else if (cur && cur.type === "escolha_tipo_avaliacao") {
+    var alunoProf = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
+    content = (
+      <EscolhaTipoAvaliacaoScreen
+        aluno={alunoProf}
+        trainer={trainer}
+        onBack={pop}
+        onSelectPresencial={function() {
+          setStack(function(p) {
+            return p.slice(0, -1).concat([{ type: "avaliacao", alunoId: alunoProf.id, isNew: true }]);
+          });
+        }}
+        onSelectOnline={function() {
+          setStack(function(p) {
+            return p.slice(0, -1).concat([{ type: "configurar_online", alunoId: alunoProf.id }]);
+          });
+        }}
+      />
+    );
+  } else if (cur && cur.type === "configurar_online") {
+    var alunoProf = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
+    content = (
+      <ConfigurarOnlineScreen
+        aluno={alunoProf}
+        settings={settings}
+        trainer={trainer}
+        onBack={pop}
+        onSend={async function(onlineConfig) {
+          const evalUuid = crypto.randomUUID ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).substring(2, 10));
+          
+          const configJson = {
+            sections: onlineConfig.sections,
+            composicaoMethod: onlineConfig.composicaoMethod,
+            fotosTypes: onlineConfig.fotosTypes,
+            trainerColor: trainer.corPrimaria || "#1A1A2E",
+            trainerNome: trainer.nome || "Prof. Jefferson",
+            alunoNome: alunoProf.nome
+          };
+          
+          const newEvalDb = {
+            id: evalUuid,
+            student_id: alunoProf.id,
+            data: new Date().toISOString().split('T')[0],
+            idade: String(alunoProf.dataNascimento ? calcIdade(alunoProf.dataNascimento) : ""),
+            objetivo: "",
+            peso: "",
+            altura: "",
+            anamnese: [],
+            composicoes: [],
+            perimetria: {},
+            testes: [],
+            flexibilidade: {},
+            cardiovascular: {},
+            fotos: { frente: null, lado: null, costas: null },
+            observacao_fotos: "",
+            tipo: "online",
+            status: "aguardando_resposta",
+            config: configJson
+          };
+
+          setAlunos(function(p) {
+            return p.map(function(a) {
+              if (String(a.id) !== String(alunoProf.id)) return a;
+              var avList = a.avaliacoes || [];
+              var mappedEval = {
+                id: newEvalDb.id,
+                data: newEvalDb.data,
+                nome: alunoProf.nome,
+                sexo: alunoProf.sexo || "M",
+                idade: newEvalDb.idade,
+                telefone: alunoProf.telefone || "",
+                objetivo: "",
+                anamnese: [],
+                peso: "",
+                altura: "",
+                composicoes: [],
+                perimetria: {},
+                testes: [],
+                flexibilidade: {},
+                cardiovascular: {},
+                fotos: { frente: null, lado: null, costas: null },
+                observacaoFotos: "",
+                tipo: "online",
+                status: "aguardando_resposta",
+                config: configJson
+              };
+              return Object.assign({}, a, { avaliacoes: avList.concat([mappedEval]) });
+            });
+          });
+
+          if (logged && user) {
+            const { error } = await supabase
+              .from('evaluations')
+              .insert([newEvalDb]);
+            if (error) {
+              console.error("Erro ao salvar avaliação online no Supabase:", error);
+              alert("Erro ao salvar no Supabase: " + error.message);
+              return;
+            }
+          }
+
+          const generatedUrl = window.location.origin + "/?responder=true&id=" + evalUuid + "&lang=" + (trainer.lang || "pt");
+          
+          setStack(function(p) {
+            return p.slice(0, -1).concat([{ type: "link_gerado", alunoId: alunoProf.id, url: generatedUrl }]);
+          });
+        }}
+      />
+    );
+  } else if (cur && cur.type === "link_gerado") {
+    var alunoProf = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
+    const messageText = trainer.lang === "es" 
+      ? `Hola ${alunoProf.nome}, aquí tienes el enlace para completar tu evaluación física: ${cur.url}`
+      : trainer.lang === "en"
+      ? `Hello ${alunoProf.nome}, here is the link to complete your physical evaluation: ${cur.url}`
+      : `Olá ${alunoProf.nome}, aqui está o link para preencher a sua avaliação física online: ${cur.url}`;
+    const encodedMsg = encodeURIComponent(messageText);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${alunoProf.telefone ? alunoProf.telefone.replace(/\D/g, '') : ''}&text=${encodedMsg}`;
+
+    content = (
+      <LinkGeradoModal
+        url={cur.url}
+        onSendWhatsApp={function() {
+          window.open(whatsappUrl, "_blank");
+        }}
+        onClose={function() {
+          pop();
+        }}
         trainer={trainer}
       />
     );
