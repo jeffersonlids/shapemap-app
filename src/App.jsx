@@ -168,6 +168,7 @@ const TR = {
     "Medicamento controlado?": "Medicamento controlado?",
     "Está fazendo dieta?": "Está fazendo dieta?",
     "Consumo de alcool?": "Consumo de alcool?",
+    "Fuma?": "Fuma?",
     "Fumante?": "Fumante?",
     "Qualidade do sono?": "Qualidade do sono?",
     "Nível de estresse?": "Nível de estresse?",
@@ -476,6 +477,7 @@ const TR = {
     "Medicamento controlado?": "Controlled medication?",
     "Está fazendo dieta?": "Are you dieting?",
     "Consumo de alcool?": "Alcohol consumption?",
+    "Fuma?": "Do you smoke?",
     "Fumante?": "Smoker?",
     "Qualidade do sono?": "Sleep quality?",
     "Nível de estresse?": "Stress level?",
@@ -783,6 +785,7 @@ const TR = {
     "Medicamento controlado?": "¿Medicamento controlado?",
     "Está fazendo dieta?": "¿Está haciendo dieta?",
     "Consumo de alcool?": "¿Consumo de alcohol?",
+    "Fuma?": "¿Fuma?",
     "Fumante?": "¿Fumador?",
     "Qualidade do sono?": "¿Calidad del sueño?",
     "Nível de estresse?": "¿Nivel de estrés?",
@@ -7647,8 +7650,9 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
   }));
   const [newExerciseText, setNewExerciseText] = useState("");
 
+  const unitSystem = (trainer && trainer.unitSystem) || "metric";
   const [cardioFields, setCardioFields] = useState([
-    { key: "cooper", label: lang === "es" ? "Teste de Cooper (Metros)" : lang === "en" ? "Cooper Test (Meters)" : "Teste de Cooper (Metros)" },
+    { key: "cooper", label: lang === "es" ? "Prueba de Cooper (" + (unitSystem === "imperial" ? "Millas" : "Metros") + ")" : lang === "en" ? "Cooper Test (" + (unitSystem === "imperial" ? "Miles" : "Meters") + ")" : "Teste de Cooper (" + (unitSystem === "imperial" ? "Milhas" : "Metros") + ")" },
     { key: "fcRepouso", label: lang === "es" ? "Frecuencia Cardíaca de Reposo" : lang === "en" ? "Resting Heart Rate" : "Frequência Cardíaca de Repouso" },
     { key: "fcRecuperacao", label: lang === "es" ? "Frecuencia Cardíaca de Recuperación" : lang === "en" ? "Recovery Heart Rate" : "Frequência Cardíaca de Recuperação" },
     { key: "fcMax", label: lang === "es" ? "Frecuencia Cardíaca Máxima (Medida)" : lang === "en" ? "Max Heart Rate (Measured)" : "Frequência Cardíaca Máxima (Medida)" },
@@ -7789,7 +7793,7 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
                   return (
                     <label key={idx} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: q.checked ? T.text : T.sub }}>
                       <input type="checkbox" checked={q.checked} onChange={function() { toggleQuestion(idx); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!sections.anamnese} />
-                      {q.question}
+                      {t(q.question, lang)}
                     </label>
                   );
                 })}
@@ -7862,7 +7866,7 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
                 return (
                   <label key={f.key} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: f.checked ? T.text : T.sub }} onClick={function(e) { e.stopPropagation(); }}>
                     <input type="checkbox" checked={f.checked} onChange={function() { togglePerim(f.key); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!sections.perimetria} />
-                    {f.label}
+                    {t(f.label, lang)}
                   </label>
                 );
               })}
@@ -7875,7 +7879,7 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
           <div onClick={function() { toggleAccordion("testes"); }} style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", background: activeTab === "testes" ? T.bg : "transparent" }}>
             <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }} onClick={function(e) { e.stopPropagation(); }}>
               <input type="checkbox" checked={sections.testes} onChange={function(e) { toggleSection("testes"); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
-              <span style={{ color: sections.testes ? T.text : T.muted }}>{lang === "es" ? "Testes de Fuerza" : lang === "en" ? "Strength Tests" : "Testes de Força"}</span>
+              <span style={{ color: sections.testes ? T.text : T.muted }}>{lang === "es" ? "Pruebas de Fuerza" : lang === "en" ? "Strength Tests" : "Testes de Força"}</span>
             </label>
             <IcChevron c={T.muted} s={16} rotate={activeTab === "testes" ? 90 : 0} />
           </div>
@@ -7896,7 +7900,7 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
                   return (
                     <label key={idx} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: ex.checked ? T.text : T.sub }}>
                       <input type="checkbox" checked={ex.checked} onChange={function() { toggleForce(idx); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!sections.testes} />
-                      {ex.exercise}
+                      {t(ex.exercise, lang)}
                     </label>
                   );
                 })}
@@ -8176,6 +8180,11 @@ function StudentResponseScreen({ evalId }) {
     setShowConfirmSubmit(false);
 
     try {
+      const convertedPerimetria = {};
+      Object.keys(perimetria).forEach(function(k) {
+        convertedPerimetria[k] = perimetria[k] ? fromSystemLength(perimetria[k], unitSystem) : "";
+      });
+
       // 1. Format Anamnese
       const formattedAnamnese = Object.keys(anamneseAnswers).map(function(q, idx) {
         return { id: idx + 1, pergunta: q, resposta: anamneseAnswers[q] };
@@ -8183,7 +8192,9 @@ function StudentResponseScreen({ evalId }) {
 
       // 2. Format Testes
       const formattedTestes = Object.keys(testes).map(function(ex, idx) {
-        return { id: idx + 1, exercicio: ex, reps: testes[ex].reps, carga: testes[ex].carga };
+        const rawCarga = testes[ex].carga;
+        const metricCarga = rawCarga ? String(fromSystemWeight(rawCarga, unitSystem)) : "";
+        return { id: idx + 1, exercicio: ex, reps: testes[ex].reps, carga: metricCarga };
       });
 
       // 3. Format Composition Slot if enabled
@@ -8203,13 +8214,13 @@ function StudentResponseScreen({ evalId }) {
         .update({
           status: 'respondida',
           anamnese: formattedAnamnese,
-          peso: String(peso),
-          altura: String(altura),
-          perimetria: perimetria,
+          peso: peso ? String(fromSystemWeight(peso, unitSystem)) : "",
+          altura: altura ? String(fromSystemLength(altura, unitSystem)) : "",
+          perimetria: convertedPerimetria,
           testes: formattedTestes,
           cardiovascular: {
             tipoTeste: "cooper",
-            cooper: cardiovascular.cooper || "",
+            cooper: cardiovascular.cooper ? String(fromSystemCooperDist(cardiovascular.cooper, unitSystem)) : "",
             esteiraVelocidade: "",
             esteiraInclinacao: "",
             fcRepouso: cardiovascular.fcRepouso || "",
@@ -8258,7 +8269,7 @@ function StudentResponseScreen({ evalId }) {
       if (isAlturaReq && !altura) compUnanswered.push(lang === "es" ? "Altura" : lang === "en" ? "Height" : "Altura");
       if (config.composicaoMethod === "marinha") {
         if (!perimetria.pescoco || !perimetria.cintura || ((config.alunoSexo === "F" || config.alunoSexo === "f") && !perimetria.quadril)) {
-          compUnanswered.push(lang === "es" ? "Medidas de la Marítima" : lang === "en" ? "Navy Circumferences" : "Medidas de Protocolo");
+          compUnanswered.push(lang === "es" ? "Medidas de la Marina" : lang === "en" ? "Navy Circumferences" : "Medidas de Protocolo");
         }
       } else if (config.composicaoMethod === "bioimpedancia") {
         if (!gorduraBio) compUnanswered.push(lang === "es" ? "Grasa (%)" : lang === "en" ? "Body Fat (%)" : "Percentual de Gordura");
@@ -8286,7 +8297,7 @@ function StudentResponseScreen({ evalId }) {
         if (!testes[ex] || !testes[ex].reps || !testes[ex].carga) anyTestEmpty = true;
       });
       if (anyTestEmpty) {
-        unanswered.push(lang === "es" ? "Testes de Fuerza" : lang === "en" ? "Strength Tests" : "Testes de Força");
+        unanswered.push(lang === "es" ? "Pruebas de Fuerza" : lang === "en" ? "Strength Tests" : "Testes de Força");
       }
     }
 
@@ -8399,7 +8410,7 @@ function StudentResponseScreen({ evalId }) {
               {config.anamneseQuestions.map(function(q, idx) {
                 return (
                   <div key={idx} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{q}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{t(q, lang)}</div>
                     <textarea
                       value={anamneseAnswers[q] || ""}
                       onChange={function(e) {
@@ -8427,21 +8438,21 @@ function StudentResponseScreen({ evalId }) {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {(!config.composicaoFields || config.composicaoFields.peso !== false) && (
                   <FInput 
-                    label={lang === "es" ? "Peso (kg)" : lang === "en" ? "Weight (kg)" : "Peso (kg)"}
+                    label={lang === "es" ? "Peso (" + (unitSystem === "imperial" ? "lbs" : "kg") + ")" : lang === "en" ? "Weight (" + (unitSystem === "imperial" ? "lbs" : "kg") + ")" : "Peso (" + (unitSystem === "imperial" ? "lbs" : "kg") + ")"}
                     value={peso}
                     onChange={setPeso}
                     type="number"
                     step="0.1"
-                    placeholder="Ex: 75.5" 
+                    placeholder={unitSystem === "imperial" ? "Ex: 165" : "Ex: 75.5"} 
                   />
                 )}
                 {(!config.composicaoFields || config.composicaoFields.altura !== false) && (
                   <FInput 
-                    label={lang === "es" ? "Altura (cm)" : lang === "en" ? "Height (cm)" : "Altura (cm)"}
+                    label={lang === "es" ? "Altura (" + (unitSystem === "imperial" ? "in" : "cm") + ")" : lang === "en" ? "Height (" + (unitSystem === "imperial" ? "in" : "cm") + ")" : "Altura (" + (unitSystem === "imperial" ? "in" : "cm") + ")"}
                     value={altura}
                     onChange={setAltura}
                     type="number"
-                    placeholder="Ex: 175" 
+                    placeholder={unitSystem === "imperial" ? "Ex: 69" : "Ex: 175"} 
                   />
                 )}
                 
@@ -8507,7 +8518,7 @@ function StudentResponseScreen({ evalId }) {
         {config.sections.perimetria && config.perimetriaFields && config.perimetriaFields.length > 0 && (
           <div>
             <div style={{ fontSize:12, fontWeight:700, color:T.sub, letterSpacing:0.5, textTransform: "uppercase", marginBottom: 8, paddingLeft: 4 }}>
-              {lang === "es" ? "Medidas Corporal (cm)" : lang === "en" ? "Body Measurements (cm)" : "Medidas Corporais (cm)"}
+              {lang === "es" ? "Medidas Corporales (" + (unitSystem === "imperial" ? "in" : "cm") + ")" : lang === "en" ? "Body Measurements (" + (unitSystem === "imperial" ? "in" : "cm") + ")" : "Medidas Corporais (" + (unitSystem === "imperial" ? "in" : "cm") + ")"}
             </div>
             <Card sx={{ padding: 16, border: "1.5px solid " + T.border }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -8515,7 +8526,7 @@ function StudentResponseScreen({ evalId }) {
                   return (
                     <FInput
                       key={f.key}
-                      label={f.label}
+                      label={t(f.label, lang)}
                       value={perimetria[f.key] || ""}
                       onChange={function(v) {
                         const next = Object.assign({}, perimetria, { [f.key]: v });
@@ -8536,16 +8547,16 @@ function StudentResponseScreen({ evalId }) {
         {config.sections.testes && config.testesExercises && config.testesExercises.length > 0 && (
           <div>
             <div style={{ fontSize:12, fontWeight:700, color:T.sub, letterSpacing:0.5, textTransform: "uppercase", marginBottom: 8, paddingLeft: 4 }}>
-              {lang === "es" ? "Testes de Fuerza" : lang === "en" ? "Strength Tests" : "Testes de Força"}
+              {lang === "es" ? "Pruebas de Fuerza" : lang === "en" ? "Strength Tests" : "Testes de Força"}
             </div>
             <Card sx={{ padding: 16, display: "flex", flexDirection: "column", gap: 16, border: "1.5px solid " + T.border }}>
               {config.testesExercises.map(function(ex) {
                 return (
                   <div key={ex} style={{ display: "flex", flexDirection: "column", gap: 6, borderBottom: "1px solid " + T.borderLight, paddingBottom: 12 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{ex}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{t(ex, lang)}</div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                       <FInput
-                        label={lang === "es" ? "Carga (kg)" : lang === "en" ? "Load (kg)" : "Carga (kg)"}
+                        label={lang === "es" ? "Carga (" + (unitSystem === "imperial" ? "lbs" : "kg") + ")" : lang === "en" ? "Load (" + (unitSystem === "imperial" ? "lbs" : "kg") + ")" : "Carga (" + (unitSystem === "imperial" ? "lbs" : "kg") + ")"}
                         value={testes[ex]?.carga || ""}
                         onChange={function(v) {
                           const nextVal = Object.assign({}, testes[ex], { carga: v });
@@ -8553,7 +8564,7 @@ function StudentResponseScreen({ evalId }) {
                           setTestes(next);
                         }}
                         type="number"
-                        placeholder="Ex: 50"
+                        placeholder={unitSystem === "imperial" ? "Ex: 110" : "Ex: 50"}
                       />
                       <FInput
                         label={lang === "es" ? "Repeticiones" : lang === "en" ? "Reps" : "Repetições"}
@@ -8585,11 +8596,18 @@ function StudentResponseScreen({ evalId }) {
                 {config.cardioFields.some(function(f) { return f.key === "cooper"; }) && (
                   <div style={{ gridColumn: "span 2" }}>
                     <FInput
-                      label={lang === "es" ? "Teste de Cooper (Distancia en metros)" : lang === "en" ? "Cooper Test (Distance in meters)" : "Teste de Cooper (Distância em metros)"}
+                      label={
+                        lang === "es"
+                          ? "Prueba de Cooper (Distancia en " + (unitSystem === "imperial" ? "millas" : "metros") + ")"
+                          : lang === "en"
+                          ? "Cooper Test (Distance in " + (unitSystem === "imperial" ? "miles" : "meters") + ")"
+                          : "Teste de Cooper (Distância em " + (unitSystem === "imperial" ? "milhas" : "metros") + ")"
+                      }
                       value={cardiovascular.cooper}
                       onChange={function(v) { setCardiovascular(Object.assign({}, cardiovascular, { cooper: v })); }}
                       type="number"
-                      placeholder="Ex: 2400"
+                      step={unitSystem === "imperial" ? "0.01" : "1"}
+                      placeholder={unitSystem === "imperial" ? "Ex: 1.5" : "Ex: 2400"}
                     />
                   </div>
                 )}
