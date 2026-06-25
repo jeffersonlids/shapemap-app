@@ -8086,6 +8086,8 @@ function StudentResponseScreen({ evalId }) {
   const [anamneseAnswers, setAnamneseAnswers] = useState({});
   const [peso, setPeso] = useState("");
   const [altura, setAltura] = useState("");
+  const [alturaFt, setAlturaFt] = useState("");
+  const [alturaIn, setAlturaIn] = useState("");
   const [gorduraBio, setGorduraBio] = useState("");
   const [perimetria, setPerimetria] = useState({});
   const [testes, setTestes] = useState({});
@@ -8210,6 +8212,10 @@ function StudentResponseScreen({ evalId }) {
         }];
       }
 
+      const metricAltura = unitSystem === "imperial" 
+        ? ftInToCm(alturaFt, alturaIn) 
+        : (altura ? String(fromSystemLength(altura, unitSystem)) : "");
+
       // 4. Update Database
       const { error: updateError } = await supabase
         .from('evaluations')
@@ -8217,7 +8223,7 @@ function StudentResponseScreen({ evalId }) {
           status: 'respondida',
           anamnese: formattedAnamnese,
           peso: peso ? String(fromSystemWeight(peso, unitSystem)) : "",
-          altura: altura ? String(fromSystemLength(altura, unitSystem)) : "",
+          altura: metricAltura,
           perimetria: convertedPerimetria,
           testes: formattedTestes,
           cardiovascular: {
@@ -8268,7 +8274,8 @@ function StudentResponseScreen({ evalId }) {
       const isAlturaReq = !config.composicaoFields || config.composicaoFields.altura !== false;
       let compUnanswered = [];
       if (isPesoReq && !peso) compUnanswered.push(lang === "es" ? "Peso" : lang === "en" ? "Weight" : "Peso");
-      if (isAlturaReq && !altura) compUnanswered.push(lang === "es" ? "Altura" : lang === "en" ? "Height" : "Altura");
+      const hasAltura = unitSystem === "imperial" ? (alturaFt || alturaIn) : altura;
+      if (isAlturaReq && !hasAltura) compUnanswered.push(lang === "es" ? "Altura" : lang === "en" ? "Height" : "Altura");
       if (config.composicaoMethod === "marinha") {
         if (!perimetria.pescoco || !perimetria.cintura || ((config.alunoSexo === "F" || config.alunoSexo === "f") && !perimetria.quadril)) {
           compUnanswered.push(lang === "es" ? "Medidas de la Marina" : lang === "en" ? "Navy Circumferences" : "Medidas de Protocolo");
@@ -8449,13 +8456,32 @@ function StudentResponseScreen({ evalId }) {
                   />
                 )}
                 {(!config.composicaoFields || config.composicaoFields.altura !== false) && (
-                  <FInput 
-                    label={lang === "es" ? "Altura (" + (unitSystem === "imperial" ? "in" : "cm") + ")" : lang === "en" ? "Height (" + (unitSystem === "imperial" ? "in" : "cm") + ")" : "Altura (" + (unitSystem === "imperial" ? "in" : "cm") + ")"}
-                    value={altura}
-                    onChange={setAltura}
-                    type="number"
-                    placeholder={unitSystem === "imperial" ? "Ex: 69" : "Ex: 175"} 
-                  />
+                  unitSystem === "imperial" ? (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                      <FInput 
+                        label={lang === "es" ? "Altura (ft)" : lang === "en" ? "Height (ft)" : "Altura (ft)"}
+                        value={alturaFt}
+                        onChange={setAlturaFt}
+                        type="number"
+                        placeholder="5" 
+                      />
+                      <FInput 
+                        label={lang === "es" ? "Altura (in)" : lang === "en" ? "Height (in)" : "Altura (in)"}
+                        value={alturaIn}
+                        onChange={setAlturaIn}
+                        type="number"
+                        placeholder="9" 
+                      />
+                    </div>
+                  ) : (
+                    <FInput 
+                      label={lang === "es" ? "Altura (cm)" : lang === "en" ? "Height (cm)" : "Altura (cm)"}
+                      value={altura}
+                      onChange={setAltura}
+                      type="number"
+                      placeholder="Ex: 175" 
+                    />
+                  )
                 )}
                 
                 {/* Se o método for Marinha Americana, solicitar as medidas necessárias diretamente aqui! */}
@@ -8984,7 +9010,8 @@ export default function App() {
             { label: "Panturrilha Dir.", key: "panturrilhaDireita", active: true },
             { label: "Panturrilha Esq.", key: "panturrilhaEsquerda", active: true }
           ],
-          exerciciosForca: ["Supino Reto", "Agachamento", "Puxada Aberta", "Leg Press 45°", "Rosca Direta", "Puxada Pulley", "Tríceps Pulley"]
+          exerciciosForca: ["Supino Reto", "Agachamento", "Puxada Aberta", "Leg Press 45°", "Rosca Direta", "Puxada Pulley", "Tríceps Pulley"],
+          unitSystem: "metric"
         };
         
         const newTrainer = {
@@ -8995,7 +9022,6 @@ export default function App() {
           telefone: sessionUser.user_metadata?.telefone || "",
           cor_primaria: "#1A1A2E",
           lang: trainer.lang || "pt",
-          unit_system: "metric",
           settings: defaultSettings
         };
 
@@ -9017,7 +9043,7 @@ export default function App() {
         telefone: trainerData.telefone || "",
         corPrimaria: trainerData.cor_primaria || "#1A1A2E",
         lang: trainerData.lang || "pt",
-        unitSystem: trainerData.unit_system || "metric",
+        unitSystem: (trainerData.settings && trainerData.settings.unitSystem) || "metric",
         stripeCustomerId: trainerData.stripe_customer_id || "",
         subscriptionStatus: trainerData.subscription_status || "inactive",
         subscriptionId: trainerData.subscription_id || "",
@@ -9168,6 +9194,9 @@ export default function App() {
     setTrainer(newTrainer);
     _ACC = newTrainer.corPrimaria;
     if (logged && user) {
+      const nextSettings = Object.assign({}, settings, { unitSystem: newTrainer.unitSystem });
+      setSettings(nextSettings);
+
       const { error } = await supabase
         .from('trainers')
         .update({
@@ -9176,7 +9205,7 @@ export default function App() {
           foto: newTrainer.foto,
           cor_primaria: newTrainer.corPrimaria,
           lang: newTrainer.lang,
-          unit_system: newTrainer.unitSystem
+          settings: nextSettings
         })
         .eq('id', user.id);
       if (error) {
@@ -9635,7 +9664,7 @@ export default function App() {
         url={cur.url}
         alunoNome={alunoProf.nome}
         onClose={function() {
-          pop();
+          setStack([{ type: "aluno", id: cur.alunoId }]);
         }}
         trainer={trainer}
       />
