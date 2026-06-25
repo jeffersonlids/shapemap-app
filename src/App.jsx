@@ -3358,6 +3358,33 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
   const [draggedExerciseIdx, setDraggedExerciseIdx] = useState(null);
   const [draggedPerimIdx, setDraggedPerimIdx] = useState(null);
 
+  const [activeOnlineTab, setActiveOnlineTab] = useState("");
+  function toggleOnlineAccordion(tabName) {
+    setActiveOnlineTab(function(current) {
+      return current === tabName ? "" : tabName;
+    });
+  }
+
+  const defaultAnamnese = (settings && settings.defaultOnlineConfig && settings.defaultOnlineConfig.anamneseQuestions) 
+    || (settings && settings.anamnesePerguntas) 
+    || PERGUNTAS_PADRAO;
+  
+  const defaultPerim = (settings && settings.defaultOnlineConfig && settings.defaultOnlineConfig.perimetriaFields) 
+    || ((settings && settings.perimetriaCampos) || []).filter(function(x) { return x.active; }).map(function(x) { return { key: x.key, label: x.label }; });
+
+  const defaultForce = (settings && settings.defaultOnlineConfig && settings.defaultOnlineConfig.testesExercises) 
+    || (settings && settings.exerciciosForca) 
+    || [];
+
+  const defaultCardio = (settings && settings.defaultOnlineConfig && settings.defaultOnlineConfig.cardioFields) 
+    || [
+      { key: "cooper", label: lang === "es" ? "Teste de Cooper (Metros)" : lang === "en" ? "Cooper Test (Meters)" : "Teste de Cooper (Metros)" },
+      { key: "fcRepouso", label: lang === "es" ? "Frecuencia Cardíaca de Reposo" : lang === "en" ? "Resting Heart Rate" : "Frequência Cardíaca de Repouso" },
+      { key: "fcRecuperacao", label: lang === "es" ? "Frecuencia Cardíaca de Recuperación" : lang === "en" ? "Recovery Heart Rate" : "Frequência Cardíaca de Recuperação" },
+      { key: "fcMax", label: lang === "es" ? "Frecuencia Cardíaca Máxima (Medida)" : lang === "en" ? "Max Heart Rate (Measured)" : "Frequência Cardíaca Máxima (Medida)" },
+      { key: "pressaoArterial", label: lang === "es" ? "Presión Arterial" : lang === "en" ? "Blood Pressure" : "Pressão Arterial" }
+    ];
+
   const onlineConfig = (settings && settings.defaultOnlineConfig) || {
     sections: {
       anamnese: true,
@@ -3372,7 +3399,11 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
       frente: true,
       lado: true,
       costas: true
-    }
+    },
+    anamneseQuestions: defaultAnamnese,
+    perimetriaFields: defaultPerim,
+    testesExercises: defaultForce,
+    cardioFields: defaultCardio
   };
 
   function updateOnlineConfig(key, value) {
@@ -3387,6 +3418,50 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
       nextConfig[key] = value;
     }
     onUpdateSettings(Object.assign({}, settings, { defaultOnlineConfig: nextConfig }));
+  }
+
+  function toggleOnlineQuestion(qText) {
+    const currentList = onlineConfig.anamneseQuestions || [];
+    let nextList;
+    if (currentList.includes(qText)) {
+      nextList = currentList.filter(function(x) { return x !== qText; });
+    } else {
+      nextList = currentList.concat([qText]);
+    }
+    updateOnlineConfig("anamneseQuestions", nextList);
+  }
+
+  function toggleOnlinePerim(fKey, fLabel) {
+    const currentList = onlineConfig.perimetriaFields || [];
+    let nextList;
+    if (currentList.some(function(x) { return x.key === fKey; })) {
+      nextList = currentList.filter(function(x) { return x.key !== fKey; });
+    } else {
+      nextList = currentList.concat([{ key: fKey, label: fLabel }]);
+    }
+    updateOnlineConfig("perimetriaFields", nextList);
+  }
+
+  function toggleOnlineExercise(exText) {
+    const currentList = onlineConfig.testesExercises || [];
+    let nextList;
+    if (currentList.includes(exText)) {
+      nextList = currentList.filter(function(x) { return x !== exText; });
+    } else {
+      nextList = currentList.concat([exText]);
+    }
+    updateOnlineConfig("testesExercises", nextList);
+  }
+
+  function toggleOnlineCardio(fKey, fLabel) {
+    const currentList = onlineConfig.cardioFields || [];
+    let nextList;
+    if (currentList.some(function(x) { return x.key === fKey; })) {
+      nextList = currentList.filter(function(x) { return x.key !== fKey; });
+    } else {
+      nextList = currentList.concat([{ key: fKey, label: fLabel }]);
+    }
+    updateOnlineConfig("cardioFields", nextList);
   }
 
   function togglePerim(key) {
@@ -3697,185 +3772,175 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
                 value={newExercise} 
                 onChange={function(e) { setNewExercise(e.target.value); }} 
                 placeholder={t("placeholder_supino", lang)} 
-                style={{ flex: 1, background: T.bg, border: "1.5px solid " + T.border, borderRadius: 10, padding: "11px 14px", fontSize: 14, outline: "none", color: T.text }}
-              />
-              <Btn small onClick={addExercise} icon={<IcPlus c="#fff" s={14} />}>{t("add", lang)}</Btn>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 220, overflowY: "auto", paddingRight: 4 }}>
-              {settings.exerciciosForca.map(function(ex, idx) {
-                return (
-                  <div 
-                    key={idx} 
-                    draggable
-                    data-drag-idx={idx}
-                    data-drag-type="exercise"
-                    onDragStart={function(e) { handleExerciseDragStart(e, idx); }}
-                    onDragOver={handleExerciseDragOver}
-                    onDrop={function(e) { handleExerciseDrop(e, idx); }}
-                    onDragEnd={handleExerciseDragEnd}
-                    style={{ 
-                      display: "flex", 
-                      justifyContent: "space-between", 
-                      alignItems: "center", 
-                      padding: "10px 12px", 
-                      background: T.bg, 
-                      borderRadius: 8,
-                      border: draggedExerciseIdx === idx ? "1.5px dashed " + ac() : "1.5px solid transparent",
-                      opacity: draggedExerciseIdx === idx ? 0.4 : 1,
-                      transition: "all 0.15s"
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
-                      <span 
-                        onTouchStart={function(e) { handleTouchStart(e, idx, "exercise"); }}
-                        onTouchMove={function(e) { handleTouchMove(e, "exercise", settings.exerciciosForca, function(list) { onUpdateSettings(Object.assign({}, settings, { exerciciosForca: list })); }); }}
-                        onTouchEnd={handleTouchEnd}
-                        style={{ cursor: "grab", color: T.muted, fontSize: 16, userSelect: "none", touchAction: "none" }} 
-                        title={t("arrastar_reordenar", lang)}
-                      >
-                        ☰
-                      </span>
-                      <span style={{ fontSize: 13, fontWeight: 500, color: T.text, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t(ex, lang)}</span>
-                    </div>
-                    <TrashBtn onClick={function() { deleteExercise(idx); }} size={15} />
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-        </div>
-
-        {/* 6. MODELO DE AVALIAÇÃO ONLINE */}
+                style        {/* 6. MODELO DE AVALIAÇÃO ONLINE */}
         <div>
           <SecHead 
             title={lang === "es" ? "Modelo de Evaluación Online" : lang === "en" ? "Online Evaluation Template" : "Modelo de Avaliação Online"} 
             sub={lang === "es" ? "Defina qué secciones y campos vendrán marcados por defecto al enviar una evaluación online." : lang === "en" ? "Define which sections and fields will be checked by default when sending an online evaluation." : "Defina quais seções e campos virão marcados por padrão ao enviar uma avaliação online."} 
           />
-          <Card sx={{ padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              
-              {/* Seção: Anamnese */}
-              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: T.text }}>
-                <input 
-                  type="checkbox" 
-                  checked={onlineConfig.sections.anamnese} 
-                  onChange={function(e) { updateOnlineConfig("sections.anamnese", e.target.checked); }}
-                  style={{ accentColor: ac(), width: 18, height: 18 }}
-                />
-                {lang === "es" ? "Anamnesis" : lang === "en" ? "Anamnesis" : "Anamnese"}
-              </label>
-
-              {/* Seção: Composição Corporal */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: T.text }}>
-                  <input 
-                    type="checkbox" 
-                    checked={onlineConfig.sections.composicao} 
-                    onChange={function(e) { updateOnlineConfig("sections.composicao", e.target.checked); }}
-                    style={{ accentColor: ac(), width: 18, height: 18 }}
-                  />
-                  {lang === "es" ? "Composición Corporal" : lang === "en" ? "Body Composition" : "Composição Corporal"}
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            
+            {/* Bloco 1: Anamnese */}
+            <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
+              <div onClick={function() { toggleOnlineAccordion("anamnese"); }} style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", background: activeOnlineTab === "anamnese" ? T.bg : "transparent" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }} onClick={function(e) { e.stopPropagation(); }}>
+                  <input type="checkbox" checked={onlineConfig.sections.anamnese} onChange={function(e) { updateOnlineConfig("sections.anamnese", e.target.checked); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
+                  <span style={{ color: onlineConfig.sections.anamnese ? T.text : T.muted }}>{lang === "es" ? "Anamnesis" : lang === "en" ? "Anamnesis" : "Anamnese"}</span>
                 </label>
-                {onlineConfig.sections.composicao && (
-                  <div style={{ paddingLeft: 28, marginTop: 4 }}>
-                    <FSelect
-                      label={lang === "es" ? "Método por defecto" : lang === "en" ? "Default Method" : "Método padrão"}
-                      value={onlineConfig.composicaoMethod}
-                      onChange={function(v) { updateOnlineConfig("composicaoMethod", v); }}
-                      options={[
-                        { value: "", label: lang === "es" ? "Ninguno" : lang === "en" ? "None" : "Nenhum (selecionar na hora)" },
-                        { value: "pollock7", label: "Pollock 7 Dobras" },
-                        { value: "pollock3", label: "Pollock 3 Dobras" },
-                        { value: "faulkner", label: "Faulkner" },
-                        { value: "petroski", label: "Petroski" },
-                        { value: "durnin_womersley", label: "Durnin-Womersley" },
-                        { value: "marinha", label: "Marinha Americana" },
-                        { value: "bioimpedancia", label: "Bioimpedância" }
-                      ]}
-                    />
-                  </div>
-                )}
+                <IcChevron c={T.muted} s={16} rotate={activeOnlineTab === "anamnese" ? 90 : 0} />
               </div>
+              {activeOnlineTab === "anamnese" && (
+                <div style={{ padding: "0 16px 16px", borderTop: "1px solid " + T.borderLight, maxHeight: 220, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+                  {((settings && settings.anamnesePerguntas) || PERGUNTAS_PADRAO).map(function(q, idx) {
+                    const isChecked = (onlineConfig.anamneseQuestions || []).includes(q);
+                    return (
+                      <label key={idx} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: isChecked ? T.text : T.sub }}>
+                        <input type="checkbox" checked={isChecked} onChange={function() { toggleOnlineQuestion(q); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!onlineConfig.sections.anamnese} />
+                        {q}
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
 
-              {/* Seção: Perimetria */}
-              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: T.text }}>
-                <input 
-                  type="checkbox" 
-                  checked={onlineConfig.sections.perimetria} 
-                  onChange={function(e) { updateOnlineConfig("sections.perimetria", e.target.checked); }}
-                  style={{ accentColor: ac(), width: 18, height: 18 }}
-                />
-                {lang === "es" ? "Perímetro / Medidas" : lang === "en" ? "Perimetry / Measurements" : "Perimetria / Medidas"}
-              </label>
-
-              {/* Seção: Testes de Força */}
-              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: T.text }}>
-                <input 
-                  type="checkbox" 
-                  checked={onlineConfig.sections.testes} 
-                  onChange={function(e) { updateOnlineConfig("sections.testes", e.target.checked); }}
-                  style={{ accentColor: ac(), width: 18, height: 18 }}
-                />
-                {lang === "es" ? "Testes de Fuerza" : lang === "en" ? "Strength Tests" : "Testes de Força"}
-              </label>
-
-              {/* Seção: Cardiovascular */}
-              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: T.text }}>
-                <input 
-                  type="checkbox" 
-                  checked={onlineConfig.sections.cardiovascular} 
-                  onChange={function(e) { updateOnlineConfig("sections.cardiovascular", e.target.checked); }}
-                  style={{ accentColor: ac(), width: 18, height: 18 }}
-                />
-                {lang === "es" ? "Cardiovascular & VO2" : lang === "en" ? "Cardiovascular & VO2" : "Cardiovascular & VO2"}
-              </label>
-
-              {/* Seção: Fotos */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: T.text }}>
-                  <input 
-                    type="checkbox" 
-                    checked={onlineConfig.sections.fotos} 
-                    onChange={function(e) { updateOnlineConfig("sections.fotos", e.target.checked); }}
-                    style={{ accentColor: ac(), width: 18, height: 18 }}
-                  />
-                  {lang === "es" ? "Registro Fotográfico" : lang === "en" ? "Photos" : "Registro Fotográfico (Fotos)"}
+            {/* Bloco 2: Composição Corporal */}
+            <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
+              <div onClick={function() { toggleOnlineAccordion("composicao"); }} style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", background: activeOnlineTab === "composicao" ? T.bg : "transparent" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }} onClick={function(e) { e.stopPropagation(); }}>
+                  <input type="checkbox" checked={onlineConfig.sections.composicao} onChange={function(e) { updateOnlineConfig("sections.composicao", e.target.checked); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
+                  <span style={{ color: onlineConfig.sections.composicao ? T.text : T.muted }}>{lang === "es" ? "Composición Corporal" : lang === "en" ? "Body Composition" : "Composição Corporal"}</span>
                 </label>
-                {onlineConfig.sections.fotos && (
-                  <div style={{ display: "flex", gap: 16, paddingLeft: 28, marginTop: 4 }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: T.sub }}>
-                      <input 
-                        type="checkbox" 
-                        checked={onlineConfig.fotosTypes.frente} 
-                        onChange={function(e) { updateOnlineConfig("fotosTypes.frente", e.target.checked); }}
-                        style={{ accentColor: ac(), width: 16, height: 16 }}
-                      />
-                      {lang === "es" ? "Frente" : lang === "en" ? "Front" : "Frente"}
-                    </label>
-                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: T.sub }}>
-                      <input 
-                        type="checkbox" 
-                        checked={onlineConfig.fotosTypes.lado} 
-                        onChange={function(e) { updateOnlineConfig("fotosTypes.lado", e.target.checked); }}
-                        style={{ accentColor: ac(), width: 16, height: 16 }}
-                      />
-                      {lang === "es" ? "Perfil" : lang === "en" ? "Side" : "Lado"}
-                    </label>
-                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: T.sub }}>
-                      <input 
-                        type="checkbox" 
-                        checked={onlineConfig.fotosTypes.costas} 
-                        onChange={function(e) { updateOnlineConfig("fotosTypes.costas", e.target.checked); }}
-                        style={{ accentColor: ac(), width: 16, height: 16 }}
-                      />
-                      {lang === "es" ? "Espalda" : lang === "en" ? "Back" : "Costas"}
-                    </label>
-                  </div>
-                )}
+                <IcChevron c={T.muted} s={16} rotate={activeOnlineTab === "composicao" ? 90 : 0} />
               </div>
+              {activeOnlineTab === "composicao" && (
+                <div style={{ padding: "16px", borderTop: "1px solid " + T.borderLight }}>
+                  <FSelect
+                    label={lang === "es" ? "Método de composición corporal" : lang === "en" ? "Composition Method" : "Método de composição corporal"}
+                    value={onlineConfig.composicaoMethod}
+                    onChange={function(v) { updateOnlineConfig("composicaoMethod", v); }}
+                    disabled={!onlineConfig.sections.composicao}
+                    options={[
+                      { value: "", label: lang === "es" ? "Ninguno (solo Peso/Altura)" : lang === "en" ? "None (Weight/Height only)" : "Nenhum (apenas Peso/Altura)" },
+                      { value: "pollock7", label: "Pollock 7 Dobras" },
+                      { value: "pollock3", label: "Pollock 3 Dobras" },
+                      { value: "faulkner", label: "Faulkner" },
+                      { value: "petroski", label: "Petroski" },
+                      { value: "durnin_womersley", label: "Durnin-Womersley" },
+                      { value: "marinha", label: "Marinha Americana" },
+                      { value: "bioimpedancia", label: "Bioimpedância" }
+                    ]}
+                  />
+                </div>
+              )}
+            </Card>
 
-            </div>
-          </Card>
+            {/* Bloco 3: Perimetria */}
+            <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
+              <div onClick={function() { toggleOnlineAccordion("perimetria"); }} style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", background: activeOnlineTab === "perimetria" ? T.bg : "transparent" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }} onClick={function(e) { e.stopPropagation(); }}>
+                  <input type="checkbox" checked={onlineConfig.sections.perimetria} onChange={function(e) { updateOnlineConfig("sections.perimetria", e.target.checked); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
+                  <span style={{ color: onlineConfig.sections.perimetria ? T.text : T.muted }}>{lang === "es" ? "Perimetría (Medidas)" : lang === "en" ? "Perimetry (Measurements)" : "Perimetria (Medidas)"}</span>
+                </label>
+                <IcChevron c={T.muted} s={16} rotate={activeOnlineTab === "perimetria" ? 90 : 0} />
+              </div>
+              {activeOnlineTab === "perimetria" && (
+                <div style={{ padding: "0 16px 16px", borderTop: "1px solid " + T.borderLight, maxHeight: 220, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+                  {((settings && settings.perimetriaCampos) || []).filter(function(x) { return x.active; }).map(function(f) {
+                    const isChecked = (onlineConfig.perimetriaFields || []).some(function(x) { return x.key === f.key; });
+                    return (
+                      <label key={f.key} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: isChecked ? T.text : T.sub }}>
+                        <input type="checkbox" checked={isChecked} onChange={function() { toggleOnlinePerim(f.key, f.label); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!onlineConfig.sections.perimetria} />
+                        {f.label}
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+
+            {/* Bloco 4: Testes de Força */}
+            <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
+              <div onClick={function() { toggleOnlineAccordion("testes"); }} style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", background: activeOnlineTab === "testes" ? T.bg : "transparent" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }} onClick={function(e) { e.stopPropagation(); }}>
+                  <input type="checkbox" checked={onlineConfig.sections.testes} onChange={function(e) { updateOnlineConfig("sections.testes", e.target.checked); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
+                  <span style={{ color: onlineConfig.sections.testes ? T.text : T.muted }}>{lang === "es" ? "Testes de Fuerza" : lang === "en" ? "Strength Tests" : "Testes de Força"}</span>
+                </label>
+                <IcChevron c={T.muted} s={16} rotate={activeOnlineTab === "testes" ? 90 : 0} />
+              </div>
+              {activeOnlineTab === "testes" && (
+                <div style={{ padding: "0 16px 16px", borderTop: "1px solid " + T.borderLight, maxHeight: 220, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+                  {((settings && settings.exerciciosForca) || []).map(function(ex, idx) {
+                    const isChecked = (onlineConfig.testesExercises || []).includes(ex);
+                    return (
+                      <label key={idx} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: isChecked ? T.text : T.sub }}>
+                        <input type="checkbox" checked={isChecked} onChange={function() { toggleOnlineExercise(ex); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!onlineConfig.sections.testes} />
+                        {ex}
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+
+            {/* Bloco 5: Cardiovascular */}
+            <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
+              <div onClick={function() { toggleOnlineAccordion("cardiovascular"); }} style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", background: activeOnlineTab === "cardiovascular" ? T.bg : "transparent" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }} onClick={function(e) { e.stopPropagation(); }}>
+                  <input type="checkbox" checked={onlineConfig.sections.cardiovascular} onChange={function(e) { updateOnlineConfig("sections.cardiovascular", e.target.checked); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
+                  <span style={{ color: onlineConfig.sections.cardiovascular ? T.text : T.muted }}>{lang === "es" ? "Cardiovascular & VO2" : lang === "en" ? "Cardiovascular & VO2" : "Cardiovascular & VO2"}</span>
+                </label>
+                <IcChevron c={T.muted} s={16} rotate={activeOnlineTab === "cardiovascular" ? 90 : 0} />
+              </div>
+              {activeOnlineTab === "cardiovascular" && (
+                <div style={{ padding: "0 16px 16px", borderTop: "1px solid " + T.borderLight, maxHeight: 220, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+                  {[
+                    { key: "cooper", label: lang === "es" ? "Teste de Cooper (Metros)" : lang === "en" ? "Cooper Test (Meters)" : "Teste de Cooper (Metros)" },
+                    { key: "fcRepouso", label: lang === "es" ? "Frecuencia Cardíaca de Reposo" : lang === "en" ? "Resting Heart Rate" : "Frequência Cardíaca de Repouso" },
+                    { key: "fcRecuperacao", label: lang === "es" ? "Frecuencia Cardíaca de Recuperación" : lang === "en" ? "Recovery Heart Rate" : "Frequência Cardíaca de Recuperação" },
+                    { key: "fcMax", label: lang === "es" ? "Frecuencia Cardíaca Máxima (Medida)" : lang === "en" ? "Max Heart Rate (Measured)" : "Frequência Cardíaca Máxima (Medida)" },
+                    { key: "pressaoArterial", label: lang === "es" ? "Presión Arterial" : lang === "en" ? "Blood Pressure" : "Pressão Arterial" }
+                  ].map(function(f) {
+                    const isChecked = (onlineConfig.cardioFields || []).some(function(x) { return x.key === f.key; });
+                    return (
+                      <label key={f.key} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: isChecked ? T.text : T.sub }}>
+                        <input type="checkbox" checked={isChecked} onChange={function() { toggleOnlineCardio(f.key, f.label); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!onlineConfig.sections.cardiovascular} />
+                        {f.label}
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+
+            {/* Bloco 6: Fotos */}
+            <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
+              <div onClick={function() { toggleOnlineAccordion("fotos"); }} style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", background: activeOnlineTab === "fotos" ? T.bg : "transparent" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }} onClick={function(e) { e.stopPropagation(); }}>
+                  <input type="checkbox" checked={onlineConfig.sections.fotos} onChange={function(e) { updateOnlineConfig("sections.fotos", e.target.checked); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
+                  <span style={{ color: onlineConfig.sections.fotos ? T.text : T.muted }}>{lang === "es" ? "Registro Fotográfico (Fotos)" : lang === "en" ? "Photos" : "Registro Fotográfico (Fotos)"}</span>
+                </label>
+                <IcChevron c={T.muted} s={16} rotate={activeOnlineTab === "fotos" ? 90 : 0} />
+              </div>
+              {activeOnlineTab === "fotos" && (
+                <div style={{ padding: "16px", borderTop: "1px solid " + T.borderLight, display: "flex", gap: 16 }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: onlineConfig.fotosTypes.frente ? T.text : T.sub }}>
+                    <input type="checkbox" checked={onlineConfig.fotosTypes.frente} onChange={function(e) { updateOnlineConfig("fotosTypes.frente", e.target.checked); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!onlineConfig.sections.fotos} />
+                    {lang === "es" ? "Frente" : lang === "en" ? "Front" : "Frente"}
+                  </label>
+                  <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: onlineConfig.fotosTypes.lado ? T.text : T.sub }}>
+                    <input type="checkbox" checked={onlineConfig.fotosTypes.lado} onChange={function(e) { updateOnlineConfig("fotosTypes.lado", e.target.checked); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!onlineConfig.sections.fotos} />
+                    {lang === "es" ? "Perfil" : lang === "en" ? "Side" : "Lado"}
+                  </label>
+                  <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: onlineConfig.fotosTypes.costas ? T.text : T.sub }}>
+                    <input type="checkbox" checked={onlineConfig.fotosTypes.costas} onChange={function(e) { updateOnlineConfig("fotosTypes.costas", e.target.checked); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!onlineConfig.sections.fotos} />
+                    {lang === "es" ? "Espalda" : lang === "en" ? "Back" : "Costas"}
+                  </label>
+                </div>
+              )}
+            </Card>
+
+          </div>
         </div>
 
       </div>
@@ -7815,19 +7880,7 @@ function LinkGeradoModal({ url, onSendWhatsApp, onClose, trainer }) {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
-          <Btn 
-            full 
-            onClick={onSendWhatsApp} 
-            style={{ background: "#25D366", borderColor: "#25D366", color: "#fff" }}
-            icon={
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 8, display: "inline-block", verticalAlign: "middle" }}>
-                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.053 5.348 5.397.007 11.993 0c3.2 0 6.2 1.24 8.461 3.499C22.716 5.76 24 8.76 24 11.972c-.004 6.643-5.348 11.985-11.947 11.985-2.005-.001-3.973-.504-5.714-1.463L0 24zm6.586-2.522l.41.243c1.48.878 3.125 1.342 4.81 1.343 5.373 0 9.742-4.363 9.745-9.729.002-2.599-1.01-5.044-2.85-6.885-1.839-1.84-4.286-2.853-6.887-2.853-5.378 0-9.749 4.363-9.752 9.73-.001 1.761.46 3.478 1.334 4.981l.267.46-1.002 3.659 3.755-.989zM18.01 15.11c-.329-.165-1.947-.96-2.247-1.07-.299-.11-.517-.165-.736.165-.219.329-.846 1.07-1.037 1.289-.19.219-.382.247-.711.082-1.887-.945-3.136-1.684-4.385-3.824-.329-.564-.329-.965-.011-1.258.286-.264.63-.736.946-1.1.314-.364.419-.624.628-1.036.208-.413.104-.775-.052-1.103-.156-.328-.736-1.774-.99-2.39-.247-.597-.502-.516-.688-.525-.178-.009-.382-.01-.587-.01-.205 0-.539.077-.821.383-.282.306-1.077 1.053-1.077 2.567s1.102 2.977 1.256 3.183c.154.205 2.167 3.31 5.251 4.641.734.316 1.306.505 1.751.646.737.234 1.407.2 1.938.12.59-.09 1.948-.797 2.221-1.53.273-.733.273-1.362.191-1.493-.082-.13-.301-.21-.63-.375z"/>
-              </svg>
-            }
-          >
-            {lang === "es" ? "Enviar por WhatsApp" : lang === "en" ? "Send via WhatsApp" : "Enviar via WhatsApp"}
-          </Btn>
-          <Btn variant="ghost" full onClick={onClose}>
+          <Btn full onClick={onClose}>
             {lang === "es" ? "Cerrar" : lang === "en" ? "Close" : "Fechar"}
           </Btn>
         </div>
@@ -8124,7 +8177,7 @@ function StudentResponseScreen({ evalId }) {
         {config.sections.composicao && (
           <div>
             <div style={{ fontSize:12, fontWeight:700, color:T.sub, letterSpacing:0.5, textTransform: "uppercase", marginBottom: 8, paddingLeft: 4 }}>
-              {lang === "es" ? "Datos Básicos" : lang === "en" ? "Basic Stats" : "Dados Básicos"}
+              {lang === "es" ? "Composición Corporal" : lang === "en" ? "Body Composition" : "Composição Corporal"}
             </div>
             <Card sx={{ padding: 16, display: "flex", flexDirection: "column", gap: 14, border: "1.5px solid " + T.border }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -8145,6 +8198,46 @@ function StudentResponseScreen({ evalId }) {
                   placeholder="Ex: 175" 
                   required 
                 />
+                
+                {/* Se o método for Marinha Americana, solicitar as medidas necessárias diretamente aqui! */}
+                {config.composicaoMethod === "marinha" && (
+                  <>
+                    <div style={{ gridColumn: "span 2", borderTop: "1px solid " + T.borderLight, paddingTop: 12, marginTop: 4, fontSize: 11, fontWeight: 700, color: T.sub, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                      {lang === "es" ? "Medidas para la Ecuación" : lang === "en" ? "Navy Circumferences" : "Medidas para Protocolo"}
+                    </div>
+                    <FInput
+                      label={lang === "es" ? "Cuello (cm)" : lang === "en" ? "Neck (cm)" : "Pescoço (cm)"}
+                      value={perimetria.pescoco || ""}
+                      onChange={function(v) { setPerimetria(Object.assign({}, perimetria, { pescoco: v })); }}
+                      type="number"
+                      step="0.1"
+                      placeholder="0.0"
+                      required
+                    />
+                    <FInput
+                      label={lang === "es" ? "Cintura (cm)" : lang === "en" ? "Waist (cm)" : "Cintura (cm)"}
+                      value={perimetria.cintura || ""}
+                      onChange={function(v) { setPerimetria(Object.assign({}, perimetria, { cintura: v })); }}
+                      type="number"
+                      step="0.1"
+                      placeholder="0.0"
+                      required
+                    />
+                    {(!evaluation || evaluation.sexo === "F" || evaluation.sexo === "f") && (
+                      <div style={{ gridColumn: "span 2" }}>
+                        <FInput
+                          label={lang === "es" ? "Cadera (cm)" : lang === "en" ? "Hip (cm)" : "Quadril (cm)"}
+                          value={perimetria.quadril || ""}
+                          onChange={function(v) { setPerimetria(Object.assign({}, perimetria, { quadril: v })); }}
+                          type="number"
+                          step="0.1"
+                          placeholder="0.0"
+                          required
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </Card>
           </div>
