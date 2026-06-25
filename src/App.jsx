@@ -5752,11 +5752,6 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
 
             <div className="no-print" style={{ display: "flex", gap: 12, width: "100%" }}>
               <div style={{ flex: 1 }}>
-                <Btn full variant="outline" onClick={enviarAluno} style={{ borderColor: ac(), color: ac() }}>
-                  {lang === "en" ? "Send Online Form" : lang === "es" ? "Enviar Formulario Online" : "Enviar Formulário Online"}
-                </Btn>
-              </div>
-              <div style={{ flex: 1 }}>
                 <Btn full onClick={finalizar} icon={<IcCheck c="#fff" s={16}/>}>{t("finalizar_avaliacao_btn", lang)}</Btn>
               </div>
             </div>
