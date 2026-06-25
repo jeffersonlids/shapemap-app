@@ -3365,10 +3365,9 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
       perimetria: true,
       testes: true,
       cardiovascular: true,
-      metabolismo: true,
       fotos: true
     },
-    composicaoMethod: (settings && settings.defaultMetodo) || "pollock7",
+    composicaoMethod: "marinha",
     fotosTypes: {
       frente: true,
       lado: true,
@@ -3829,17 +3828,6 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
                   style={{ accentColor: ac(), width: 18, height: 18 }}
                 />
                 {lang === "es" ? "Cardiovascular & VO2" : lang === "en" ? "Cardiovascular & VO2" : "Cardiovascular & VO2"}
-              </label>
-
-              {/* Seção: Metabolismo */}
-              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, fontWeight: 600, color: T.text }}>
-                <input 
-                  type="checkbox" 
-                  checked={onlineConfig.sections.metabolismo} 
-                  onChange={function(e) { updateOnlineConfig("sections.metabolismo", e.target.checked); }}
-                  style={{ accentColor: ac(), width: 18, height: 18 }}
-                />
-                {lang === "es" ? "Tasa Metabólica Basal" : lang === "en" ? "Basal Metabolic Rate" : "Taxa Metabólica Basal"}
               </label>
 
               {/* Seção: Fotos */}
@@ -7446,10 +7434,9 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
       perimetria: true,
       testes: true,
       cardiovascular: true,
-      metabolismo: true,
       fotos: true
     },
-    composicaoMethod: (settings && settings.defaultMetodo) || "pollock7",
+    composicaoMethod: "marinha",
     fotosTypes: {
       frente: true,
       lado: true,
@@ -7465,16 +7452,66 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
   const [selectedQuestions, setSelectedQuestions] = useState(qList.map(function(q) {
     return { question: q, checked: true };
   }));
+  const [newQuestionText, setNewQuestionText] = useState("");
 
-  const pFields = (settings && settings.perimetriaCampos) || [];
+  const pFields = (settings && settings.perimetriaCampos) || [
+    { label: "Pescoço", key: "pescoco", active: true },
+    { label: "Ombros", key: "ombros", active: true },
+    { label: "Peitoral", key: "peitoral", active: true },
+    { label: "Cintura", key: "cintura", active: true },
+    { label: "Abdominal", key: "abdominal", active: true },
+    { label: "Quadril", key: "quadril", active: true },
+    { label: "Braço Dir.", key: "bracoDireito", active: true },
+    { label: "Braço Esq.", key: "bracoEsquerdo", active: true },
+    { label: "Coxa Dir.", key: "coxaDireita", active: true },
+    { label: "Coxa Esq.", key: "coxaEsquerda", active: true },
+    { label: "Panturrilha Dir.", key: "panturrilhaDireita", active: true },
+    { label: "Panturrilha Esq.", key: "panturrilhaEsquerda", active: true }
+  ];
   const [selectedPerim, setSelectedPerim] = useState(pFields.map(function(f) {
     return { key: f.key, label: f.label, checked: f.active };
   }));
 
-  const eList = (settings && settings.exerciciosForca) || [];
+  const eList = (settings && settings.exerciciosForca && settings.exerciciosForca.length > 0)
+    ? settings.exerciciosForca
+    : ["Supino Reto"];
   const [selectedForce, setSelectedForce] = useState(eList.map(function(ex) {
     return { exercise: ex, checked: true };
   }));
+  const [newExerciseText, setNewExerciseText] = useState("");
+
+  const [cardioFields, setCardioFields] = useState([
+    { key: "cooper", label: lang === "es" ? "Teste de Cooper (Metros)" : lang === "en" ? "Cooper Test (Meters)" : "Teste de Cooper (Metros)", checked: true },
+    { key: "fcRepouso", label: lang === "es" ? "Frecuencia Cardíaca de Reposo" : lang === "en" ? "Resting Heart Rate" : "Frequência Cardíaca de Repouso", checked: true },
+    { key: "fcRecuperacao", label: lang === "es" ? "Frecuencia Cardíaca de Recuperación" : lang === "en" ? "Recovery Heart Rate" : "Frequência Cardíaca de Recuperação", checked: true },
+    { key: "fcMax", label: lang === "es" ? "Frecuencia Cardíaca Máxima (Medida)" : lang === "en" ? "Max Heart Rate (Measured)" : "Frequência Cardíaca Máxima (Medida)", checked: true },
+    { key: "pressaoArterial", label: lang === "es" ? "Presión Arterial" : lang === "en" ? "Blood Pressure" : "Pressão Arterial", checked: true }
+  ]);
+
+  function addCustomQuestion() {
+    if (!newQuestionText.trim()) return;
+    setSelectedQuestions(function(prev) {
+      return prev.concat([{ question: newQuestionText.trim(), checked: true }]);
+    });
+    setNewQuestionText("");
+  }
+
+  function addCustomExercise() {
+    if (!newExerciseText.trim()) return;
+    setSelectedForce(function(prev) {
+      return prev.concat([{ exercise: newExerciseText.trim(), checked: true }]);
+    });
+    setNewExerciseText("");
+  }
+
+  function toggleCardioField(key) {
+    setCardioFields(function(prev) {
+      return prev.map(function(f) {
+        if (f.key === key) return Object.assign({}, f, { checked: !f.checked });
+        return f;
+      });
+    });
+  }
 
   function handleSend() {
     const finalConfig = {
@@ -7483,6 +7520,7 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
       composicaoMethod: composicaoMethod,
       perimetriaFields: selectedPerim.filter(function(x) { return x.checked; }).map(function(x) { return { key: x.key, label: x.label }; }),
       testesExercises: selectedForce.filter(function(x) { return x.checked; }).map(function(x) { return x.exercise; }),
+      cardioFields: cardioFields.filter(function(x) { return x.checked; }).map(function(x) { return { key: x.key, label: x.label }; }),
       fotosTypes: fotosTypes,
       trainerNome: trainer.nome || "Prof. ShapeMap",
       trainerCor: trainer.corPrimaria || "#1A1A2E",
@@ -7562,15 +7600,27 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
             <IcChevron c={T.muted} s={16} rotate={activeTab === "anamnese" ? 90 : 0} />
           </div>
           {activeTab === "anamnese" && (
-            <div style={{ padding: "0 16px 16px", borderTop: "1px solid " + T.borderLight, maxHeight: 220, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
-              {selectedQuestions.map(function(q, idx) {
-                return (
-                  <label key={idx} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: q.checked ? T.text : T.sub }} onClick={function(e) { e.stopPropagation(); }}>
-                    <input type="checkbox" checked={q.checked} onChange={function() { toggleQuestion(idx); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!sections.anamnese} />
-                    {q.question}
-                  </label>
-                );
-              })}
+            <div style={{ padding: "0 16px 16px", borderTop: "1px solid " + T.borderLight, marginTop: 12, display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="text"
+                  value={newQuestionText}
+                  onChange={function(e) { setNewQuestionText(e.target.value); }}
+                  placeholder={lang === "es" ? "Añadir pregunta..." : lang === "en" ? "Add question..." : "Adicionar pergunta..."}
+                  style={{ flex: 1, background: T.bg, border: "1.5px solid " + T.border, borderRadius: 10, padding: "8px 12px", fontSize: 13, color: T.text, outline: "none" }}
+                />
+                <Btn small onClick={addCustomQuestion}>{lang === "es" ? "Añadir" : lang === "en" ? "Add" : "Adicionar"}</Btn>
+              </div>
+              <div style={{ maxHeight: 200, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+                {selectedQuestions.map(function(q, idx) {
+                  return (
+                    <label key={idx} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: q.checked ? T.text : T.sub }}>
+                      <input type="checkbox" checked={q.checked} onChange={function() { toggleQuestion(idx); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!sections.anamnese} />
+                      {q.question}
+                    </label>
+                  );
+                })}
+              </div>
             </div>
           )}
         </Card>
@@ -7639,12 +7689,47 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
             <IcChevron c={T.muted} s={16} rotate={activeTab === "testes" ? 90 : 0} />
           </div>
           {activeTab === "testes" && (
+            <div style={{ padding: "0 16px 16px", borderTop: "1px solid " + T.borderLight, marginTop: 12, display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="text"
+                  value={newExerciseText}
+                  onChange={function(e) { setNewExerciseText(e.target.value); }}
+                  placeholder={lang === "es" ? "Añadir ejercicio..." : lang === "en" ? "Add exercise..." : "Adicionar exercício..."}
+                  style={{ flex: 1, background: T.bg, border: "1.5px solid " + T.border, borderRadius: 10, padding: "8px 12px", fontSize: 13, color: T.text, outline: "none" }}
+                />
+                <Btn small onClick={addCustomExercise}>{lang === "es" ? "Añadir" : lang === "en" ? "Add" : "Adicionar"}</Btn>
+              </div>
+              <div style={{ maxHeight: 200, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+                {selectedForce.map(function(ex, idx) {
+                  return (
+                    <label key={idx} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: ex.checked ? T.text : T.sub }}>
+                      <input type="checkbox" checked={ex.checked} onChange={function() { toggleForce(idx); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!sections.testes} />
+                      {ex.exercise}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* Bloco 5: Cardiovascular */}
+        <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
+          <div onClick={function() { toggleAccordion("cardiovascular"); }} style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", background: activeTab === "cardiovascular" ? T.bg : "transparent" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }} onClick={function(e) { e.stopPropagation(); }}>
+              <input type="checkbox" checked={sections.cardiovascular} onChange={function(e) { toggleSection("cardiovascular"); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
+              <span style={{ color: sections.cardiovascular ? T.text : T.muted }}>{lang === "es" ? "Cardiovascular & VO2" : lang === "en" ? "Cardiovascular & VO2" : "Cardiovascular & VO2"}</span>
+            </label>
+            <IcChevron c={T.muted} s={16} rotate={activeTab === "cardiovascular" ? 90 : 0} />
+          </div>
+          {activeTab === "cardiovascular" && (
             <div style={{ padding: "0 16px 16px", borderTop: "1px solid " + T.borderLight, maxHeight: 220, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
-              {selectedForce.map(function(ex, idx) {
+              {cardioFields.map(function(f) {
                 return (
-                  <label key={idx} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: ex.checked ? T.text : T.sub }} onClick={function(e) { e.stopPropagation(); }}>
-                    <input type="checkbox" checked={ex.checked} onChange={function() { toggleForce(idx); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!sections.testes} />
-                    {ex.exercise}
+                  <label key={f.key} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: f.checked ? T.text : T.sub }}>
+                    <input type="checkbox" checked={f.checked} onChange={function() { toggleCardioField(f.key); }} style={{ accentColor: ac(), width: 16, height: 16 }} disabled={!sections.cardiovascular} />
+                    {f.label}
                   </label>
                 );
               })}
@@ -7652,27 +7737,7 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
           )}
         </Card>
 
-        {/* Bloco 5: Cardiovascular */}
-        <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
-          <div style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }}>
-              <input type="checkbox" checked={sections.cardiovascular} onChange={function(e) { toggleSection("cardiovascular"); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
-              <span style={{ color: sections.cardiovascular ? T.text : T.muted }}>{lang === "es" ? "Cardiovascular & VO2" : lang === "en" ? "Cardiovascular & VO2" : "Cardiovascular & VO2"}</span>
-            </label>
-          </div>
-        </Card>
-
-        {/* Bloco 6: Metabolismo */}
-        <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
-          <div style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }}>
-              <input type="checkbox" checked={sections.metabolismo} onChange={function(e) { toggleSection("metabolismo"); }} style={{ accentColor: ac(), width: 18, height: 18 }} />
-              <span style={{ color: sections.metabolismo ? T.text : T.muted }}>{lang === "es" ? "Tasa Metabólica Basal" : lang === "en" ? "Basal Metabolic Rate" : "Taxa Metabólica Basal"}</span>
-            </label>
-          </div>
-        </Card>
-
-        {/* Bloco 7: Fotos */}
+        {/* Bloco 6: Fotos */}
         <Card sx={{ border: "1.5px solid " + T.border, overflow: "hidden" }}>
           <div onClick={function() { toggleAccordion("fotos"); }} style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", background: activeTab === "fotos" ? T.bg : "transparent" }}>
             <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontWeight: 700 }} onClick={function(e) { e.stopPropagation(); }}>
@@ -7703,7 +7768,7 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
 
       <div style={{ display: "flex", gap: 12 }}>
         <Btn variant="outline" full onClick={onBack}>{lang === "es" ? "Cancelar" : lang === "en" ? "Cancel" : "Cancelar"}</Btn>
-        <Btn full onClick={handleSend} disabled={!sections.anamnese && !sections.composicao && !sections.perimetria && !sections.testes && !sections.cardiovascular && !sections.metabolismo && !sections.fotos}>
+        <Btn full onClick={handleSend} disabled={!sections.anamnese && !sections.composicao && !sections.perimetria && !sections.testes && !sections.cardiovascular && !sections.fotos}>
           {lang === "es" ? "Enviar al Aluno" : lang === "en" ? "Send to Student" : "Enviar para o Aluno"}
         </Btn>
       </div>
@@ -7750,11 +7815,16 @@ function LinkGeradoModal({ url, onSendWhatsApp, onClose, trainer }) {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
-          <Btn full onClick={onSendWhatsApp} icon={
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 2, display: "inline-block", verticalAlign: "middle" }}>
-              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.053 5.348 5.397.007 11.993 0c3.2 0 6.2 1.24 8.461 3.499C22.716 5.76 24 8.76 24 11.972c-.004 6.643-5.348 11.985-11.947 11.985-2.005-.001-3.973-.504-5.714-1.463L0 24zm6.586-2.522l.41.243c1.48.878 3.125 1.342 4.81 1.343 5.373 0 9.742-4.363 9.745-9.729.002-2.599-1.01-5.044-2.85-6.885-1.839-1.84-4.286-2.853-6.887-2.853-5.378 0-9.749 4.363-9.752 9.73-.001 1.761.46 3.478 1.334 4.981l.267.46-1.002 3.659 3.755-.989zM18.01 15.11c-.329-.165-1.947-.96-2.247-1.07-.299-.11-.517-.165-.736.165-.219.329-.846 1.07-1.037 1.289-.19.219-.382.247-.711.082-1.887-.945-3.136-1.684-4.385-3.824-.329-.564-.329-.965-.011-1.258.286-.264.63-.736.946-1.1.314-.364.419-.624.628-1.036.208-.413.104-.775-.052-1.103-.156-.328-.736-1.774-.99-2.39-.247-.597-.502-.516-.688-.525-.178-.009-.382-.01-.587-.01-.205 0-.539.077-.821.383-.282.306-1.077 1.053-1.077 2.567s1.102 2.977 1.256 3.183c.154.205 2.167 3.31 5.251 4.641.734.316 1.306.505 1.751.646.737.234 1.407.2 1.938.12.59-.09 1.948-.797 2.221-1.53.273-.733.273-1.362.191-1.493-.082-.13-.301-.21-.63-.375z"/>
-            </svg>
-          }>
+          <Btn 
+            full 
+            onClick={onSendWhatsApp} 
+            style={{ background: "#25D366", borderColor: "#25D366", color: "#fff" }}
+            icon={
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 8, display: "inline-block", verticalAlign: "middle" }}>
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.053 5.348 5.397.007 11.993 0c3.2 0 6.2 1.24 8.461 3.499C22.716 5.76 24 8.76 24 11.972c-.004 6.643-5.348 11.985-11.947 11.985-2.005-.001-3.973-.504-5.714-1.463L0 24zm6.586-2.522l.41.243c1.48.878 3.125 1.342 4.81 1.343 5.373 0 9.742-4.363 9.745-9.729.002-2.599-1.01-5.044-2.85-6.885-1.839-1.84-4.286-2.853-6.887-2.853-5.378 0-9.749 4.363-9.752 9.73-.001 1.761.46 3.478 1.334 4.981l.267.46-1.002 3.659 3.755-.989zM18.01 15.11c-.329-.165-1.947-.96-2.247-1.07-.299-.11-.517-.165-.736.165-.219.329-.846 1.07-1.037 1.289-.19.219-.382.247-.711.082-1.887-.945-3.136-1.684-4.385-3.824-.329-.564-.329-.965-.011-1.258.286-.264.63-.736.946-1.1.314-.364.419-.624.628-1.036.208-.413.104-.775-.052-1.103-.156-.328-.736-1.774-.99-2.39-.247-.597-.502-.516-.688-.525-.178-.009-.382-.01-.587-.01-.205 0-.539.077-.821.383-.282.306-1.077 1.053-1.077 2.567s1.102 2.977 1.256 3.183c.154.205 2.167 3.31 5.251 4.641.734.316 1.306.505 1.751.646.737.234 1.407.2 1.938.12.59-.09 1.948-.797 2.221-1.53.273-.733.273-1.362.191-1.493-.082-.13-.301-.21-.63-.375z"/>
+              </svg>
+            }
+          >
             {lang === "es" ? "Enviar por WhatsApp" : lang === "en" ? "Send via WhatsApp" : "Enviar via WhatsApp"}
           </Btn>
           <Btn variant="ghost" full onClick={onClose}>
@@ -7832,7 +7902,7 @@ function StudentResponseScreen({ evalId }) {
   const [altura, setAltura] = useState("");
   const [perimetria, setPerimetria] = useState({});
   const [testes, setTestes] = useState({});
-  const [cardiovascular, setCardiovascular] = useState({ fcRepouso: "", pressaoArterial: "" });
+  const [cardiovascular, setCardiovascular] = useState({ fcRepouso: "", fcRecuperacao: "", fcMax: "", pressaoArterial: "", cooper: "" });
   const [fotos, setFotos] = useState({ frente: null, lado: null, costas: null });
   const [submitting, setSubmitting] = useState(false);
   const [showPhotoGuide, setShowPhotoGuide] = useState(false);
@@ -7946,12 +8016,12 @@ function StudentResponseScreen({ evalId }) {
           testes: formattedTestes,
           cardiovascular: {
             tipoTeste: "cooper",
-            cooper: "",
+            cooper: cardiovascular.cooper || "",
             esteiraVelocidade: "",
             esteiraInclinacao: "",
             fcRepouso: cardiovascular.fcRepouso || "",
-            fcRecuperacao: "",
-            fcMax: "",
+            fcRecuperacao: cardiovascular.fcRecuperacao || "",
+            fcMax: cardiovascular.fcMax || "",
             pressaoArterial: cardiovascular.pressaoArterial || ""
           },
           fotos: fotos,
@@ -8152,26 +8222,59 @@ function StudentResponseScreen({ evalId }) {
         )}
 
         {/* SEÇÃO: CARDIOVASCULAR */}
-        {config.sections.cardiovascular && (
+        {config.sections.cardiovascular && config.cardioFields && config.cardioFields.length > 0 && (
           <div>
             <div style={{ fontSize:12, fontWeight:700, color:T.sub, letterSpacing:0.5, textTransform: "uppercase", marginBottom: 8, paddingLeft: 4 }}>
               {lang === "es" ? "Cardiovascular" : lang === "en" ? "Cardiovascular" : "Cardiovascular"}
             </div>
             <Card sx={{ padding: 16, display: "flex", flexDirection: "column", gap: 14, border: "1.5px solid " + T.border }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <FInput
-                  label={lang === "es" ? "Frec. Cardíaca Reposo (bpm)" : lang === "en" ? "Resting Heart Rate (bpm)" : "Frec. Cardíaca Repouso (bpm)"}
-                  value={cardiovascular.fcRepouso}
-                  onChange={function(v) { setCardiovascular(Object.assign({}, cardiovascular, { fcRepouso: v })); }}
-                  type="number"
-                  placeholder="Ex: 70"
-                />
-                <FInput
-                  label={lang === "es" ? "Presión Arterial" : lang === "en" ? "Blood Pressure" : "Pressão Arterial"}
-                  value={cardiovascular.pressaoArterial}
-                  onChange={function(v) { setCardiovascular(Object.assign({}, cardiovascular, { pressaoArterial: v })); }}
-                  placeholder="Ex: 12/8"
-                />
+                {config.cardioFields.some(function(f) { return f.key === "cooper"; }) && (
+                  <div style={{ gridColumn: "span 2" }}>
+                    <FInput
+                      label={lang === "es" ? "Teste de Cooper (Distancia en metros)" : lang === "en" ? "Cooper Test (Distance in meters)" : "Teste de Cooper (Distância em metros)"}
+                      value={cardiovascular.cooper}
+                      onChange={function(v) { setCardiovascular(Object.assign({}, cardiovascular, { cooper: v })); }}
+                      type="number"
+                      placeholder="Ex: 2400"
+                    />
+                  </div>
+                )}
+                {config.cardioFields.some(function(f) { return f.key === "fcRepouso"; }) && (
+                  <FInput
+                    label={lang === "es" ? "Frec. Cardíaca Reposo (bpm)" : lang === "en" ? "Resting Heart Rate (bpm)" : "Frec. Cardíaca Repouso (bpm)"}
+                    value={cardiovascular.fcRepouso}
+                    onChange={function(v) { setCardiovascular(Object.assign({}, cardiovascular, { fcRepouso: v })); }}
+                    type="number"
+                    placeholder="Ex: 70"
+                  />
+                )}
+                {config.cardioFields.some(function(f) { return f.key === "fcRecuperacao"; }) && (
+                  <FInput
+                    label={lang === "es" ? "Frec. Cardíaca Recuperación (bpm)" : lang === "en" ? "Recovery Heart Rate (bpm)" : "Frec. Cardíaca Recuperação (bpm)"}
+                    value={cardiovascular.fcRecuperacao}
+                    onChange={function(v) { setCardiovascular(Object.assign({}, cardiovascular, { fcRecuperacao: v })); }}
+                    type="number"
+                    placeholder="Ex: 120"
+                  />
+                )}
+                {config.cardioFields.some(function(f) { return f.key === "fcMax"; }) && (
+                  <FInput
+                    label={lang === "es" ? "Frec. Cardíaca Máxima (bpm)" : lang === "en" ? "Max Heart Rate (bpm)" : "Frec. Cardíaca Máxima (bpm)"}
+                    value={cardiovascular.fcMax}
+                    onChange={function(v) { setCardiovascular(Object.assign({}, cardiovascular, { fcMax: v })); }}
+                    type="number"
+                    placeholder="Ex: 185"
+                  />
+                )}
+                {config.cardioFields.some(function(f) { return f.key === "pressaoArterial"; }) && (
+                  <FInput
+                    label={lang === "es" ? "Presión Arterial" : lang === "en" ? "Blood Pressure" : "Pressão Arterial"}
+                    value={cardiovascular.pressaoArterial}
+                    onChange={function(v) { setCardiovascular(Object.assign({}, cardiovascular, { pressaoArterial: v })); }}
+                    placeholder="Ex: 12/8"
+                  />
+                )}
               </div>
             </Card>
           </div>
@@ -9033,14 +9136,11 @@ export default function App() {
         onSend={async function(onlineConfig) {
           const evalUuid = crypto.randomUUID ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).substring(2, 10));
           
-          const configJson = {
-            sections: onlineConfig.sections,
-            composicaoMethod: onlineConfig.composicaoMethod,
-            fotosTypes: onlineConfig.fotosTypes,
+          const configJson = Object.assign({}, onlineConfig, {
             trainerColor: trainer.corPrimaria || "#1A1A2E",
             trainerNome: trainer.nome || "Prof. Jefferson",
             alunoNome: alunoProf.nome
-          };
+          });
           
           const newEvalDb = {
             id: evalUuid,
