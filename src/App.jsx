@@ -3862,7 +3862,7 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
                 <IcChevron c={T.muted} s={16} rotate={activeOnlineTab === "composicao" ? 90 : 0} />
               </div>
               {activeOnlineTab === "composicao" && (
-                <div style={{ padding: "16px", borderTop: "1px solid " + T.borderLight }}>
+                <div style={{ padding: "16px", borderTop: "1px solid " + T.borderLight, display: "flex", flexDirection: "column", gap: 12 }}>
                   <FSelect
                     label={lang === "es" ? "Método de composición corporal" : lang === "en" ? "Composition Method" : "Método de composição corporal"}
                     value={onlineConfig.composicaoMethod}
@@ -3879,6 +3879,29 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
                       { value: "bioimpedancia", label: "Bioimpedância" }
                     ]}
                   />
+                  
+                  <div style={{ display: "flex", gap: 16, marginTop: 4 }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: (onlineConfig.composicaoFields || { peso: true }).peso ? T.text : T.sub }}>
+                      <input 
+                        type="checkbox" 
+                        checked={(onlineConfig.composicaoFields || { peso: true }).peso} 
+                        onChange={function(e) { updateOnlineConfig("composicaoFields.peso", e.target.checked); }} 
+                        style={{ accentColor: ac(), width: 16, height: 16 }} 
+                        disabled={!onlineConfig.sections.composicao} 
+                      />
+                      {lang === "es" ? "Peso" : lang === "en" ? "Weight" : "Peso"}
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: (onlineConfig.composicaoFields || { altura: true }).altura ? T.text : T.sub }}>
+                      <input 
+                        type="checkbox" 
+                        checked={(onlineConfig.composicaoFields || { altura: true }).altura} 
+                        onChange={function(e) { updateOnlineConfig("composicaoFields.altura", e.target.checked); }} 
+                        style={{ accentColor: ac(), width: 16, height: 16 }} 
+                        disabled={!onlineConfig.sections.composicao} 
+                      />
+                      {lang === "es" ? "Altura" : lang === "en" ? "Height" : "Altura"}
+                    </label>
+                  </div>
                 </div>
               )}
             </Card>
@@ -7550,6 +7573,7 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
       fotos: true
     },
     composicaoMethod: "marinha",
+    composicaoFields: { peso: true, altura: true },
     fotosTypes: {
       frente: true,
       lado: true,
@@ -7559,11 +7583,15 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
 
   const [sections, setSections] = useState(Object.assign({}, defaultOnlineConfig.sections));
   const [composicaoMethod, setComposicaoMethod] = useState(defaultOnlineConfig.composicaoMethod);
+  const [composicaoFields, setComposicaoFields] = useState(Object.assign({}, (settings && settings.defaultOnlineConfig && settings.defaultOnlineConfig.composicaoFields) || { peso: true, altura: true }));
   const [fotosTypes, setFotosTypes] = useState(Object.assign({}, defaultOnlineConfig.fotosTypes));
 
   const qList = (settings && settings.anamnesePerguntas) || PERGUNTAS_PADRAO;
   const [selectedQuestions, setSelectedQuestions] = useState(qList.map(function(q) {
-    return { question: q, checked: true };
+    const isChecked = (settings && settings.defaultOnlineConfig && settings.defaultOnlineConfig.anamneseQuestions)
+      ? settings.defaultOnlineConfig.anamneseQuestions.includes(q)
+      : true;
+    return { question: q, checked: isChecked };
   }));
   const [newQuestionText, setNewQuestionText] = useState("");
 
@@ -7581,25 +7609,37 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
     { label: "Panturrilha Dir.", key: "panturrilhaDireita", active: true },
     { label: "Panturrilha Esq.", key: "panturrilhaEsquerda", active: true }
   ];
+  const pCheckedKeys = ["ombros", "cintura", "quadril", "bracoDireito", "bracoEsquerdo", "coxaDireita", "coxaEsquerda"];
   const [selectedPerim, setSelectedPerim] = useState(pFields.map(function(f) {
-    return { key: f.key, label: f.label, checked: f.active };
+    const isChecked = (settings && settings.defaultOnlineConfig && settings.defaultOnlineConfig.perimetriaFields)
+      ? settings.defaultOnlineConfig.perimetriaFields.some(function(x) { return x.key === f.key; })
+      : pCheckedKeys.includes(f.key);
+    return { key: f.key, label: f.label, checked: isChecked };
   }));
 
   const eList = (settings && settings.exerciciosForca && settings.exerciciosForca.length > 0)
     ? settings.exerciciosForca
     : ["Supino Reto"];
   const [selectedForce, setSelectedForce] = useState(eList.map(function(ex) {
-    return { exercise: ex, checked: true };
+    const isChecked = (settings && settings.defaultOnlineConfig && settings.defaultOnlineConfig.testesExercises)
+      ? settings.defaultOnlineConfig.testesExercises.includes(ex)
+      : ["Supino Reto", "Agachamento"].includes(ex);
+    return { exercise: ex, checked: isChecked };
   }));
   const [newExerciseText, setNewExerciseText] = useState("");
 
   const [cardioFields, setCardioFields] = useState([
-    { key: "cooper", label: lang === "es" ? "Teste de Cooper (Metros)" : lang === "en" ? "Cooper Test (Meters)" : "Teste de Cooper (Metros)", checked: true },
-    { key: "fcRepouso", label: lang === "es" ? "Frecuencia Cardíaca de Reposo" : lang === "en" ? "Resting Heart Rate" : "Frequência Cardíaca de Repouso", checked: true },
-    { key: "fcRecuperacao", label: lang === "es" ? "Frecuencia Cardíaca de Recuperación" : lang === "en" ? "Recovery Heart Rate" : "Frequência Cardíaca de Recuperação", checked: true },
-    { key: "fcMax", label: lang === "es" ? "Frecuencia Cardíaca Máxima (Medida)" : lang === "en" ? "Max Heart Rate (Measured)" : "Frequência Cardíaca Máxima (Medida)", checked: true },
-    { key: "pressaoArterial", label: lang === "es" ? "Presión Arterial" : lang === "en" ? "Blood Pressure" : "Pressão Arterial", checked: true }
-  ]);
+    { key: "cooper", label: lang === "es" ? "Teste de Cooper (Metros)" : lang === "en" ? "Cooper Test (Meters)" : "Teste de Cooper (Metros)" },
+    { key: "fcRepouso", label: lang === "es" ? "Frecuencia Cardíaca de Reposo" : lang === "en" ? "Resting Heart Rate" : "Frequência Cardíaca de Repouso" },
+    { key: "fcRecuperacao", label: lang === "es" ? "Frecuencia Cardíaca de Recuperación" : lang === "en" ? "Recovery Heart Rate" : "Frequência Cardíaca de Recuperação" },
+    { key: "fcMax", label: lang === "es" ? "Frecuencia Cardíaca Máxima (Medida)" : lang === "en" ? "Max Heart Rate (Measured)" : "Frequência Cardíaca Máxima (Medida)" },
+    { key: "pressaoArterial", label: lang === "es" ? "Presión Arterial" : lang === "en" ? "Blood Pressure" : "Pressão Arterial" }
+  ].map(function(f) {
+    const isChecked = (settings && settings.defaultOnlineConfig && settings.defaultOnlineConfig.cardioFields)
+      ? settings.defaultOnlineConfig.cardioFields.some(function(x) { return x.key === f.key; })
+      : ["cooper", "fcRepouso"].includes(f.key);
+    return Object.assign({}, f, { checked: isChecked });
+  }));
 
   function addCustomQuestion() {
     if (!newQuestionText.trim()) return;
@@ -7631,6 +7671,7 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
       sections: sections,
       anamneseQuestions: selectedQuestions.filter(function(x) { return x.checked; }).map(function(x) { return x.question; }),
       composicaoMethod: composicaoMethod,
+      composicaoFields: composicaoFields,
       perimetriaFields: selectedPerim.filter(function(x) { return x.checked; }).map(function(x) { return { key: x.key, label: x.label }; }),
       testesExercises: selectedForce.filter(function(x) { return x.checked; }).map(function(x) { return x.exercise; }),
       cardioFields: cardioFields.filter(function(x) { return x.checked; }).map(function(x) { return { key: x.key, label: x.label }; }),
@@ -7748,7 +7789,7 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
             <IcChevron c={T.muted} s={16} rotate={activeTab === "composicao" ? 90 : 0} />
           </div>
           {activeTab === "composicao" && (
-            <div style={{ padding: "16px", borderTop: "1px solid " + T.borderLight }}>
+            <div style={{ padding: "16px", borderTop: "1px solid " + T.borderLight, display: "flex", flexDirection: "column", gap: 12 }}>
               <FSelect
                 label={lang === "es" ? "Método de composición corporal" : lang === "en" ? "Composition Method" : "Método de composição corporal"}
                 value={composicaoMethod}
@@ -7765,6 +7806,29 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
                   { value: "bioimpedancia", label: "Bioimpedância" }
                 ]}
               />
+              
+              <div style={{ display: "flex", gap: 16, marginTop: 4 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: (composicaoFields || { peso: true }).peso ? T.text : T.sub }}>
+                  <input 
+                    type="checkbox" 
+                    checked={(composicaoFields || { peso: true }).peso} 
+                    onChange={function(e) { setComposicaoFields(Object.assign({}, composicaoFields, { peso: e.target.checked })); }} 
+                    style={{ accentColor: ac(), width: 16, height: 16 }} 
+                    disabled={!sections.composicao} 
+                  />
+                  {lang === "es" ? "Peso" : lang === "en" ? "Weight" : "Peso"}
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13, color: (composicaoFields || { altura: true }).altura ? T.text : T.sub }}>
+                  <input 
+                    type="checkbox" 
+                    checked={(composicaoFields || { altura: true }).altura} 
+                    onChange={function(e) { setComposicaoFields(Object.assign({}, composicaoFields, { altura: e.target.checked })); }} 
+                    style={{ accentColor: ac(), width: 16, height: 16 }} 
+                    disabled={!sections.composicao} 
+                  />
+                  {lang === "es" ? "Altura" : lang === "en" ? "Height" : "Altura"}
+                </label>
+              </div>
             </div>
           )}
         </Card>
@@ -8076,9 +8140,17 @@ function StudentResponseScreen({ evalId }) {
   async function handleSubmit(e) {
     if (e) e.preventDefault();
 
-    if (config.sections.composicao && (!peso || !altura)) {
-      alert(lang === "es" ? "Por favor ingrese Peso y Altura." : lang === "en" ? "Please fill Weight and Height." : "Por favor insira Peso e Altura.");
-      return;
+    if (config.sections.composicao) {
+      const isPesoReq = !config.composicaoFields || config.composicaoFields.peso !== false;
+      const isAlturaReq = !config.composicaoFields || config.composicaoFields.altura !== false;
+      if (isPesoReq && !peso) {
+        alert(lang === "es" ? "Por favor ingrese su Peso." : lang === "en" ? "Please enter your Weight." : "Por favor insira o seu Peso.");
+        return;
+      }
+      if (isAlturaReq && !altura) {
+        alert(lang === "es" ? "Por favor ingrese su Altura." : lang === "en" ? "Please enter your Height." : "Por favor insira a sua Altura.");
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -8229,23 +8301,27 @@ function StudentResponseScreen({ evalId }) {
             </div>
             <Card sx={{ padding: 16, display: "flex", flexDirection: "column", gap: 14, border: "1.5px solid " + T.border }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <FInput 
-                  label={lang === "es" ? "Peso (kg)" : lang === "en" ? "Weight (kg)" : "Peso (kg)"} 
-                  value={peso} 
-                  onChange={setPeso} 
-                  type="number" 
-                  step="0.1" 
-                  placeholder="Ex: 75.5" 
-                  required 
-                />
-                <FInput 
-                  label={lang === "es" ? "Altura (cm)" : lang === "en" ? "Height (cm)" : "Altura (cm)"} 
-                  value={altura} 
-                  onChange={setAltura} 
-                  type="number" 
-                  placeholder="Ex: 175" 
-                  required 
-                />
+                {(!config.composicaoFields || config.composicaoFields.peso !== false) && (
+                  <FInput 
+                    label={lang === "es" ? "Peso (kg)" : lang === "en" ? "Weight (kg)" : "Peso (kg)"} 
+                    value={peso} 
+                    onChange={setPeso} 
+                    type="number" 
+                    step="0.1" 
+                    placeholder="Ex: 75.5" 
+                    required 
+                  />
+                )}
+                {(!config.composicaoFields || config.composicaoFields.altura !== false) && (
+                  <FInput 
+                    label={lang === "es" ? "Altura (cm)" : lang === "en" ? "Height (cm)" : "Altura (cm)"} 
+                    value={altura} 
+                    onChange={setAltura} 
+                    type="number" 
+                    placeholder="Ex: 175" 
+                    required 
+                  />
+                )}
                 
                 {/* Se o método for Marinha Americana, solicitar as medidas necessárias diretamente aqui! */}
                 {config.composicaoMethod === "marinha" && (
