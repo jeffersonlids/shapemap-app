@@ -8100,6 +8100,12 @@ function StudentResponseScreen({ evalId }) {
     return list;
   });
 
+  const activePhotosCount = config && config.fotosTypes ? Math.max(1,
+    (config.fotosTypes.frente ? 1 : 0) +
+    (config.fotosTypes.lado ? 1 : 0) +
+    (config.fotosTypes.costas ? 1 : 0)
+  ) : 3;
+
   useEffect(function() {
     async function loadData() {
       try {
@@ -8350,15 +8356,17 @@ function StudentResponseScreen({ evalId }) {
           `}</style>
         </div>
         <Card sx={{ padding: 32, maxWidth: 380, display: "flex", flexDirection: "column", alignItems: "center", gap: 16, border: "1px solid " + T.border, boxShadow: T.shadowLg, position: "relative", zIndex: 10 }}>
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke={ac()} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 8px", animation: "scaleUp 0.5s ease both" }}>
-            <circle cx="12" cy="12" r="10" fill={ac() + "10"} />
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
+          <div style={{ animation:"popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both", marginBottom: 12 }}>
+            <svg width={96} height={96} viewBox="0 0 96 96">
+              <circle cx="48" cy="48" r="44" fill={ac()+"18"} stroke={ac()} strokeWidth="3"/>
+              <polyline points="28,50 42,64 68,34" fill="none" stroke={ac()} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="60" style={{ animation:"checkDraw 0.45s ease 0.45s both", strokeDashoffset:60 }}/>
+            </svg>
+          </div>
           <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>
             {lang === "es" ? "¡Evaluación Enviada!" : lang === "en" ? "Evaluation Sent!" : "Avaliação Enviada!"}
           </div>
           <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.5 }}>
-            {lang === "es" ? "Sus datos físicos y fotos fueron enviados de forma segura. Ya puede cerrar esta pestaña." : lang === "en" ? "Your physical data and photos have been sent securely. You can now close this tab." : "Seus dados físicos e fotos foram enviados com segurança. Você já pode fechar esta aba."}
+            {lang === "es" ? "Sus datos fueron enviados con éxito. ¡Ya puede cerrar esta pestaña!" : lang === "en" ? "Your data has been submitted successfully. You can now close this tab!" : "Seus dados foram enviados com sucesso. Você já pode fechar esta aba!"}
           </div>
         </Card>
       </div>
@@ -8641,7 +8649,7 @@ function StudentResponseScreen({ evalId }) {
               </button>
             </div>
             <Card sx={{ padding: 16, border: "1.5px solid " + T.border }}>
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(" + activePhotosCount + ", 1fr)", gap: 12 }}>
                 {config.fotosTypes.frente && (
                   <StudentFotoSlot
                     label={lang === "es" ? "Frente" : lang === "en" ? "Front" : "Frente"}
@@ -8759,14 +8767,14 @@ function StudentResponseScreen({ evalId }) {
               )}
             </div>
 
-            <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-              <Btn variant="outline" full onClick={function() { setShowConfirmSubmit(false); }} disabled={submitting}>
-                {lang === "es" ? "Cancelar" : lang === "en" ? "Cancel" : "Voltar e Preencher"}
-              </Btn>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
               <Btn full onClick={performSubmit} disabled={submitting}>
                 {submitting 
                   ? (lang === "es" ? "Enviando..." : lang === "en" ? "Sending..." : "Enviando...") 
                   : (lang === "es" ? "Confirmar" : lang === "en" ? "Confirm" : "Confirmar e Enviar")}
+              </Btn>
+              <Btn variant="outline" full onClick={function() { setShowConfirmSubmit(false); }} disabled={submitting}>
+                {lang === "es" ? "Cancelar" : lang === "en" ? "Cancel" : "Voltar e Preencher"}
               </Btn>
             </div>
 
