@@ -8089,6 +8089,16 @@ function StudentResponseScreen({ evalId }) {
   const [fotos, setFotos] = useState({ frente: null, lado: null, costas: null });
   const [submitting, setSubmitting] = useState(false);
   const [showPhotoGuide, setShowPhotoGuide] = useState(false);
+  const [unansweredList, setUnansweredList] = useState([]);
+  const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
+  const [pieces] = useState(function() {
+    var COLS = ["#FF6B6B","#FFD93D","#6BCB77","#4ECDC4","#A78BFA","#F97316","#EC4899"];
+    var list = [];
+    for (var i = 0; i < 35; i++) {
+      list.push({ id:i, x: 5 + Math.random()*90, delay: (Math.random()*0.7).toFixed(2), color: COLS[i % COLS.length], size: 6 + Math.floor(Math.random()*8) });
+    }
+    return list;
+  });
 
   useEffect(function() {
     async function loadData() {
@@ -8155,27 +8165,9 @@ function StudentResponseScreen({ evalId }) {
     loadData();
   }, [evalId]);
 
-  async function handleSubmit(e) {
-    if (e) e.preventDefault();
-
-    if (config.sections.composicao) {
-      const isPesoReq = !config.composicaoFields || config.composicaoFields.peso !== false;
-      const isAlturaReq = !config.composicaoFields || config.composicaoFields.altura !== false;
-      if (isPesoReq && !peso) {
-        alert(lang === "es" ? "Por favor ingrese su Peso." : lang === "en" ? "Please enter your Weight." : "Por favor insira o seu Peso.");
-        return;
-      }
-      if (isAlturaReq && !altura) {
-        alert(lang === "es" ? "Por favor ingrese su Altura." : lang === "en" ? "Please enter your Height." : "Por favor insira a sua Altura.");
-        return;
-      }
-      if (config.composicaoMethod === "bioimpedancia" && !gorduraBio) {
-        alert(lang === "es" ? "Por favor ingrese su Porcentaje de Grasa." : lang === "en" ? "Please enter your Body Fat %." : "Por favor insira o seu Percentual de Gordura.");
-        return;
-      }
-    }
-
+  async function performSubmit() {
     setSubmitting(true);
+    setShowConfirmSubmit(false);
 
     try {
       // 1. Format Anamnese
@@ -8233,6 +8225,91 @@ function StudentResponseScreen({ evalId }) {
     }
   }
 
+  async function handleSubmit(e) {
+    if (e) e.preventDefault();
+
+    const unanswered = [];
+    
+    // 1. Anamnese
+    if (config.sections.anamnese && config.anamneseQuestions) {
+      let anyEmptyAnamnese = false;
+      config.anamneseQuestions.forEach(function(q) {
+        if (!anamneseAnswers[q] || !anamneseAnswers[q].trim()) {
+          anyEmptyAnamnese = true;
+        }
+      });
+      if (anyEmptyAnamnese) {
+        unanswered.push(lang === "es" ? "Preguntas de Anamnesis" : lang === "en" ? "Anamnesis Questions" : "Perguntas da Anamnese");
+      }
+    }
+
+    // 2. Composição
+    if (config.sections.composicao) {
+      const isPesoReq = !config.composicaoFields || config.composicaoFields.peso !== false;
+      const isAlturaReq = !config.composicaoFields || config.composicaoFields.altura !== false;
+      let compUnanswered = [];
+      if (isPesoReq && !peso) compUnanswered.push(lang === "es" ? "Peso" : lang === "en" ? "Weight" : "Peso");
+      if (isAlturaReq && !altura) compUnanswered.push(lang === "es" ? "Altura" : lang === "en" ? "Height" : "Altura");
+      if (config.composicaoMethod === "marinha") {
+        if (!perimetria.pescoco || !perimetria.cintura || ((config.alunoSexo === "F" || config.alunoSexo === "f") && !perimetria.quadril)) {
+          compUnanswered.push(lang === "es" ? "Medidas de la Marítima" : lang === "en" ? "Navy Circumferences" : "Medidas de Protocolo");
+        }
+      } else if (config.composicaoMethod === "bioimpedancia") {
+        if (!gorduraBio) compUnanswered.push(lang === "es" ? "Grasa (%)" : lang === "en" ? "Body Fat (%)" : "Percentual de Gordura");
+      }
+      if (compUnanswered.length > 0) {
+        unanswered.push(lang === "es" ? "Composición Corporal (" + compUnanswered.join(", ") + ")" : lang === "en" ? "Body Composition (" + compUnanswered.join(", ") + ")" : "Composição Corporal (" + compUnanswered.join(", ") + ")");
+      }
+    }
+
+    // 3. Perimetria
+    if (config.sections.perimetria && config.perimetriaFields) {
+      let anyPerimEmpty = false;
+      config.perimetriaFields.forEach(function(f) {
+        if (!perimetria[f.key]) anyPerimEmpty = true;
+      });
+      if (anyPerimEmpty) {
+        unanswered.push(lang === "es" ? "Medidas de Perimetría" : lang === "en" ? "Circumference Measurements" : "Medidas de Perimetria");
+      }
+    }
+
+    // 4. Testes
+    if (config.sections.testes && config.testesExercises) {
+      let anyTestEmpty = false;
+      config.testesExercises.forEach(function(ex) {
+        if (!testes[ex] || !testes[ex].reps || !testes[ex].carga) anyTestEmpty = true;
+      });
+      if (anyTestEmpty) {
+        unanswered.push(lang === "es" ? "Testes de Fuerza" : lang === "en" ? "Strength Tests" : "Testes de Força");
+      }
+    }
+
+    // 5. Cardiovascular
+    if (config.sections.cardiovascular && config.cardioFields) {
+      let anyCardioEmpty = false;
+      config.cardioFields.forEach(function(f) {
+        if (!cardiovascular[f.key]) anyCardioEmpty = true;
+      });
+      if (anyCardioEmpty) {
+        unanswered.push(lang === "es" ? "Datos Cardiovasculares" : lang === "en" ? "Cardiovascular Data" : "Dados Cardiovasculares");
+      }
+    }
+
+    // 6. Fotos
+    if (config.sections.fotos && config.fotosTypes) {
+      let anyFotoEmpty = false;
+      if (config.fotosTypes.frente && !fotos.frente) anyFotoEmpty = true;
+      if (config.fotosTypes.lado && !fotos.lado) anyFotoEmpty = true;
+      if (config.fotosTypes.costas && !fotos.costas) anyFotoEmpty = true;
+      if (anyFotoEmpty) {
+        unanswered.push(lang === "es" ? "Fotos de Evolución" : lang === "en" ? "Progress Photos" : "Fotos de Evolução");
+      }
+    }
+
+    setUnansweredList(unanswered);
+    setShowConfirmSubmit(true);
+  }
+
   if (loading) {
     return (
       <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap: 20 }}>
@@ -8258,10 +8335,21 @@ function StudentResponseScreen({ evalId }) {
     );
   }
 
-  if (success) {
+    if (success) {
     return (
-      <div style={{ minHeight:"100vh", padding: 24, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: T.bg, textAlign: "center" }}>
-        <Card sx={{ padding: 32, maxWidth: 380, display: "flex", flexDirection: "column", alignItems: "center", gap: 16, border: "1px solid " + T.border, boxShadow: T.shadowMd }}>
+      <div style={{ minHeight:"100vh", padding: 24, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: T.bg, textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ position:"absolute", inset:0, overflow:"hidden", pointerEvents:"none" }}>
+          {pieces.map(function(p) {
+            return <div key={p.id} style={{ position:"absolute", left:p.x+"%", top:"-15px", width:p.size, height:p.size, borderRadius:p.size/3, background:p.color, animation:"confettiFall 2s ease-in "+p.delay+"s both" }}/>;
+          })}
+          <style>{`
+            @keyframes confettiFall {
+              0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+              100% { transform: translateY(105vh) rotate(360deg); opacity: 0.3; }
+            }
+          `}</style>
+        </div>
+        <Card sx={{ padding: 32, maxWidth: 380, display: "flex", flexDirection: "column", alignItems: "center", gap: 16, border: "1px solid " + T.border, boxShadow: T.shadowLg, position: "relative", zIndex: 10 }}>
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke={ac()} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 8px", animation: "scaleUp 0.5s ease both" }}>
             <circle cx="12" cy="12" r="10" fill={ac() + "10"} />
             <polyline points="20 6 9 17 4 12" />
@@ -8270,9 +8358,8 @@ function StudentResponseScreen({ evalId }) {
             {lang === "es" ? "¡Evaluación Enviada!" : lang === "en" ? "Evaluation Sent!" : "Avaliação Enviada!"}
           </div>
           <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.5 }}>
-            {lang === "es" ? "Sus datos físicos y fotos fueron enviados de forma segura a su entrenador. Ya puede cerrar esta pestaña." : lang === "en" ? "Your physical data and photos have been sent securely to your trainer. You can now close this tab." : "Seus dados físicos e fotos foram enviados com segurança para o seu treinador. Você já pode fechar esta aba."}
+            {lang === "es" ? "Sus datos físicos y fotos fueron enviados de forma segura. Ya puede cerrar esta pestaña." : lang === "en" ? "Your physical data and photos have been sent securely. You can now close this tab." : "Seus dados físicos e fotos foram enviados com segurança. Você já pode fechar esta aba."}
           </div>
-          <style>{`@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }`}</style>
         </Card>
       </div>
     );
@@ -8288,7 +8375,7 @@ function StudentResponseScreen({ evalId }) {
           {lang === "es" ? "Evaluación Física Online" : lang === "en" ? "Online Physical Evaluation" : "Avaliação Física Online"}
         </div>
         <div style={{ fontSize: 13, color: T.sub, marginTop: 4, lineHeight: 1.4 }}>
-          {lang === "es" ? `Hola ${config.studentNome || ""}, por favor completa los datos solicitados por tu entrenador ${config.trainerNome}:` : lang === "en" ? `Hello ${config.studentNome || ""}, please fill in the physical data requested by your trainer ${config.trainerNome}:` : `Olá ${config.studentNome || ""}, por favor preencha os dados físicos solicitados pelo seu treinador ${config.trainerNome}:`}
+          {lang === "es" ? `Hola ${config.studentNome || ""}, por favor completa los datos físicos solicitados por ${config.trainerNome}:` : lang === "en" ? `Hello ${config.studentNome || ""}, please fill in the physical data requested by ${config.trainerNome}:` : `Olá ${config.studentNome || ""}, por favor preencha os dados físicos solicitados por ${config.trainerNome}:`}
         </div>
       </Card>
 
@@ -8332,23 +8419,21 @@ function StudentResponseScreen({ evalId }) {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {(!config.composicaoFields || config.composicaoFields.peso !== false) && (
                   <FInput 
-                    label={lang === "es" ? "Peso (kg)" : lang === "en" ? "Weight (kg)" : "Peso (kg)"} 
-                    value={peso} 
-                    onChange={setPeso} 
-                    type="number" 
-                    step="0.1" 
+                    label={lang === "es" ? "Peso (kg)" : lang === "en" ? "Weight (kg)" : "Peso (kg)"}
+                    value={peso}
+                    onChange={setPeso}
+                    type="number"
+                    step="0.1"
                     placeholder="Ex: 75.5" 
-                    required 
                   />
                 )}
                 {(!config.composicaoFields || config.composicaoFields.altura !== false) && (
                   <FInput 
-                    label={lang === "es" ? "Altura (cm)" : lang === "en" ? "Height (cm)" : "Altura (cm)"} 
-                    value={altura} 
-                    onChange={setAltura} 
-                    type="number" 
+                    label={lang === "es" ? "Altura (cm)" : lang === "en" ? "Height (cm)" : "Altura (cm)"}
+                    value={altura}
+                    onChange={setAltura}
+                    type="number"
                     placeholder="Ex: 175" 
-                    required 
                   />
                 )}
                 
@@ -8365,7 +8450,6 @@ function StudentResponseScreen({ evalId }) {
                       type="number"
                       step="0.1"
                       placeholder="0.0"
-                      required
                     />
                     <FInput
                       label={lang === "es" ? "Cintura (cm)" : lang === "en" ? "Waist (cm)" : "Cintura (cm)"}
@@ -8374,7 +8458,6 @@ function StudentResponseScreen({ evalId }) {
                       type="number"
                       step="0.1"
                       placeholder="0.0"
-                      required
                     />
                     {config && (config.alunoSexo === "F" || config.alunoSexo === "f") && (
                       <div style={{ gridColumn: "span 2" }}>
@@ -8385,7 +8468,6 @@ function StudentResponseScreen({ evalId }) {
                           type="number"
                           step="0.1"
                           placeholder="0.0"
-                          required
                         />
                       </div>
                     )}
@@ -8405,7 +8487,6 @@ function StudentResponseScreen({ evalId }) {
                       type="number"
                       step="0.1"
                       placeholder="Ex: 18.5"
-                      required
                     />
                   </div>
                 )}
@@ -8632,6 +8713,63 @@ function StudentResponseScreen({ evalId }) {
             <Btn full onClick={function() { setShowPhotoGuide(false); }}>
               {lang === "es" ? "Entendido" : lang === "en" ? "Understood" : "Entendi"}
             </Btn>
+          </Card>
+        </div>
+      )}
+
+      {/* MODAL DE CONFIRMAÇÃO DE ENVIO */}
+      {showConfirmSubmit && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)", zIndex: 99999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <Card sx={{ padding: 24, width: "100%", maxWidth: 400, border: "1px solid " + T.border, display: "flex", flexDirection: "column", gap: 16, boxShadow: T.shadowLg }}>
+            
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: "50%", background: unansweredList.length > 0 ? T.warning + "15" : ac() + "15", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                {unansweredList.length > 0 ? (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={T.warning} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                ) : (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={ac()} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: T.text, letterSpacing: -0.4 }}>
+                {unansweredList.length > 0 
+                  ? (lang === "es" ? "Campos sin Responder" : lang === "en" ? "Unanswered Fields" : "Campos sem Resposta")
+                  : (lang === "es" ? "Confirmar Envío" : lang === "en" ? "Confirm Submission" : "Confirmar Envio")}
+              </div>
+            </div>
+
+            <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.5 }}>
+              {unansweredList.length > 0 ? (
+                <>
+                  {lang === "es" ? "Identificamos que las siguientes secciones no fueron completadas por completo:" : lang === "en" ? "We noticed that the following sections are not fully completed:" : "Identificamos que as seguintes seções não foram preenchidas por completo:"}
+                  <ul style={{ margin: "10px 0", paddingLeft: 20, color: T.text, fontWeight: 500, display: "flex", flexDirection: "column", gap: 4 }}>
+                    {unansweredList.map(function(item, idx) {
+                      return <li key={idx}>{item}</li>;
+                    })}
+                  </ul>
+                  {lang === "es" ? "¿Desea enviar sus respuestas de todas formas? Después de enviar, no podrá editarlas." : lang === "en" ? "Do you want to submit your responses anyway? After submitting, you won't be able to edit them." : "Deseja enviar as suas respostas assim mesmo? Após o envio, não será mais possível editá-las."}
+                </>
+              ) : (
+                lang === "es" ? "¿Está seguro de que desea enviar sus respuestas ahora? Después de enviar, no será posible editarlas." : lang === "en" ? "Are you sure you want to submit your responses now? Once submitted, you won't be able to edit them." : "Tem certeza que deseja enviar as suas respostas agora? Após o envio, não será mais possível editá-las."
+              )}
+            </div>
+
+            <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+              <Btn variant="outline" full onClick={function() { setShowConfirmSubmit(false); }} disabled={submitting}>
+                {lang === "es" ? "Cancelar" : lang === "en" ? "Cancel" : "Voltar e Preencher"}
+              </Btn>
+              <Btn full onClick={performSubmit} disabled={submitting}>
+                {submitting 
+                  ? (lang === "es" ? "Enviando..." : lang === "en" ? "Sending..." : "Enviando...") 
+                  : (lang === "es" ? "Confirmar" : lang === "en" ? "Confirm" : "Confirmar e Enviar")}
+              </Btn>
+            </div>
+
           </Card>
         </div>
       )}
