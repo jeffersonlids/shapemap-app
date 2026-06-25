@@ -8995,6 +8995,7 @@ export default function App() {
           telefone: sessionUser.user_metadata?.telefone || "",
           cor_primaria: "#1A1A2E",
           lang: trainer.lang || "pt",
+          unit_system: "metric",
           settings: defaultSettings
         };
 
@@ -9016,6 +9017,7 @@ export default function App() {
         telefone: trainerData.telefone || "",
         corPrimaria: trainerData.cor_primaria || "#1A1A2E",
         lang: trainerData.lang || "pt",
+        unitSystem: trainerData.unit_system || "metric",
         stripeCustomerId: trainerData.stripe_customer_id || "",
         subscriptionStatus: trainerData.subscription_status || "inactive",
         subscriptionId: trainerData.subscription_id || "",
@@ -9173,7 +9175,8 @@ export default function App() {
           telefone: newTrainer.telefone,
           foto: newTrainer.foto,
           cor_primaria: newTrainer.corPrimaria,
-          lang: newTrainer.lang
+          lang: newTrainer.lang,
+          unit_system: newTrainer.unitSystem
         })
         .eq('id', user.id);
       if (error) {
@@ -9565,7 +9568,8 @@ export default function App() {
             trainerColor: trainer.corPrimaria || "#1A1A2E",
             trainerNome: trainer.nome || "Prof. Jefferson",
             alunoNome: alunoProf.nome,
-            alunoSexo: alunoProf.sexo || "M"
+            alunoSexo: alunoProf.sexo || "M",
+            unitSystem: trainer.unitSystem || "metric"
           });
 
           // 1. Update existing evaluation in local state
