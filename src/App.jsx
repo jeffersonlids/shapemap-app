@@ -8110,6 +8110,8 @@ function StudentResponseScreen({ evalId }) {
     (config.fotosTypes.costas ? 1 : 0)
   ) : 3;
 
+  const unitSystem = (config && config.unitSystem) || "metric";
+
   useEffect(function() {
     async function loadData() {
       try {
