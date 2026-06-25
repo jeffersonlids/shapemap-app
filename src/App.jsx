@@ -4628,7 +4628,7 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
             {isNew ? t("nova_avaliacao", lang) : (lang === "en" ? "Edit" : lang === "es" ? "Editar" : "Editar")} · {alunoNome}
           </div>
           <Btn small variant="outline" onClick={enviarAluno} style={{ borderColor: ac(), color: ac(), padding: "6px 8px" }}>
-            {lang === "en" ? "Send to " + firstName : lang === "es" ? "Enviar a " + firstName : "Enviar p/ " + firstName}
+            {lang === "en" ? "Send Online Form" : lang === "es" ? "Enviar Formulario Online" : "Enviar Formulário Online"}
           </Btn>
           <Btn small onClick={finalizar} icon={<IcCheck c="#fff" s={15}/>}>{lang === "en" ? "Finish" : lang === "es" ? "Finalizar" : "Finalizar"}</Btn>
         </div>
@@ -5750,7 +5750,7 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
             <div className="no-print" style={{ display: "flex", gap: 12, width: "100%" }}>
               <div style={{ flex: 1 }}>
                 <Btn full variant="outline" onClick={enviarAluno} style={{ borderColor: ac(), color: ac() }}>
-                  {lang === "en" ? "Send to " + firstName : lang === "es" ? "Enviar a " + firstName : "Enviar p/ " + firstName + " Preencher"}
+                  {lang === "en" ? "Send Online Form" : lang === "es" ? "Enviar Formulario Online" : "Enviar Formulário Online"}
                 </Btn>
               </div>
               <div style={{ flex: 1 }}>
