@@ -3772,7 +3772,55 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
                 value={newExercise} 
                 onChange={function(e) { setNewExercise(e.target.value); }} 
                 placeholder={t("placeholder_supino", lang)} 
-                style        {/* 6. MODELO DE AVALIAÇÃO ONLINE */}
+                style={{ flex: 1, background: T.bg, border: "1.5px solid " + T.border, borderRadius: 10, padding: "11px 14px", fontSize: 14, outline: "none", color: T.text }}
+              />
+              <Btn small onClick={addExercise} icon={<IcPlus c="#fff" s={14} />}>{t("add", lang)}</Btn>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 220, overflowY: "auto", paddingRight: 4 }}>
+              {settings.exerciciosForca.map(function(ex, idx) {
+                return (
+                  <div 
+                    key={idx} 
+                    draggable
+                    data-drag-idx={idx}
+                    data-drag-type="exercise"
+                    onDragStart={function(e) { handleExerciseDragStart(e, idx); }}
+                    onDragOver={handleExerciseDragOver}
+                    onDrop={function(e) { handleExerciseDrop(e, idx); }}
+                    onDragEnd={handleExerciseDragEnd}
+                    style={{ 
+                      display: "flex", 
+                      justifyContent: "space-between", 
+                      alignItems: "center", 
+                      padding: "10px 12px", 
+                      background: T.bg, 
+                      borderRadius: 8,
+                      border: draggedExerciseIdx === idx ? "1.5px dashed " + ac() : "1.5px solid transparent",
+                      opacity: draggedExerciseIdx === idx ? 0.4 : 1,
+                      transition: "all 0.15s"
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+                      <span 
+                        onTouchStart={function(e) { handleTouchStart(e, idx, "exercise"); }}
+                        onTouchMove={function(e) { handleTouchMove(e, "exercise", settings.exerciciosForca, function(list) { onUpdateSettings(Object.assign({}, settings, { exerciciosForca: list })); }); }}
+                        onTouchEnd={handleTouchEnd}
+                        style={{ cursor: "grab", color: T.muted, fontSize: 16, userSelect: "none", touchAction: "none" }} 
+                        title={t("arrastar_reordenar", lang)}
+                      >
+                        ☰
+                      </span>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: T.text, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t(ex, lang)}</span>
+                    </div>
+                    <TrashBtn onClick={function() { deleteExercise(idx); }} size={15} />
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        </div>
+
+        {/* 6. MODELO DE AVALIAÇÃO ONLINE */}
         <div>
           <SecHead 
             title={lang === "es" ? "Modelo de Evaluación Online" : lang === "en" ? "Online Evaluation Template" : "Modelo de Avaliação Online"} 
