@@ -3870,11 +3870,6 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
                     disabled={!onlineConfig.sections.composicao}
                     options={[
                       { value: "", label: lang === "es" ? "Ninguno (solo Peso/Altura)" : lang === "en" ? "None (Weight/Height only)" : "Nenhum (apenas Peso/Altura)" },
-                      { value: "pollock7", label: "Pollock 7 Dobras" },
-                      { value: "pollock3", label: "Pollock 3 Dobras" },
-                      { value: "faulkner", label: "Faulkner" },
-                      { value: "petroski", label: "Petroski" },
-                      { value: "durnin_womersley", label: "Durnin-Womersley" },
                       { value: "marinha", label: "Marinha Americana" },
                       { value: "bioimpedancia", label: "Bioimpedância" }
                     ]}
@@ -7821,11 +7816,6 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
                 disabled={!sections.composicao}
                 options={[
                   { value: "", label: lang === "es" ? "Ninguno (solo Peso/Altura)" : lang === "en" ? "None (Weight/Height only)" : "Nenhum (apenas Peso/Altura)" },
-                  { value: "pollock7", label: "Pollock 7 Dobras" },
-                  { value: "pollock3", label: "Pollock 3 Dobras" },
-                  { value: "faulkner", label: "Faulkner" },
-                  { value: "petroski", label: "Petroski" },
-                  { value: "durnin_womersley", label: "Durnin-Womersley" },
                   { value: "marinha", label: "Marinha Americana" },
                   { value: "bioimpedancia", label: "Bioimpedância" }
                 ]}
@@ -8092,6 +8082,7 @@ function StudentResponseScreen({ evalId }) {
   const [anamneseAnswers, setAnamneseAnswers] = useState({});
   const [peso, setPeso] = useState("");
   const [altura, setAltura] = useState("");
+  const [gorduraBio, setGorduraBio] = useState("");
   const [perimetria, setPerimetria] = useState({});
   const [testes, setTestes] = useState({});
   const [cardiovascular, setCardiovascular] = useState({ fcRepouso: "", fcRecuperacao: "", fcMax: "", pressaoArterial: "", cooper: "" });
@@ -8178,6 +8169,10 @@ function StudentResponseScreen({ evalId }) {
         alert(lang === "es" ? "Por favor ingrese su Altura." : lang === "en" ? "Please enter your Height." : "Por favor insira a sua Altura.");
         return;
       }
+      if (config.composicaoMethod === "bioimpedancia" && !gorduraBio) {
+        alert(lang === "es" ? "Por favor ingrese su Porcentaje de Grasa." : lang === "en" ? "Please enter your Body Fat %." : "Por favor insira o seu Percentual de Gordura.");
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -8200,7 +8195,7 @@ function StudentResponseScreen({ evalId }) {
           id: Date.now(),
           metodo: config.composicaoMethod || "",
           dobras: { tricipital:"", subescapular:"", peitoral:"", axilarMedia:"", suprailiaca:"", abdominal:"", coxa:"", bicipital:"", panturrilha:"" },
-          bioimpedancia: { gordura:"", massaMagra:"", massaGorda:"" }
+          bioimpedancia: { gordura: config.composicaoMethod === "bioimpedancia" ? String(gorduraBio || "") : "", massaMagra: "", massaGorda: "" }
         }];
       }
 
@@ -8395,6 +8390,24 @@ function StudentResponseScreen({ evalId }) {
                       </div>
                     )}
                   </>
+                )}
+
+                {/* Se o método for Bioimpedância, solicitar o percentual de gordura diretamente aqui! */}
+                {config.composicaoMethod === "bioimpedancia" && (
+                  <div style={{ gridColumn: "span 2", display: "flex", flexDirection: "column", gap: 12 }}>
+                    <div style={{ borderTop: "1px solid " + T.borderLight, paddingTop: 12, marginTop: 4, fontSize: 11, fontWeight: 700, color: T.sub, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                      {lang === "es" ? "Datos de Bioimpedancia" : lang === "en" ? "Bioimpedance Data" : "Dados de Bioimpedância"}
+                    </div>
+                    <FInput
+                      label={lang === "es" ? "Porcentaje de Grasa (%)" : lang === "en" ? "Body Fat (%)" : "Percentual de Gordura (%)"}
+                      value={gorduraBio}
+                      onChange={setGorduraBio}
+                      type="number"
+                      step="0.1"
+                      placeholder="Ex: 18.5"
+                      required
+                    />
+                  </div>
                 )}
               </div>
             </Card>
