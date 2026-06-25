@@ -8023,7 +8023,7 @@ function LinkGeradoModal({ url, onSendWhatsApp, onClose, trainer, alunoNome }) {
 function StudentFotoSlot({ label, foto, onSet, lang }) {
   const ref = useRef();
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:6, flex: 1, minWidth: 100 }}>
+    <div style={{ display:"flex", flexDirection:"column", gap:6, flex: 1, minWidth: 0 }}>
       <div style={{ fontSize:10, fontWeight:700, color:T.sub, textTransform:"uppercase", letterSpacing:0.4, textAlign:"center" }}>{label}</div>
       <div
         onClick={function() { ref.current.click(); }}
