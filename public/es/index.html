@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShapeMap - Software de Evaluación Física para Profesionales de la Salud</title>
+    <meta name="description" content="Transforme sus evaluaciones físicas en informes profesionales con cálculos automáticos. Conozca ShapeMap, la mejor herramienta para entrenadores y profesionales de la salud.">
+    <!-- Google Fonts: Outfit (modern/tech) & Inter (clean reading) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="/es/style.css">
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-bg-glow"></div>
+        <div class="container hero-container-stacked">
+            <div class="logo-hero">
+                <img src="/es/logo.png" alt="ShapeMap Logo" class="logo-img-hero">
+            </div>
+            <h1 class="hero-title">
+                Transforme sus evaluaciones físicas en <span class="gradient-text">informes profesionales</span> con cálculos automáticos.
+            </h1>
+            <p class="hero-subtitle">
+                Más organización, menos hojas de cálculo. Realice el seguimiento de la evolución de sus clientes de forma simple, rápida y profesional.
+            </p>
+
+            <!-- VSL (Video Sales Letter) Container -->
+            <div class="vsl-section">
+                <div class="vsl-wrapper">
+                    <div class="vsl-mockup">
+                        <div class="vsl-video-container">
+                            <!-- Youtube Shorts Embedded formatted for standard embed player in 9:16 aspect ratio -->
+                            <iframe 
+                                src="https://www.youtube.com/embed/Nj0wah8hk2A?autoplay=0&mute=0&controls=1&rel=0" 
+                                title="ShapeMap VSL" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allowfullscreen>
+                            </iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA Button below video -->
+            <div class="hero-cta-wrapper">
+                <a href="#plano-mensal" class="btn btn-gradient btn-large scroll-trigger btn-pulse">
+                    <i class="fa-solid fa-rocket"></i> ¡VER PLAN!
+                </a>
+                <span class="cta-micro-proof">
+                    <i class="fa-solid fa-shield-halved"></i> Riesgo Cero, Acceso Inmediato
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="depoimentos" class="testimonials-section">
+        <div class="container">
+            <!-- Testimonials Slider Wrapper -->
+            <div class="slider-wrapper">
+                <div class="slider-container" id="testimonialsSlider">
+                    
+                    <!-- Testimonial 1 (Benefício: Praticidade) -->
+                    <div class="testimonial-card benefit-card">
+                        <div class="card-tag benefit-tag"><i class="fa-solid fa-star"></i> Facilidad & Practicidad</div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="/es/depoimento1.png" alt="Felipe Gómez" class="avatar-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                            </div>
+                            <div class="author-info">
+                                <h4>Felipe Gómez</h4>
+                                <span>Entrenador Personal</span>
+                            </div>
+                        </div>
+                        <p class="testimonial-text">
+                            "La practicidad de realizar la evaluación física desde el celular directamente en la sala de musculación cambió mi rutina. ShapeMap es increíblemente intuitivo y rápido."
+                        </p>
+                    </div>
+
+                    <!-- Testimonial 2 (Benefício: Suporte) -->
+                    <div class="testimonial-card benefit-card">
+                        <div class="card-tag benefit-tag"><i class="fa-solid fa-heart"></i> Soporte Increíble</div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="/es/depoimento2.png" alt="Valeria Méndez" class="avatar-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                            </div>
+                            <div class="author-info">
+                                <h4>Valeria Méndez</h4>
+                                <span>Nutricionista</span>
+                            </div>
+                        </div>
+                        <p class="testimonial-text">
+                            "Tuve una duda sobre el protocolo de composición corporal y el soporte me respondió en menos de 5 minutos por WhatsApp. La atención es de 10 sobre 10."
+                        </p>
+                    </div>
+
+                    <!-- Testimonial 3 (Benefício: Nova Fonte de Renda) -->
+                    <div class="testimonial-card benefit-card">
+                        <div class="card-tag benefit-tag"><i class="fa-solid fa-sack-dollar"></i> Nueva Fuente de Ingresos</div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="/es/depoimento3.png" alt="Dr. Ricardo Silva" class="avatar-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                            </div>
+                            <div class="author-info">
+                                <h4>Dr. Ricardo Silva</h4>
+                                <span>Médico del Deporte</span>
+                            </div>
+                        </div>
+                        <p class="testimonial-text">
+                            "Con los PDF profesionales que genera ShapeMap, mis clientes pagan con gusto cada evaluación que realizo y ya programan su próxima cita. ¡Mis ingresos aumentaron considerablemente!"
+                        </p>
+                    </div>
+
+                    <!-- Testimonial 4 (Problema: Tempo no Excel) -->
+                    <div class="testimonial-card problem-card">
+                        <div class="card-tag problem-tag"><i class="fa-solid fa-hourglass-half"></i> Adiós Hojas de Cálculo</div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="/es/depoimento4.png" alt="Mariana Castro" class="avatar-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                            </div>
+                            <div class="author-info">
+                                <h4>Mariana Castro</h4>
+                                <span>Fisioterapeuta & Entrenadora Personal</span>
+                            </div>
+                        </div>
+                        <p class="testimonial-text">
+                            "Perdía más de una hora y media por alumno armando gráficos en Excel y enviando informes. Hoy hago todo en menos de 30 minutos. Envío un PDF hermoso de alto nivel. Gracias."
+                        </p>
+                    </div>
+
+                    <!-- Testimonial 5 (Problema: Retenção de Clientes) -->
+                    <div class="testimonial-card problem-card">
+                        <div class="card-tag problem-tag"><i class="fa-solid fa-users"></i> Retención de Alumnos</div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="/es/depoimento5.png" alt="Santiago Ramos" class="avatar-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                            </div>
+                            <div class="author-info">
+                                <h4>Santiago Ramos</h4>
+                                <span>Entrenador & Propietario de Estudio</span>
+                            </div>
+                        </div>
+                        <p class="testimonial-text">
+                            "Ahora, además de tener ingresos con clases presenciales, también obtengo un ingreso extra con evaluaciones físicas. Todos mis alumnos contratan una evaluación al mes."
+                        </p>
+                    </div>
+
+                    <!-- Testimonial 6 (Problema: Apresentação Profissional) -->
+                    <div class="testimonial-card problem-card">
+                        <div class="card-tag problem-tag"><i class="fa-solid fa-circle-exclamation"></i> Sin Complicaciones</div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="/es/depoimento6.png" alt="Beatriz Nieves" class="avatar-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                            </div>
+                            <div class="author-info">
+                                <h4>Beatriz Nieves</h4>
+                                <span>Nutricionista Clínica</span>
+                            </div>
+                        </div>
+                        <p class="testimonial-text">
+                            "Siempre tuve dificultades con las aplicaciones, pero ShapeMap es tan práctico que no tuve ninguna duda. Hago las evaluaciones de forma mucho más fácil ahora."
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section id="beneficios" class="benefits-section">
+        <!-- Desktop-only Section Header -->
+        <div class="container desktop-only-header">
+            <div class="section-header">
+                <h2>Su Evaluación Física al <span class="gradient-text">Siguiente Nivel</span></h2>
+            </div>
+        </div>
+
+        <!-- Background Video Header Container -->
+        <div class="benefits-video-hero">
+            <div class="video-hero-bg">
+                <video class="video-hero-media" autoplay loop muted playsinline>
+                    <source src="/es/vídeocelular.mp4" type="video/mp4">
+                </video>
+                <div class="video-hero-overlay"></div>
+            </div>
+            <div class="section-header-container mobile-only-header-container">
+                <div class="section-header benefits-section-header">
+                    <h2>Su Evaluación Física al <span class="gradient-text">Siguiente Nivel</span></h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+
+            <!-- Scroll Interactive Benefits Grid -->
+            <div class="benefits-grid">
+                <!-- Benefit 1 -->
+                <div class="benefit-item scroll-animate">
+                    <div class="benefit-image-container">
+                        <img src="/es/beneficio1.png" alt="Trabaje desde cualquier lugar" class="benefit-img">
+                    </div>
+                    <div class="benefit-content">
+                        <h3>Trabaje desde <span class="gradient-text">cualquier lugar</span></h3>
+                        <p>Realice sus evaluaciones desde el celular, computadora o tablet</p>
+                    </div>
+                </div>
+                <!-- Benefit 2 -->
+                <div class="benefit-item scroll-animate">
+                    <div class="benefit-image-container">
+                        <img src="/es/beneficio2.png" alt="Impresione a sus clientes" class="benefit-img">
+                    </div>
+                    <div class="benefit-content">
+                        <h3><span class="gradient-text">Impresione</span> a sus clientes</h3>
+                        <p>Genere informes profesionales en PDF con pocos clics.</p>
+                    </div>
+                </div>
+
+                <!-- Benefit 3 -->
+                <div class="benefit-item scroll-animate">
+                    <div class="benefit-image-container">
+                        <video class="benefit-img" autoplay loop muted playsinline>
+                            <source src="/es/beneficio3.mp4" type="video/mp4">
+                            Su navegador no soporta el elemento de video.
+                        </video>
+                    </div>
+                    <div class="benefit-content">
+                        <h3><span class="gradient-text">Ahorre</span> horas de trabajo</h3>
+                        <p>Realice evaluaciones físicas en minutos con cálculos automáticos.</p>
+                    </div>
+                </div>
+
+                <!-- Benefit 4 -->
+                <div class="benefit-item scroll-animate">
+                    <div class="benefit-image-container">
+                        <img src="/es/beneficio4.png" alt="Aumente su facturación" class="benefit-img">
+                    </div>
+                    <div class="benefit-content">
+                        <h3><span class="gradient-text">Aumente</span> su facturación</h3>
+                        <p>Ofrezca evaluaciones físicas profesionales y agregue más valor a su servicio.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="funcionalidades" class="features-section">
+        <div class="features-bg-glow"></div>
+        <div class="container">
+            <div class="section-header">
+                <h2>Todo lo que Necesita en <span class="gradient-text">Un Solo Lugar</span></h2>
+            </div>
+
+            <!-- Interactive Features Slider Component -->
+            <div class="features-slider-component">
+                <button class="nav-arrow-btn feat-prev" aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
+                <div class="features-slider-container" id="featuresSlider">
+ 
+                    <!-- Feature Card 1 -->
+                    <div class="feature-slide-card active" data-index="0">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-clipboard-question feature-card-icon"></i>
+                            <h3>Anamnesis</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Preguntas 100% editables</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Guardado automático de respuestas</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- Feature Card 2 -->
+                    <div class="feature-slide-card" data-index="1">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-weight-scale feature-card-icon"></i>
+                            <h3>Composición Corporal</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Peso, Altura e IMC automáticos</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Protocolos: Pollock (3 y 7 Pliegues), Faulkner, Petroski, Durnin, Marina Americana y bioimpedancia</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Porcentaje de grasa, masa magra y grasa</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- Feature Card 3 -->
+                    <div class="feature-slide-card" data-index="2">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-tape feature-card-icon"></i>
+                            <h3>Perimetría</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Adición libre de cualquier medida</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Cálculo automático del ICC (Índice Cintura-Cadera)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- Feature Card 4 -->
+                    <div class="feature-slide-card" data-index="3">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-dumbbell feature-card-icon"></i>
+                            <h3>Test de Fuerza</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Adición de ejercicios personalizados</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Historial de carga y repeticiones</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Gráfico de evolución de la fuerza muscular</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- Feature Card 5 -->
+                    <div class="feature-slide-card" data-index="4">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-child-reaching feature-card-icon"></i>
+                            <h3>Flexibilidad</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Banco de Wells (test de sentar y alcanzar)</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Ángulo Poplíteo (isquiotibiales)</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Test de Thomas (flexores de la cadera)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- Feature Card 6 -->
+                    <div class="feature-slide-card" data-index="5">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-heart-pulse feature-card-icon"></i>
+                            <h3>Cardio & VO2 Máximo</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Test de Cooper y Test Incremental en caminadora</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Frec. Cardíaca (reposo, máxima y recuperación)</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Presión Arterial con historial evolutivo</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- Feature Card 7 -->
+                    <div class="feature-slide-card" data-index="6">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-bolt feature-card-icon"></i>
+                            <h3>Tasa Metabólica Basal</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Cálculo automático de TMB por fórmulas consolidadas</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- Feature Card 8 -->
+                    <div class="feature-slide-card" data-index="7">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-camera feature-card-icon"></i>
+                            <h3>Fotos Comparativas</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Fotos de frente, perfil y espalda</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Observaciones y anotaciones como análisis postural</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- Feature Card 9 -->
+                    <div class="feature-slide-card" data-index="8">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-file-contract feature-card-icon"></i>
+                            <h3>Resultado Final & PDF</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Exportación en PDF súper rápida</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Gráficos comparativos de historial</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Envío simplificado vía WhatsApp o Correo Electrónico</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                </div>
+                <button class="nav-arrow-btn feat-next" aria-label="Siguiente"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="features-slider-indicators" id="featuresIndicators"></div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="preco" class="pricing-section">
+        <div class="pricing-glow-1"></div>
+        <div class="pricing-glow-2"></div>
+        <div class="container">
+
+            <!-- Pricing Card -->
+            <div class="pricing-card-container" id="plano-mensal">
+                <div class="pricing-card popular-plan">
+                    <div class="pricing-badge">Plan Completo</div>
+                    
+                    <div class="pricing-header">
+                        <div class="price-wrapper">
+                            <span class="currency">$</span>
+                            <span class="amount">3</span>
+                            <span class="cents">,90</span>
+                            <span class="period">/mes</span>
+                        </div>
+                        <p class="price-disclaimer">El precio está en dólares, pero verá el valor exacto en su moneda en la página de pago.</p>
+                    </div>
+
+                    <div class="pricing-body">
+                        <ul class="pricing-features">
+                            <li><i class="fa-solid fa-circle-check"></i> Evaluaciones ilimitadas</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Informes en PDF con su logo y colores personalizados</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Soporte vía WhatsApp</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Sin permanencia, cancele cuando quiera</li>
+                        </ul>
+                    </div>
+
+                    <div class="pricing-footer">
+                        <a href="/?register=true&lang=es" class="btn btn-primary btn-full-width btn-pulse">
+                            Suscribirse al Plan Ahora
+                        </a>
+                        <div class="guarantee-simple">
+                            <i class="fa-solid fa-shield-halved guarantee-icon-simple"></i>
+                            <div class="guarantee-text-simple">
+                                <strong>Garantía Incondicional de 7 días:</strong>
+                                <span>Si no le gusta, le devolveremos el 100% de su dinero.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Preguntas Frecuentes</h2>
+            </div>
+
+            <!-- FAQ Accordion Container -->
+            <div class="faq-accordion-container">
+                
+                <!-- FAQ Item 1 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>¿Cómo funciona el acceso a la aplicación?</span>
+                        <i class="fa-solid fa-plus faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>ShapeMap es una aplicación en línea. Tan pronto como se confirme su suscripción, podrá ingresar con su correo electrónico y contraseña a través del sitio web shapemapapp.com.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 2 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>¿Puedo acceder desde computadora, tablet y celular?</span>
+                        <i class="fa-solid fa-plus faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Sí, puede acceder desde cualquier dispositivo.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 3 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>¿Puedo descargar la aplicación en mi celular?</span>
+                        <i class="fa-solid fa-plus faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Sí, después de ingresar a su cuenta, verá una instrucción muy fácil de cómo descargar la aplicación para tenerla en su celular.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 4 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>¿Existe algún plan de prueba gratuita?</span>
+                        <i class="fa-solid fa-plus faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Actualmente no ofrecemos un período de prueba gratuito. Sin embargo, ofrecemos una garantía incondicional de 7 días. Realice la suscripción del plan mensual y, si por cualquier motivo considera que la herramienta no es para usted, simplemente solicite el reembolso y le devolveremos todo su dinero de inmediato.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 5 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>¿Puedo registrar a todos los alumnos/pacientes que quiera?</span>
+                        <i class="fa-solid fa-plus faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Sí, puede registrar clientes y evaluaciones físicas de forma ilimitada.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 6 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>¿Es posible exportar los informes en PDF con mi propio logo?</span>
+                        <i class="fa-solid fa-plus faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Sí, ShapeMap permite generar informes en formato PDF con su foto y colores personalizados para valorar su trabajo y transmitir autoridad.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 7 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>¿La cancelación es fácil? ¿Hay permanencia?</span>
+                        <i class="fa-solid fa-plus faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>¡No hay ninguna permanencia! Se suscribe a la mensualidad y puede cancelar en cualquier momento directamente desde el panel de usuario o solicitándolo a nuestro soporte por WhatsApp. Sin burocracias ni multas contractuales.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container footer-centered-content">
+            <div class="logo-footer">
+                <img src="/es/logo_white.png" alt="ShapeMap Logo" class="logo-img-footer">
+            </div>
+            <p class="footer-copyright">&copy; 2026 ShapeMap. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Floating Action Button -->
+    <a href="https://wa.me/5516993419103?text=%C2%A1Hola%21%20Me%20interes%C3%A9%20por%20ShapeMap%20y%20tengo%20la%20siguiente%20duda%3A" class="whatsapp-float-btn" target="_blank" rel="noopener noreferrer">
+        <i class="fa-brands fa-whatsapp"></i>
+        <span class="whatsapp-tooltip">¿Tiene dudas? ¡Hable con nosotros!</span>
+    </a>
+
+    <!-- Custom Script -->
+    <script src="/es/script.js"></script>
+</body>
+</html>
