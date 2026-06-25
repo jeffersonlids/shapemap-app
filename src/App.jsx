@@ -4408,6 +4408,14 @@ function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare
                 {lang === "es" ? "Enviar Recordatorio" : lang === "en" ? "Send Reminder" : "Enviar Lembrete por WhatsApp"}
               </Btn>
               
+              {/* Visualizar / Editar */}
+              <Btn full variant="outline" onClick={function() {
+                setSelectedPendingAval(null);
+                onOpenAval(selectedPendingAval.id);
+              }}>
+                {lang === "es" ? "Visualizar / Editar" : lang === "en" ? "View / Edit" : "Visualizar / Editar"}
+              </Btn>
+
               {/* Preencher Manualmente */}
               <Btn full variant="ghost" onClick={async function() {
                 try {
@@ -4474,7 +4482,7 @@ function CompletionOverlay({ onPDF, onClose, lang = "pt" }) {
 // ── ASSESSMENT FORM ───────────────────────────────────────────────────────────
 var FORM_TABS = ["Dados", "Anamnese", "Composição", "Perímetros", "Força", "Flexibilidade", "Cardiovascular", "Metabolismo", "Fotos", "Resultados"];
 
-function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, trainer, prevAval }) {
+function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, trainer, prevAval, onSendToStudent }) {
   const lang = (trainer && trainer.lang) || "pt";
   const unitSystem = (trainer && trainer.unitSystem) || "metric";
   const [av, setAv] = useState(function() { return migrateAval(init); });
@@ -4581,6 +4589,19 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
     setDone(true); 
   }
 
+  async function enviarAluno() {
+    setSaveState("saving");
+    try {
+      await onSave(av);
+      setSaveState("saved");
+      if (onSendToStudent) {
+        await onSendToStudent(av);
+      }
+    } catch (err) {
+      console.error("Erro ao salvar para enviar ao aluno:", err);
+    }
+  }
+
   async function handleBack() {
     const hasChanges = JSON.stringify(av) !== JSON.stringify(init);
     if (hasChanges && !done) {
@@ -4621,6 +4642,9 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
           <div style={{ flex:1, fontSize:13, color:T.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
             {isNew ? t("nova_avaliacao", lang) : (lang === "en" ? "Edit" : lang === "es" ? "Editar" : "Editar")} · {alunoNome}
           </div>
+          <Btn small variant="outline" onClick={enviarAluno} style={{ borderColor: ac(), color: ac(), padding: "6px 8px" }}>
+            {lang === "en" ? "Send to Student" : lang === "es" ? "Enviar a Alumno" : "Enviar p/ Aluno"}
+          </Btn>
           <Btn small onClick={finalizar} icon={<IcCheck c="#fff" s={15}/>}>{lang === "en" ? "Finish" : lang === "es" ? "Finalizar" : "Finalizar"}</Btn>
         </div>
         <div ref={tabsRef} style={{ display:"flex", gap:5, overflowX:"auto", paddingBottom:11, scrollbarWidth:"none" }}>
@@ -5738,7 +5762,16 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
               );
             })()}
 
-            <div className="no-print"><Btn full onClick={finalizar} icon={<IcCheck c="#fff" s={16}/>}>{t("finalizar_avaliacao_btn", lang)}</Btn></div>
+            <div className="no-print" style={{ display: "flex", gap: 12, width: "100%" }}>
+              <div style={{ flex: 1 }}>
+                <Btn full variant="outline" onClick={enviarAluno} style={{ borderColor: ac(), color: ac() }}>
+                  {lang === "en" ? "Send to Student" : lang === "es" ? "Enviar a Alumno" : "Enviar p/ Aluno"}
+                </Btn>
+              </div>
+              <div style={{ flex: 1 }}>
+                <Btn full onClick={finalizar} icon={<IcCheck c="#fff" s={16}/>}>{t("finalizar_avaliacao_btn", lang)}</Btn>
+              </div>
+            </div>
         </div>
       </div>
     </div>
@@ -9306,14 +9339,30 @@ export default function App() {
       }
       avalData = alunoAv ? avList[curIdx] : null;
     }
-    content = <AvalForm av={avalData || newAval(null, null, null, null, settings)} alunoNome={alunoAv ? alunoAv.nome : ""} isNew={cur.isNew} onSave={async function(av) { if (alunoAv) await saveAval(alunoAv.id, av); }} onBack={pop} settings={settings} trainer={trainer} prevAval={prevAval}/>;
+    content = (
+      <AvalForm 
+        av={avalData || newAval(null, null, null, null, settings)} 
+        alunoNome={alunoAv ? alunoAv.nome : ""} 
+        isNew={cur.isNew} 
+        onSave={async function(av) { if (alunoAv) await saveAval(alunoAv.id, av); }} 
+        onBack={pop} 
+        settings={settings} 
+        trainer={trainer} 
+        prevAval={prevAval}
+        onSendToStudent={async function(av) {
+          if (alunoAv) {
+            push({ type: "configurar_online", alunoId: alunoAv.id, avalId: av.id });
+          }
+        }}
+      />
+    );
   } else if (cur && cur.type === "aluno") {
     var alunoProf = alunos.find(function(a) { return String(a.id) === String(cur.id); });
     content = (
       <AlunoScreen
         aluno={alunoProf}
         onBack={pop}
-        onNewAval={function() { if (alunoProf) push({ type: "escolha_tipo_avaliacao", alunoId: alunoProf.id }); }}
+        onNewAval={function() { if (alunoProf) push({ type: "avaliacao", alunoId: alunoProf.id, isNew: true }); }}
         onOpenAval={function(id) { if (alunoProf) push({ type: "avaliacao", alunoId: alunoProf.id, avalId: id, isNew: false }); }}
         onDelete={function() { if (alunoProf) deleteAluno(alunoProf.id); }}
         onDeleteAval={function(id) { if (alunoProf) deleteAval(alunoProf.id, id); }}
@@ -9321,25 +9370,6 @@ export default function App() {
         onUpdateAluno={updateAluno}
         onUpdateAlunoAvalStatus={updateAlunoAvalStatus}
         trainer={trainer}
-      />
-    );
-  } else if (cur && cur.type === "escolha_tipo_avaliacao") {
-    var alunoProf = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
-    content = (
-      <EscolhaTipoAvaliacaoScreen
-        aluno={alunoProf}
-        trainer={trainer}
-        onBack={pop}
-        onSelectPresencial={function() {
-          setStack(function(p) {
-            return p.slice(0, -1).concat([{ type: "avaliacao", alunoId: alunoProf.id, isNew: true }]);
-          });
-        }}
-        onSelectOnline={function() {
-          setStack(function(p) {
-            return p.slice(0, -1).concat([{ type: "configurar_online", alunoId: alunoProf.id }]);
-          });
-        }}
       />
     );
   } else if (cur && cur.type === "configurar_online") {
@@ -9351,77 +9381,61 @@ export default function App() {
         trainer={trainer}
         onBack={pop}
         onSend={async function(onlineConfig) {
-          const evalUuid = crypto.randomUUID ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).substring(2, 10));
-          
           const configJson = Object.assign({}, onlineConfig, {
             trainerColor: trainer.corPrimaria || "#1A1A2E",
             trainerNome: trainer.nome || "Prof. Jefferson",
             alunoNome: alunoProf.nome
           });
-          
-          const newEvalDb = {
-            id: evalUuid,
-            student_id: alunoProf.id,
-            data: new Date().toISOString().split('T')[0],
-            idade: String(alunoProf.dataNascimento ? calcIdade(alunoProf.dataNascimento) : ""),
-            objetivo: "",
-            peso: "",
-            altura: "",
-            anamnese: [],
-            composicoes: [],
-            perimetria: {},
-            testes: [],
-            flexibilidade: {},
-            cardiovascular: {},
-            fotos: { frente: null, lado: null, costas: null },
-            observacao_fotos: "",
-            tipo: "online",
-            status: "aguardando_resposta",
-            config: configJson
-          };
 
+          // 1. Update existing evaluation in local state
           setAlunos(function(p) {
             return p.map(function(a) {
               if (String(a.id) !== String(alunoProf.id)) return a;
               var avList = a.avaliacoes || [];
-              var mappedEval = {
-                id: newEvalDb.id,
-                data: newEvalDb.data,
-                nome: alunoProf.nome,
-                sexo: alunoProf.sexo || "M",
-                idade: newEvalDb.idade,
-                telefone: alunoProf.telefone || "",
-                objetivo: "",
-                anamnese: [],
-                peso: "",
-                altura: "",
-                composicoes: [],
-                perimetria: {},
-                testes: [],
-                flexibilidade: {},
-                cardiovascular: {},
-                fotos: { frente: null, lado: null, costas: null },
-                observacaoFotos: "",
-                tipo: "online",
-                status: "aguardando_resposta",
-                config: configJson
-              };
-              return Object.assign({}, a, { avaliacoes: avList.concat([mappedEval]) });
+              var nextAvs = avList.map(function(x) {
+                if (String(x.id) === String(cur.avalId)) {
+                  return Object.assign({}, x, {
+                    tipo: "online",
+                    status: "aguardando_resposta",
+                    config: configJson
+                  });
+                }
+                return x;
+              });
+              return Object.assign({}, a, { avaliacoes: nextAvs });
             });
           });
 
+          // 2. Update existing evaluation in Supabase
           if (logged && user) {
-            const { error } = await supabase
-              .from('evaluations')
-              .insert([newEvalDb]);
-            if (error) {
-              console.error("Erro ao salvar avaliação online no Supabase:", error);
-              alert("Erro ao salvar no Supabase: " + error.message);
-              return;
+            try {
+              const { data: existingEv } = await supabase
+                .from('evaluations')
+                .select('*')
+                .eq('id', cur.avalId)
+                .single();
+
+              const updatedEv = Object.assign({}, existingEv, {
+                tipo: "online",
+                status: "aguardando_resposta",
+                config: configJson
+              });
+
+              const { error } = await supabase
+                .from('evaluations')
+                .upsert(updatedEv);
+                
+              if (error) {
+                console.error("Erro ao salvar no Supabase:", error);
+                alert("Erro ao salvar no Supabase: " + error.message);
+                return;
+              }
+            } catch (err) {
+              console.error("Erro ao atualizar avaliação online:", err);
             }
           }
 
-          const generatedUrl = window.location.origin + "/?responder=true&id=" + evalUuid + "&lang=" + (trainer.lang || "pt");
+          const generatedUrl = window.location.origin + "/?responder=true&id=" + cur.avalId + "&lang=" + (trainer.lang || "pt");
           
           setStack(function(p) {
             return p.slice(0, -1).concat([{ type: "link_gerado", alunoId: alunoProf.id, url: generatedUrl }]);
