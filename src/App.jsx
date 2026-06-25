@@ -4374,12 +4374,17 @@ function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare
       {selectedPendingAval && (
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", backdropFilter:"blur(4px)", zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }} onClick={function() { setSelectedPendingAval(null); }}>
           <Card onClick={function(e) { e.stopPropagation(); }} sx={{ padding:24, width:"100%", maxWidth:380, border:"1px solid "+T.border, textAlign:"center", display:"flex", flexDirection:"column", gap:16, boxShadow:T.shadowLg }}>
-            <div style={{ fontSize:36 }}>⏳</div>
+            
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto" }}>
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+
             <div style={{ fontSize:17, fontWeight:800, color:T.text }}>
               {lang === "es" ? "Evaluación Online Pendiente" : lang === "en" ? "Pending Online Evaluation" : "Avaliação Online Pendente"}
             </div>
             <div style={{ fontSize:13, color:T.sub, lineHeight:1.5 }}>
-              {lang === "es" ? "Esta evaluación fue enviada al alumno y está esperando respuesta." : lang === "en" ? "This evaluation was sent to the student and is waiting for a response." : "Esta avaliação foi enviada ao aluno e está aguardando resposta."}
+              {lang === "es" ? "Esta evaluación fue enviada a " + aluno.nome + " y está esperando respuesta." : lang === "en" ? "This evaluation was sent to " + aluno.nome + " and is waiting for a response." : "Esta avaliação foi enviada para " + aluno.nome + " e está aguardando resposta."}
             </div>
             
             <div style={{ display:"flex", flexDirection:"column", gap:10, marginTop:8 }}>
@@ -4392,22 +4397,6 @@ function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare
                 {lang === "es" ? "Copiar Enlace" : lang === "en" ? "Copy Link" : "Copiar Link"}
               </Btn>
               
-              {/* Enviar Lembrete */}
-              <Btn full variant="outline" onClick={function() {
-                const generatedUrl = window.location.origin + "/?responder=true&id=" + selectedPendingAval.id + "&lang=" + lang;
-                const text = encodeURIComponent(
-                  lang === "es" 
-                    ? `Hola, recuerda responder tu evaluación física cuando puedas: ${generatedUrl}` 
-                    : lang === "pt" 
-                    ? `Olá, lembrete para responder a sua avaliação física quando puder: ${generatedUrl}`
-                    : `Hello, reminder to answer your physical evaluation when you can: ${generatedUrl}`
-                );
-                const waUrl = "https://wa.me/" + (aluno.telefone ? aluno.telefone.replace(/\D/g, "") : "") + "?text=" + text;
-                window.open(waUrl, "_blank");
-              }}>
-                {lang === "es" ? "Enviar Recordatorio" : lang === "en" ? "Send Reminder" : "Enviar Lembrete por WhatsApp"}
-              </Btn>
-              
               {/* Visualizar / Editar */}
               <Btn full variant="outline" onClick={function() {
                 setSelectedPendingAval(null);
@@ -4416,17 +4405,17 @@ function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare
                 {lang === "es" ? "Visualizar / Editar" : lang === "en" ? "View / Edit" : "Visualizar / Editar"}
               </Btn>
 
-              {/* Preencher Manualmente */}
+              {/* Cancelar Link de Preenchimento */}
               <Btn full variant="ghost" onClick={async function() {
                 try {
                   setSelectedPendingAval(null);
                   await onUpdateAlunoAvalStatus(aluno.id, selectedPendingAval.id, "presencial", "finalizada");
-                  onOpenAval(selectedPendingAval.id);
+                  alert(lang === "es" ? "¡Enlace de llenado cancelado con éxito!" : lang === "en" ? "Fill link cancelled successfully!" : "Link de preenchimento cancelado com sucesso!");
                 } catch(err) {
                   alert("Erro ao atualizar avaliação: " + err.message);
                 }
-              }}>
-                {lang === "es" ? "Llenar Manualmente" : lang === "en" ? "Fill Manually" : "Preencher Manualmente (Presencial)"}
+              }} style={{ color: T.danger }}>
+                {lang === "es" ? "Cancelar Enlace de Llenado" : lang === "en" ? "Cancel Fill Link" : "Cancelar Link de Preenchimento"}
               </Btn>
 
               {/* Fechar */}
@@ -4484,6 +4473,7 @@ var FORM_TABS = ["Dados", "Anamnese", "Composição", "Perímetros", "Força", "
 
 function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, trainer, prevAval, onSendToStudent }) {
   const lang = (trainer && trainer.lang) || "pt";
+  const firstName = alunoNome ? alunoNome.split(" ")[0] : (lang === "en" ? "Student" : lang === "es" ? "Alumno" : "Aluno");
   const unitSystem = (trainer && trainer.unitSystem) || "metric";
   const [av, setAv] = useState(function() { return migrateAval(init); });
   const [tab, setTab] = useState(0);
@@ -4643,7 +4633,7 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
             {isNew ? t("nova_avaliacao", lang) : (lang === "en" ? "Edit" : lang === "es" ? "Editar" : "Editar")} · {alunoNome}
           </div>
           <Btn small variant="outline" onClick={enviarAluno} style={{ borderColor: ac(), color: ac(), padding: "6px 8px" }}>
-            {lang === "en" ? "Send to Student" : lang === "es" ? "Enviar a Alumno" : "Enviar p/ Aluno"}
+            {lang === "en" ? "Send to " + firstName : lang === "es" ? "Enviar a " + firstName : "Enviar p/ " + firstName}
           </Btn>
           <Btn small onClick={finalizar} icon={<IcCheck c="#fff" s={15}/>}>{lang === "en" ? "Finish" : lang === "es" ? "Finalizar" : "Finalizar"}</Btn>
         </div>
@@ -5765,7 +5755,7 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
             <div className="no-print" style={{ display: "flex", gap: 12, width: "100%" }}>
               <div style={{ flex: 1 }}>
                 <Btn full variant="outline" onClick={enviarAluno} style={{ borderColor: ac(), color: ac() }}>
-                  {lang === "en" ? "Send to Student" : lang === "es" ? "Enviar a Alumno" : "Enviar p/ Aluno"}
+                  {lang === "en" ? "Send to " + firstName : lang === "es" ? "Enviar a " + firstName : "Enviar p/ " + firstName + " Preencher"}
                 </Btn>
               </div>
               <div style={{ flex: 1 }}>
@@ -7594,6 +7584,7 @@ function EscolhaTipoAvaliacaoScreen({ aluno, onBack, onSelectPresencial, onSelec
 // 2. TELA DE CONFIGURAÇÃO DE ENVIO ONLINE
 function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
   const lang = (trainer && trainer.lang) || "pt";
+  const firstName = aluno.nome ? aluno.nome.split(" ")[0] : (lang === "en" ? "Student" : lang === "es" ? "Alumno" : "Aluno");
   const [activeTab, setActiveTab] = useState("");
 
   const defaultOnlineConfig = (settings && settings.defaultOnlineConfig) || {
@@ -7979,7 +7970,7 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
       <div style={{ display: "flex", gap: 12 }}>
         <Btn variant="outline" full onClick={onBack}>{lang === "es" ? "Cancelar" : lang === "en" ? "Cancel" : "Cancelar"}</Btn>
         <Btn full onClick={handleSend} disabled={!sections.anamnese && !sections.composicao && !sections.perimetria && !sections.testes && !sections.cardiovascular && !sections.fotos}>
-          {lang === "es" ? "Enviar al Aluno" : lang === "en" ? "Send to Student" : "Enviar para o Aluno"}
+          {lang === "en" ? "Send to " + firstName : lang === "es" ? "Enviar a " + firstName : "Enviar para " + firstName}
         </Btn>
       </div>
     </div>
@@ -7987,7 +7978,7 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
 }
 
 // 3. MODAL DE LINK GERADO
-function LinkGeradoModal({ url, onSendWhatsApp, onClose, trainer }) {
+function LinkGeradoModal({ url, onSendWhatsApp, onClose, trainer, alunoNome }) {
   const lang = (trainer && trainer.lang) || "pt";
   const [copied, setCopied] = useState(false);
 
@@ -8001,12 +7992,15 @@ function LinkGeradoModal({ url, onSendWhatsApp, onClose, trainer }) {
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <Card sx={{ padding: 24, width: "100%", maxWidth: 400, border: "1px solid " + T.border, textAlign: "center", display: "flex", flexDirection: "column", gap: 16, boxShadow: T.shadowLg }}>
         
-        <div style={{ fontSize: 48 }}>📲</div>
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke={ac()} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 8px" }}>
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+          <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="3" />
+        </svg>
         <div style={{ fontSize: 18, fontWeight: 800, color: T.text, letterSpacing: -0.4 }}>
           {lang === "es" ? "¡Enlace de Evaluación Creado!" : lang === "en" ? "Evaluation Link Created!" : "Link de Avaliação Criado!"}
         </div>
         <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.5 }}>
-          {lang === "es" ? "Copie el siguiente enlace y envíelo al evaluado para que complete sus datos físicos y fotos:" : lang === "en" ? "Copy the link below and send it to the student for them to fill out their physical data and photos:" : "Copie o link abaixo e envie para o aluno preencher os dados físicos e fotos:"}
+          {lang === "es" ? "Copie el siguiente enlace y envíelo a " + alunoNome + " para que complete sus datos físicos y fotos:" : lang === "en" ? "Copy the link below and send it to " + alunoNome + " for them to fill out their physical data and photos:" : "Copie o link abaixo e envie para " + alunoNome + " preencher os dados físicos e fotos:"}
         </div>
 
         <div style={{ display: "flex", background: T.bg, border: "1.5px solid " + T.border, borderRadius: 10, padding: 4, alignItems: "center" }}>
@@ -8257,7 +8251,11 @@ function StudentResponseScreen({ evalId }) {
     return (
       <div style={{ minHeight:"100vh", padding: 24, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: T.bg, textAlign: "center" }}>
         <Card sx={{ padding: 32, maxWidth: 380, display: "flex", flexDirection: "column", alignItems: "center", gap: 16, border: "1px solid " + T.border }}>
-          <div style={{ fontSize: 44, color: T.danger }}>⚠️</div>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={T.danger} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 8px" }}>
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
           <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{lang === "es" ? "Enlace Inválido" : lang === "en" ? "Invalid Link" : "Link Inválido"}</div>
           <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.5 }}>{error}</div>
         </Card>
@@ -8269,7 +8267,10 @@ function StudentResponseScreen({ evalId }) {
     return (
       <div style={{ minHeight:"100vh", padding: 24, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: T.bg, textAlign: "center" }}>
         <Card sx={{ padding: 32, maxWidth: 380, display: "flex", flexDirection: "column", alignItems: "center", gap: 16, border: "1px solid " + T.border, boxShadow: T.shadowMd }}>
-          <div style={{ fontSize: 48, animation: "bounce 1s infinite" }}>🎉</div>
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke={ac()} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 8px", animation: "scaleUp 0.5s ease both" }}>
+            <circle cx="12" cy="12" r="10" fill={ac() + "10"} />
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
           <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>
             {lang === "es" ? "¡Evaluación Enviada!" : lang === "en" ? "Evaluation Sent!" : "Avaliação Enviada!"}
           </div>
@@ -8380,7 +8381,7 @@ function StudentResponseScreen({ evalId }) {
                       placeholder="0.0"
                       required
                     />
-                    {(!evaluation || evaluation.sexo === "F" || evaluation.sexo === "f") && (
+                    {config && (config.alunoSexo === "F" || config.alunoSexo === "f") && (
                       <div style={{ gridColumn: "span 2" }}>
                         <FInput
                           label={lang === "es" ? "Cadera (cm)" : lang === "en" ? "Hip (cm)" : "Quadril (cm)"}
@@ -9384,7 +9385,8 @@ export default function App() {
           const configJson = Object.assign({}, onlineConfig, {
             trainerColor: trainer.corPrimaria || "#1A1A2E",
             trainerNome: trainer.nome || "Prof. Jefferson",
-            alunoNome: alunoProf.nome
+            alunoNome: alunoProf.nome,
+            alunoSexo: alunoProf.sexo || "M"
           });
 
           // 1. Update existing evaluation in local state
@@ -9445,20 +9447,10 @@ export default function App() {
     );
   } else if (cur && cur.type === "link_gerado") {
     var alunoProf = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
-    const messageText = trainer.lang === "es" 
-      ? `Hola ${alunoProf.nome}, aquí tienes el enlace para completar tu evaluación física: ${cur.url}`
-      : trainer.lang === "en"
-      ? `Hello ${alunoProf.nome}, here is the link to complete your physical evaluation: ${cur.url}`
-      : `Olá ${alunoProf.nome}, aqui está o link para preencher a sua avaliação física online: ${cur.url}`;
-    const encodedMsg = encodeURIComponent(messageText);
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${alunoProf.telefone ? alunoProf.telefone.replace(/\D/g, '') : ''}&text=${encodedMsg}`;
-
     content = (
       <LinkGeradoModal
         url={cur.url}
-        onSendWhatsApp={function() {
-          window.open(whatsappUrl, "_blank");
-        }}
+        alunoNome={alunoProf.nome}
         onClose={function() {
           pop();
         }}
