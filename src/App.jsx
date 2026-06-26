@@ -8909,6 +8909,21 @@ export default function App() {
 
   const [stack, setStack] = useState([]);
 
+  // Sincronizar o idioma do documento (html lang) para evitar traduções incorretas do navegador
+  useEffect(function() {
+    const searchParams = new URLSearchParams(window.location.search);
+    const isResponder = searchParams.get("responder") === "true";
+    let activeLang = "pt";
+
+    if (isResponder) {
+      activeLang = searchParams.get("lang") || searchParams.get("locale") || "pt";
+    } else if (trainer && trainer.lang) {
+      activeLang = trainer.lang;
+    }
+
+    document.documentElement.lang = activeLang;
+  }, [trainer, window.location.search]);
+
   // Load session and onAuthStateChange
   useEffect(function() {
     const search = window.location.search;
