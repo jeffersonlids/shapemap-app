@@ -7,11 +7,38 @@
     <!-- Google Fonts: Outfit (modern/tech) & Inter (clean reading) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Preload Critical Assets for faster FCP/LCP -->
+    <link rel="preload" href="/br/style.css" as="style">
+    <link rel="preload" href="/br/logo.webp" as="image">
+    <link rel="preload" href="/br/thumbnail.webp" as="image">
+
+    <!-- Non-blocking Google Fonts stylesheet loading -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap">
+    </noscript>
+
+    <!-- Non-blocking FontAwesome stylesheet loading -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    </noscript>
+
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="/br/style.css">
+
+    <!-- Custom styles for the Video Facade hover effect -->
+    <style>
+        .vsl-facade:hover img {
+            opacity: 0.75 !important;
+            transform: scale(1.02);
+        }
+        .vsl-facade:hover .play-btn-wrapper {
+            transform: scale(1.08);
+            background-color: rgba(0, 0, 0, 0.85) !important;
+        }
+    </style>
     <!-- Meta Pixel Code -->
     <script>
     !function(f,b,e,v,n,t,s)
@@ -45,7 +72,7 @@
         <div class="hero-bg-glow"></div>
         <div class="container hero-container-stacked">
             <div class="logo-hero">
-                <img src="/br/logo.png" alt="ShapeMap Logo" class="logo-img-hero">
+                <img src="/br/logo.webp" alt="ShapeMap Logo" class="logo-img-hero" decoding="async">
             </div>
             <h1 class="hero-title">
                 Transforme suas avaliações físicas em <span class="gradient-text">relatórios profissionais</span> com cálculos automáticos.
@@ -58,15 +85,16 @@
             <div class="vsl-section">
                 <div class="vsl-wrapper">
                     <div class="vsl-mockup">
-                        <div class="vsl-video-container">
-                            <!-- Youtube Shorts Embedded formatted for standard embed player in 9:16 aspect ratio -->
-                            <iframe 
-                                src="https://www.youtube.com/embed/zzPiKMaeN48?autoplay=0&mute=0&controls=1&rel=0" 
-                                title="ShapeMap VSL" 
-                                frameborder="0" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                allowfullscreen>
-                            </iframe>
+                        <div class="vsl-video-container" style="position: relative; overflow: hidden; background: #000; border-radius: 12px;">
+                            <!-- Youtube Facade (Preview Image) to prevent initial render blocking -->
+                            <div class="vsl-facade" id="vslFacade" onclick="loadVSLVideo()" style="position: absolute; inset: 0; cursor: pointer; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; z-index: 10;">
+                                <img src="/br/thumbnail.webp" alt="ShapeMap VSL Preview" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: opacity 0.3s, transform 0.3s;">
+                                <div class="play-btn-wrapper" style="position: absolute; width: 68px; height: 68px; background: rgba(0, 0, 0, 0.65); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.4); transition: transform 0.2s, background-color 0.2s;">
+                                    <svg width="24" height="26" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: 3px;">
+                                        <path d="M4 2.69v22.62c0 1.57 1.73 2.53 3.06 1.7l18.1-11.31c1.23-.77 1.23-2.62 0-3.39L7.06.99C5.73.16 4 1.12 4 2.69z" fill="#ffffff"/>
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -96,7 +124,7 @@
                         <div class="card-tag benefit-tag"><i class="fa-solid fa-star"></i> Facilidade & Praticidade</div>
                         <div class="testimonial-author">
                             <div class="author-avatar">
-                                <img src="/br/depoimento1.png" alt="Felipe Andrade" class="avatar-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                                <img src="/br/depoimento1.webp" alt="Felipe Andrade" class="avatar-img" loading="lazy" decoding="async" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
                             </div>
                             <div class="author-info">
                                 <h4>Felipe Andrade</h4>
@@ -113,7 +141,7 @@
                         <div class="card-tag benefit-tag"><i class="fa-solid fa-heart"></i> Suporte Incrível</div>
                         <div class="testimonial-author">
                             <div class="author-avatar">
-                                <img src="/br/depoimento2.png" alt="Aline Mendes" class="avatar-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                                <img src="/br/depoimento2.webp" alt="Aline Mendes" class="avatar-img" loading="lazy" decoding="async" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
                             </div>
                             <div class="author-info">
                                 <h4>Aline Mendes</h4>
@@ -130,7 +158,7 @@
                         <div class="card-tag benefit-tag"><i class="fa-solid fa-sack-dollar"></i> Nova Fonte de Renda</div>
                         <div class="testimonial-author">
                             <div class="author-avatar">
-                                <img src="/br/depoimento3.png" alt="Dr. Ricardo Silva" class="avatar-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                                <img src="/br/depoimento3.webp" alt="Dr. Ricardo Silva" class="avatar-img" loading="lazy" decoding="async" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
                             </div>
                             <div class="author-info">
                                 <h4>Dr. Ricardo Silva</h4>
@@ -147,7 +175,7 @@
                         <div class="card-tag problem-tag"><i class="fa-solid fa-hourglass-half"></i> Adeus Planilhas</div>
                         <div class="testimonial-author">
                             <div class="author-avatar">
-                                <img src="/br/depoimento4.png" alt="Mariana Costa" class="avatar-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                                <img src="/br/depoimento4.webp" alt="Mariana Costa" class="avatar-img" loading="lazy" decoding="async" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
                             </div>
                             <div class="author-info">
                                 <h4>Mariana Costa</h4>
@@ -164,7 +192,7 @@
                         <div class="card-tag problem-tag"><i class="fa-solid fa-users"></i> Retenção de Alunos</div>
                         <div class="testimonial-author">
                             <div class="author-avatar">
-                                <img src="/br/depoimento5.png" alt="Thiago Ramos" class="avatar-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                                <img src="/br/depoimento5.webp" alt="Thiago Ramos" class="avatar-img" loading="lazy" decoding="async" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
                             </div>
                             <div class="author-info">
                                 <h4>Thiago Ramos</h4>
@@ -181,7 +209,7 @@
                         <div class="card-tag problem-tag"><i class="fa-solid fa-circle-exclamation"></i> Sem Complicação</div>
                         <div class="testimonial-author">
                             <div class="author-avatar">
-                                <img src="/br/depoimento6.png" alt="Beatriz Neves" class="avatar-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                                <img src="/br/depoimento6.webp" alt="Beatriz Neves" class="avatar-img" loading="lazy" decoding="async" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
                             </div>
                             <div class="author-info">
                                 <h4>Beatriz Neves</h4>
@@ -210,7 +238,9 @@
         <!-- Background Video Header Container -->
         <div class="benefits-video-hero">
             <div class="video-hero-bg">
-                <video class="video-hero-media" src="/br/vídeocelular.mp4" autoplay loop muted playsinline></video>
+                <video class="video-hero-media" autoplay loop muted playsinline preload="none">
+                    <source data-src="/br/vídeocelular.mp4" type="video/mp4">
+                </video>
                 <div class="video-hero-overlay"></div>
             </div>
             <div class="section-header-container mobile-only-header-container">
@@ -227,7 +257,7 @@
                 <!-- Benefit 1 -->
                 <div class="benefit-item scroll-animate">
                     <div class="benefit-image-container">
-                        <img src="/br/beneficio1.png" alt="Trabalhe de qualquer lugar" class="benefit-img">
+                        <img src="/br/beneficio1.webp" alt="Trabalhe de qualquer lugar" class="benefit-img" loading="lazy" decoding="async">
                     </div>
                     <div class="benefit-content">
                         <h3>Trabalhe de <span class="gradient-text">qualquer lugar</span></h3>
@@ -237,7 +267,7 @@
                 <!-- Benefit 2 -->
                 <div class="benefit-item scroll-animate">
                     <div class="benefit-image-container">
-                        <img src="/br/beneficio2.png" alt="Impressione seus clientes" class="benefit-img">
+                        <img src="/br/beneficio2.webp" alt="Impressione seus clientes" class="benefit-img" loading="lazy" decoding="async">
                     </div>
                     <div class="benefit-content">
                         <h3><span class="gradient-text">Impressione</span> seus clientes</h3>
@@ -248,7 +278,10 @@
                 <!-- Benefit 3 -->
                 <div class="benefit-item scroll-animate">
                     <div class="benefit-image-container">
-                        <video class="benefit-img" src="/br/beneficio3.mp4" autoplay loop muted playsinline></video>
+                        <video class="benefit-img" autoplay loop muted playsinline preload="none">
+                            <source data-src="/br/beneficio3.mp4" type="video/mp4">
+                            Seu navegador não suporta o elemento de vídeo.
+                        </video>
                     </div>
                     <div class="benefit-content">
                         <h3><span class="gradient-text">Economize</span> horas de trabalho</h3>
@@ -259,7 +292,7 @@
                 <!-- Benefit 4 -->
                 <div class="benefit-item scroll-animate">
                     <div class="benefit-image-container">
-                        <img src="/br/beneficio4.png" alt="Aumente seu faturamento" class="benefit-img">
+                        <img src="/br/beneficio4.webp" alt="Aumente seu faturamento" class="benefit-img" loading="lazy" decoding="async">
                     </div>
                     <div class="benefit-content">
                         <h3><span class="gradient-text">Aumente</span> seu faturamento</h3>
@@ -580,7 +613,7 @@
     <footer class="main-footer">
         <div class="container footer-centered-content">
             <div class="logo-footer">
-                <img src="/br/logo_white.png" alt="ShapeMap Logo" class="logo-img-footer">
+                <img src="/br/logo_white.webp" alt="ShapeMap Logo" class="logo-img-footer" loading="lazy" decoding="async">
             </div>
             <p class="footer-copyright">&copy; 2026 ShapeMap. Todos os direitos reservados.</p>
         </div>
@@ -594,5 +627,35 @@
 
     <!-- Custom Script -->
     <script src="/br/script.js"></script>
+
+    <!-- Video Facade and Lazy-loading Video Scripts -->
+    <script>
+        // Load YouTube VSL dynamically on click
+        function loadVSLVideo() {
+            const container = document.querySelector('.vsl-video-container');
+            container.innerHTML = `
+                <iframe 
+                    src="https://www.youtube.com/embed/zzPiKMaeN48?autoplay=1&mute=0&controls=1&rel=0" 
+                    title="ShapeMap VSL" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowfullscreen
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; border-radius: 12px;">
+                </iframe>
+            `;
+        }
+
+        // Lazy-load autoplay videos to prevent network congestion during initial paint
+        window.addEventListener('load', function() {
+            const lazyVideos = [].slice.call(document.querySelectorAll('video'));
+            lazyVideos.forEach(function(video) {
+                const source = video.querySelector('source');
+                if (source && source.dataset.src) {
+                    source.src = source.dataset.src;
+                    video.load();
+                }
+            });
+        });
+    </script>
 </body>
 </html>
