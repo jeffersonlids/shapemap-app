@@ -9762,7 +9762,7 @@ export default function App() {
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <span style={{ fontSize: 24 }}>📱</span>
               <div style={{ fontWeight: 800, fontSize: 16, color: T.text }}>
-                {lang === "pt" ? "Instalar o ShapeMap no Celular" : "Install ShapeMap on your Phone"}
+                {lang === "pt" ? "Instalar o ShapeMap no Celular" : lang === "es" ? "Instalar ShapeMap en tu Celular" : "Install ShapeMap on your Phone"}
               </div>
             </div>
             
@@ -9775,6 +9775,16 @@ export default function App() {
                   </div>
                   <div style={{ marginTop: 10, paddingLeft: 2 }}>
                     2. <strong>Android (Chrome):</strong> toque no menu de <strong>três pontinhos (⋮)</strong> no topo, role e selecione <strong>"Adicionar à tela inicial"</strong> ou <strong>"Instalar aplicativo"</strong>.
+                  </div>
+                </>
+              ) : lang === "es" ? (
+                <>
+                  Accede más rápido y úsalo en pantalla completa como una aplicación real:
+                  <div style={{ marginTop: 12, paddingLeft: 2 }}>
+                    1. <strong>iPhone:</strong> toca los <strong>tres puntos (...)</strong> en la esquina inferior derecha, selecciona <strong>Compartir</strong>, desplázate hacia abajo y toca <strong>"Añadir a la pantalla de inicio"</strong>.
+                  </div>
+                  <div style={{ marginTop: 10, paddingLeft: 2 }}>
+                    2. <strong>Android (Chrome):</strong> toca el menú de <strong>tres puntos (⋮)</strong> en la parte superior, desplázate y selecciona <strong>"Añadir a la pantalla de inicio"</strong> o <strong>"Instalar aplicación"</strong>.
                   </div>
                 </>
               ) : (
@@ -9792,7 +9802,7 @@ export default function App() {
           
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <Btn full onClick={function() { setShowInstallModal(false); }}>
-              {lang === "pt" ? "Entendi, vou seguir o passo a passo" : "Got it, I'll follow the steps"}
+              {lang === "pt" ? "Entendi, vou seguir o passo a passo" : lang === "es" ? "Entendido, seguiré los pasos" : "Got it, I'll follow the steps"}
             </Btn>
             <button 
               onClick={function() {
@@ -9811,7 +9821,7 @@ export default function App() {
                 textAlign: "center"
               }}
             >
-              {lang === "pt" ? "Não me avisar novamente" : "Don't show this again"}
+              {lang === "pt" ? "Não me avisar novamente" : lang === "es" ? "No volver a mostrar" : "Don't show this again"}
             </button>
           </div>
         </div>
