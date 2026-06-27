@@ -93,7 +93,7 @@ const TR = {
     peso: "Peso",
     altura: "Altura",
     idade: "Idade",
-    gordura_corporal: "Gordura Corporal",
+    gordura_corporal: "% de Gordura Corporal",
     medidas_cm: "Medidas em centímetros",
     exercicio: "Exercício",
     repeticoes: "Repetições",
@@ -402,7 +402,7 @@ const TR = {
     peso: "Weight",
     altura: "Height",
     idade: "Age",
-    gordura_corporal: "Body Fat",
+    gordura_corporal: "% Body Fat",
     medidas_cm: "Measurements in centimeters",
     exercicio: "Exercise",
     repeticoes: "Repetitions",
@@ -710,7 +710,7 @@ const TR = {
     peso: "Peso",
     altura: "Altura",
     idade: "Edad",
-    gordura_corporal: "Grasa Corporal",
+    gordura_corporal: "% de Grasa Corporal",
     medidas_cm: "Medidas en centímetros",
     exercicio: "Ejercicio",
     repeticoes: "Repeticiones",
@@ -5860,9 +5860,9 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
     return { val: d, neg: parseFloat(d) < 0 };
   }
 
-  function renderDelta(v1, v2, goodDecreasing = true) {
+  function renderDelta(v1, v2, goodDecreasing = true, decimals = 1) {
     if (v1 === undefined || v1 === null || v1 === "" || v2 === undefined || v2 === null || v2 === "") return null;
-    var d = (parseFloat(v2) - parseFloat(v1)).toFixed(1);
+    var d = (parseFloat(v2) - parseFloat(v1)).toFixed(decimals);
     var num = parseFloat(d);
     if (isNaN(num) || num === 0) return null;
     var isPositive = num > 0;
@@ -5883,7 +5883,9 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
     var v2 = parseFloat(val2);
     if (isNaN(v1) || isNaN(v2)) return null;
     var d = v2 - v1;
-    var absD = Math.abs(d).toFixed(1);
+    
+    const isRCQ = labelKey === "rcq_lbl";
+    var absD = Math.abs(d).toFixed(isRCQ ? 2 : 1);
     
     var translatedLabel = customLabelStr || t(labelKey, lang);
     if (labelKey.startsWith("carga no ")) {
@@ -5894,7 +5896,7 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
       else translatedLabel = `carga no ${translatedEx}`;
     }
 
-    if (d === 0) {
+    if (parseFloat(absD) === 0) {
       return (
         <div style={{ fontSize:12, color:T.sub, marginTop:8, display:"flex", alignItems:"center", gap:6 }}>
           <span style={{ color:T.muted }}>●</span>
@@ -6322,7 +6324,7 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
                         {t("depois", lang)}: <strong>{rcq2 || "—"}</strong>
                       </div>
                       <div style={{ marginTop:6 }}>
-                        {rcq1 && rcq2 && renderDelta(rcq1, rcq2, true)}
+                        {rcq1 && rcq2 && renderDelta(rcq1, rcq2, true, 2)}
                       </div>
                       {rcq2 && (function() {
                         var rsk = rcqRisk(av2.sexo, rcq2, av2.idade);
@@ -6345,7 +6347,7 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
                               <YAxis tick={{ fontSize:9, fill:T.muted }} domain={["auto","auto"]} padding={{ top: 15 }}/>
                               <Tooltip cursor={false} contentStyle={{ background:T.surface, border:"1px solid "+T.border, borderRadius:8, fontSize:11 }}/>
                               <Line type="monotone" dataKey="rcq" stroke={T.warning} strokeWidth={2} dot={{ fill:T.warning, r:3 }}>
-                                <LabelList dataKey="rcq" position="top" offset={10} style={{ fill:T.text, fontSize:10, fontWeight:700 }} />
+                                <LabelList dataKey="rcq" position="top" offset={10} style={{ fill:T.text, fontSize:10, fontWeight:700 }} formatter={function(v) { return v !== null && v !== undefined ? parseFloat(v).toFixed(2) : ""; }} />
                               </Line>
                             </LineChart>
                           </ResponsiveContainer>
@@ -6358,7 +6360,7 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
                             <XAxis dataKey="shortName" tick={{ fontSize:9, fill:T.muted }} padding={{ left: 15, right: 20 }}/>
                             <YAxis tick={{ fontSize:9, fill:T.muted }} domain={["auto","auto"]} padding={{ top: 15 }}/>
                             <Line type="monotone" dataKey="rcq" stroke={T.warning} strokeWidth={2} dot={{ fill:T.warning, r:3 }}>
-                              <LabelList dataKey="rcq" position="top" offset={10} style={{ fill:T.text, fontSize:9, fontWeight:700 }} />
+                              <LabelList dataKey="rcq" position="top" offset={10} style={{ fill:T.text, fontSize:9, fontWeight:700 }} formatter={function(v) { return v !== null && v !== undefined ? parseFloat(v).toFixed(2) : ""; }} />
                             </Line>
                           </LineChart>
                         </div>
