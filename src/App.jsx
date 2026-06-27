@@ -2562,6 +2562,89 @@ function Ring({ pct, size, stroke, color, label }) {
   );
 }
 
+function Donut({ weight, pct, lang, unitSystem, isAlreadySystemWeight = false, size = 110, stroke = 12 }) {
+  const rawW = parseFloat(weight) || 0;
+  const w = isAlreadySystemWeight ? rawW : parseFloat(toSystemWeight(rawW, unitSystem));
+  const pG = parseFloat(pct) || 0;
+  const pM = 100 - pG;
+
+  const wG = (w * (pG / 100)).toFixed(1);
+  const wM = (w * (pM / 100)).toFixed(1);
+  const unit = getWeightUnit(unitSystem);
+
+  const sz = size;
+  const st = stroke;
+  const r = (sz - st) / 2;
+  const circ = 2 * Math.PI * r;
+
+  const leanOffset = circ - (pM / 100) * circ;
+  const fatOffset = circ - (pG / 100) * circ;
+  const fatRotation = `rotate(${(pM / 100) * 360 - 90} ${sz/2} ${sz/2})`;
+
+  return (
+    <div style={{ display:"flex", alignItems:"center", gap:16, background:T.bg, padding:"12px 14px", borderRadius:12, marginTop:10 }}>
+      <div style={{ position:"relative", width:sz, height:sz, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+        <svg width={sz} height={sz}>
+          <circle cx={sz/2} cy={sz/2} r={r} fill="none" stroke={T.border} strokeWidth={st}/>
+          {pM > 0 && (
+            <circle
+              cx={sz/2}
+              cy={sz/2}
+              r={r}
+              fill="none"
+              stroke="#10B981"
+              strokeWidth={st}
+              strokeDasharray={circ}
+              strokeDashoffset={leanOffset}
+              transform={`rotate(-90 ${sz/2} ${sz/2})`}
+              style={{ transition:"stroke-dashoffset 0.5s ease" }}
+            />
+          )}
+          {pG > 0 && (
+            <circle
+              cx={sz/2}
+              cy={sz/2}
+              r={r}
+              fill="none"
+              stroke="#EF4444"
+              strokeWidth={st}
+              strokeDasharray={circ}
+              strokeDashoffset={fatOffset}
+              transform={fatRotation}
+              style={{ transition:"stroke-dashoffset 0.5s ease" }}
+            />
+          )}
+        </svg>
+        <div style={{ position:"absolute", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", lineHeight:1.1 }}>
+          <span style={{ fontSize:16, fontWeight:800, color:T.text }}>{w.toFixed(1)}</span>
+          <span style={{ fontSize:9, color:T.muted, fontWeight:700, textTransform:"uppercase", marginTop:1 }}>{unit}</span>
+        </div>
+      </div>
+
+      <div style={{ display:"flex", flexDirection:"column", gap:8, flex:1, textAlign:"left" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <div style={{ width:10, height:10, borderRadius:2.5, background:"#10B981", flexShrink:0 }}/>
+          <div style={{ display:"flex", flexDirection:"column", lineHeight:1.2 }}>
+            <span style={{ fontSize:9, fontWeight:700, color:T.sub, textTransform:"uppercase" }}>{t("massa_magra", lang)}</span>
+            <span style={{ fontSize:13, fontWeight:800, color:"#10B981" }}>
+              {wM} <span style={{ fontSize:10, fontWeight:500, color:T.muted }}>{unit} ({pM.toFixed(1)}%)</span>
+            </span>
+          </div>
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <div style={{ width:10, height:10, borderRadius:2.5, background:"#EF4444", flexShrink:0 }}/>
+          <div style={{ display:"flex", flexDirection:"column", lineHeight:1.2 }}>
+            <span style={{ fontSize:9, fontWeight:700, color:T.sub, textTransform:"uppercase" }}>{t("massa_gorda", lang)}</span>
+            <span style={{ fontSize:13, fontWeight:800, color:"#EF4444" }}>
+              {wG} <span style={{ fontSize:10, fontWeight:500, color:T.muted }}>{unit} ({pG.toFixed(1)}%)</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TrashBtn({ onClick, size }) {
   return (
     <button onClick={onClick} style={{ background:"none", border:"none", cursor:"pointer", padding:"4px 6px", display:"flex", alignItems:"center", flexShrink:0 }}>
@@ -4930,20 +5013,7 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
                             <span style={{ fontSize:22, fontWeight:800, color:pctColor(res) }}>{res + "%"}</span>
                           </div>
                           {av.peso && !isNaN(parseFloat(av.peso)) && (
-                            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
-                              <div style={{ padding:"10px 12px", background:"#FEF2F2", borderRadius:10, textAlign:"center" }}>
-                                <div style={{ fontSize:10, color:T.danger, fontWeight:700, textTransform:"uppercase" }}>{t("massa_gorda", lang)}</div>
-                                <div style={{ fontSize:18, fontWeight:800, color:T.danger, marginTop:2 }}>
-                                  {(parseFloat(av.peso) * (parseFloat(res)/100)).toFixed(1)} <span style={{ fontSize:11 }}>kg</span>
-                                </div>
-                              </div>
-                              <div style={{ padding:"10px 12px", background:"#E6F9F1", borderRadius:10, textAlign:"center" }}>
-                                <div style={{ fontSize:10, color:T.success, fontWeight:700, textTransform:"uppercase" }}>{t("massa_magra", lang)}</div>
-                                <div style={{ fontSize:18, fontWeight:800, color:T.success, marginTop:2 }}>
-                                  {(parseFloat(av.peso) * (1 - parseFloat(res)/100)).toFixed(1)} <span style={{ fontSize:11 }}>kg</span>
-                                </div>
-                              </div>
-                            </div>
+                            <Donut weight={av.peso} pct={res} lang={lang} unitSystem={unitSystem} isAlreadySystemWeight={true} />
                           )}
                         </div>
                       )}
@@ -4972,16 +5042,7 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
                       <div style={{ fontSize:12, color:T.muted, marginTop:2 }}>{lang === "en" ? "% Body Fat — average" : lang === "es" ? "% Grasa — promedio" : "% Gordura — média"}</div>
                     </div>
                     {peso && !isNaN(peso) && (
-                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-                        <div style={{ textAlign:"center", padding:"12px 8px", background:"#FEF2F2", borderRadius:10 }}>
-                          <div style={{ fontSize:10, color:T.danger, fontWeight:700, textTransform:"uppercase" }}>{t("massa_gorda", lang)}</div>
-                          <div style={{ fontSize:22, fontWeight:800, color:T.danger, marginTop:2 }}>{(peso * pct).toFixed(1)}<span style={{ fontSize:11 }}> kg</span></div>
-                        </div>
-                        <div style={{ textAlign:"center", padding:"12px 8px", background:"#E6F9F1", borderRadius:10 }}>
-                          <div style={{ fontSize:10, color:T.success, fontWeight:700, textTransform:"uppercase" }}>{t("massa_magra", lang)}</div>
-                          <div style={{ fontSize:22, fontWeight:800, color:T.success, marginTop:2 }}>{(peso * (1 - pct)).toFixed(1)}<span style={{ fontSize:11 }}> kg</span></div>
-                        </div>
-                      </div>
+                      <Donut weight={peso} pct={media} lang={lang} unitSystem={unitSystem} isAlreadySystemWeight={true} />
                     )}
                   </Card>
                 );
@@ -5494,16 +5555,7 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
                               <strong style={{ fontSize:20, color:pctColor(media) }}>{media + "%"}</strong>
                             </div>
                             {peso && !isNaN(peso) && pct && (
-                              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
-                                <div style={{ background:"#FEF2F2", padding:8, borderRadius:8, textAlign:"center" }}>
-                                  <div style={{ fontSize:9, color:T.danger, fontWeight:700, textTransform:"uppercase" }}>{t("massa_gorda", lang)}</div>
-                                  <div style={{ fontSize:16, fontWeight:800, color:T.danger, marginTop:2 }}>{toSystemWeight(peso * pct, unitSystem)} {getWeightUnit(unitSystem)}</div>
-                                </div>
-                                <div style={{ background:"#E6F9F1", padding:8, borderRadius:8, textAlign:"center" }}>
-                                  <div style={{ fontSize:9, color:T.success, fontWeight:700, textTransform:"uppercase" }}>{t("massa_magra", lang)}</div>
-                                  <div style={{ fontSize:16, fontWeight:800, color:T.success, marginTop:2 }}>{toSystemWeight(peso * (1 - pct), unitSystem)} {getWeightUnit(unitSystem)}</div>
-                                </div>
-                              </div>
+                              <Donut weight={peso} pct={media} lang={lang} unitSystem={unitSystem} isAlreadySystemWeight={false} />
                             )}
                           </div>
                         )}
