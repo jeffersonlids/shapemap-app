@@ -4557,7 +4557,13 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
   const firstName = alunoNome ? alunoNome.split(" ")[0] : (lang === "en" ? "Student" : lang === "es" ? "Alumno" : "Aluno");
   const unitSystem = (trainer && trainer.unitSystem) || "metric";
   const [av, setAv] = useState(function() { return migrateAval(init); });
-  const [tab, setTab] = useState(0);
+  const [tab, setTabState] = useState(function() {
+    return Number(localStorage.getItem("avaliapro_tab_" + init.id)) || 0;
+  });
+  const setTab = useCallback(function(tVal) {
+    setTabState(tVal);
+    localStorage.setItem("avaliapro_tab_" + init.id, String(tVal));
+  }, [init.id]);
   const [done, setDone] = useState(false);
   const [customActive, setCustomActive] = useState({});
   const tabsRef = useRef(null);
