@@ -9620,7 +9620,19 @@ export default function App() {
         av={avalData || newAval(null, null, null, null, settings)} 
         alunoNome={alunoAv ? alunoAv.nome : ""} 
         isNew={cur.isNew} 
-        onSave={async function(av) { if (alunoAv) await saveAval(alunoAv.id, av); }} 
+        onSave={async function(av) {
+          if (alunoAv) {
+            await saveAval(alunoAv.id, av);
+            setStack(function(p) {
+              return p.map(function(item, idx) {
+                if (idx === p.length - 1 && item.type === "avaliacao" && item.isNew) {
+                  return Object.assign({}, item, { isNew: false, avalId: av.id });
+                }
+                return item;
+              });
+            });
+          }
+        }} 
         onBack={pop} 
         settings={settings} 
         trainer={trainer} 
