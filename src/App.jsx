@@ -8992,17 +8992,11 @@ export default function App() {
       originalTitle = document.title;
       const cur = stack[stack.length - 1];
       if (cur) {
-        if (cur.type === "avaliacao") {
+        if (cur.type === "avaliacao" || cur.type === "comparar") {
           const student = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
           const firstName = student ? student.nome.trim().split(/\s+/)[0] : "";
           if (firstName) {
             document.title = firstName + " - ShapeMap";
-          }
-        } else if (cur.type === "comparar") {
-          const student = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
-          const firstName = student ? student.nome.trim().split(/\s+/)[0] : "";
-          if (firstName) {
-            document.title = firstName + " - Comparativo - ShapeMap";
           }
         }
       }
