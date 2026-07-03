@@ -1218,9 +1218,9 @@ function GlobalStyle() {
       .print-only { display: none !important; }
 
       @media print {
-        body { background: #ffffff !important; margin: 0 !important; padding: 0 !important; }
-        body * { visibility: hidden !important; }
-        #print-section, #print-section *, #print-compare-section, #print-compare-section * { visibility: visible !important; }
+        body { background: #ffffff !important; margin: 0 !important; padding: 0 !important; font-family: Arial, Helvetica, sans-serif !important; }
+        body * { visibility: hidden !important; font-family: Arial, Helvetica, sans-serif !important; }
+        #print-section, #print-section *, #print-compare-section, #print-compare-section * { visibility: visible !important; font-family: Arial, Helvetica, sans-serif !important; }
         
         .no-print, .no-print * { display: none !important; }
         .print-only { display: block !important; }
