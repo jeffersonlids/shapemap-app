@@ -7178,14 +7178,17 @@ function PerfilScreen({ trainer, onUpdate, onLogout }) {
                       body: JSON.stringify({ trainerId: trainer.id, email: trainer.email, nome: trainer.nome, lang: trainer.lang })
                     });
                     const data = await res.json();
+                    if (!res.ok) {
+                      throw new Error(data.error || "Erro ao conectar com Stripe.");
+                    }
                     if (data.url) {
                       window.location.href = data.url;
                     } else {
-                      alert(lang === "pt" ? "Erro ao redirecionar para o checkout." : "Error redirecting to checkout.");
+                      throw new Error("URL não retornada.");
                     }
                   } catch (err) {
                     console.error(err);
-                    alert(lang === "pt" ? "Erro ao iniciar assinatura." : "Error starting subscription.");
+                    alert(err.message || (lang === "pt" ? "Erro ao iniciar assinatura." : "Error starting subscription."));
                   }
                 }}
               >
@@ -7359,7 +7362,7 @@ function PaywallScreen({ trainer, onLogout }) {
       }
     } catch (err) {
       console.error(err);
-      setErrorMsg(lang === "pt" ? "Erro ao redirecionar. Tente novamente mais tarde." : "Error redirecting. Please try again later.");
+      setErrorMsg(err.message || (lang === "pt" ? "Erro ao redirecionar. Tente novamente mais tarde." : "Error redirecting. Please try again later."));
       setLoading(false);
     }
   }
