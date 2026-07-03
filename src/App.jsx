@@ -4710,13 +4710,7 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
 
   return (
     <div style={{ paddingBottom:80 }}>
-      {done && <CompletionOverlay onPDF={function() {
-        const originalTitle = document.title;
-        const firstName = alunoNome ? alunoNome.trim().split(/\s+/)[0] : "";
-        document.title = (firstName ? firstName + " - " : "") + "ShapeMap";
-        window.print();
-        document.title = originalTitle;
-      }} onClose={onBack} lang={lang}/>}
+      {done && <CompletionOverlay onPDF={function() { window.print(); }} onClose={onBack} lang={lang}/>}
       <div className="no-print" style={{ position:"sticky", top:0, zIndex:60, background:T.bg, borderBottom:"1px solid "+T.border, padding:"11px 16px 0" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:11 }}>
           <button onClick={handleBack} style={{ background:"none", border:"1.5px solid "+T.border, borderRadius:8, padding:"7px 10px", cursor:"pointer", display:"flex", alignItems:"center" }}>
@@ -6239,13 +6233,7 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
           </div>
         </div>
         <div className="no-print">
-          <Btn onClick={function() {
-            const originalTitle = document.title;
-            const firstName = aluno && aluno.nome ? aluno.nome.trim().split(/\s+/)[0] : "";
-            document.title = (firstName ? firstName + " - Comparativo - " : "") + "ShapeMap";
-            window.print();
-            document.title = originalTitle;
-          }} icon={<IcPdf c="#fff" s={16}/>}>{t("salvar_pdf", lang)}</Btn>
+          <Btn onClick={function() { window.print(); }} icon={<IcPdf c="#fff" s={16}/>}>{t("salvar_pdf", lang)}</Btn>
         </div>
       </div>
 
@@ -8995,6 +8983,42 @@ export default function App() {
 
     document.documentElement.lang = activeLang;
   }, [trainer, window.location.search]);
+
+  // Controlar o título da página ao imprimir para personalizar o nome do arquivo PDF salvo
+  useEffect(function() {
+    let originalTitle = document.title;
+
+    function handleBeforePrint() {
+      originalTitle = document.title;
+      const cur = stack[stack.length - 1];
+      if (cur) {
+        if (cur.type === "avaliacao") {
+          const student = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
+          const firstName = student ? student.nome.trim().split(/\s+/)[0] : "";
+          if (firstName) {
+            document.title = firstName + " - ShapeMap";
+          }
+        } else if (cur.type === "comparar") {
+          const student = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
+          const firstName = student ? student.nome.trim().split(/\s+/)[0] : "";
+          if (firstName) {
+            document.title = firstName + " - Comparativo - ShapeMap";
+          }
+        }
+      }
+    }
+
+    function handleAfterPrint() {
+      document.title = originalTitle;
+    }
+
+    window.addEventListener("beforeprint", handleBeforePrint);
+    window.addEventListener("afterprint", handleAfterPrint);
+    return function() {
+      window.removeEventListener("beforeprint", handleBeforePrint);
+      window.removeEventListener("afterprint", handleAfterPrint);
+    };
+  }, [stack, alunos]);
 
   // Load session and onAuthStateChange
   useEffect(function() {
