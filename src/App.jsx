@@ -7175,7 +7175,7 @@ function PerfilScreen({ trainer, onUpdate, onLogout }) {
                     const res = await fetch("/api/create-checkout-session", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ trainerId: trainer.id, email: trainer.email })
+                      body: JSON.stringify({ trainerId: trainer.id, email: trainer.email, nome: trainer.nome, lang: trainer.lang })
                     });
                     const data = await res.json();
                     if (data.url) {
@@ -7337,7 +7337,7 @@ function PaywallScreen({ trainer, onLogout }) {
       }
       const body = shouldGoToPortal 
         ? { customerId: trainer.stripeCustomerId }
-        : { trainerId: trainer.id, email: trainer.email, nome: trainer.nome };
+        : { trainerId: trainer.id, email: trainer.email, nome: trainer.nome, lang: trainer.lang };
 
       const res = await fetch(endpoint, {
         method: "POST",

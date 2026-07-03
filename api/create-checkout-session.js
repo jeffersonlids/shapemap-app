@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { trainerId, email, nome } = req.body;
+  const { trainerId, email, nome, lang } = req.body;
   
   if (!trainerId || !email) {
     return res.status(400).json({ error: 'Dados insuficientes (trainerId ou email ausentes).' });
@@ -29,7 +29,10 @@ export default async function handler(req, res) {
 
   try {
     const stripeSecret = process.env.STRIPE_SECRET_KEY;
-    const priceId = process.env.STRIPE_PRICE_ID;
+    const isUsd = lang === 'es' || lang === 'en';
+    const priceId = (isUsd && process.env.STRIPE_PRICE_ID_USD) 
+      ? process.env.STRIPE_PRICE_ID_USD 
+      : process.env.STRIPE_PRICE_ID;
 
     if (!stripeSecret || !priceId) {
       return res.status(500).json({ 
