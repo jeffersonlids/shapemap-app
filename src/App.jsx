@@ -4710,7 +4710,13 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
 
   return (
     <div style={{ paddingBottom:80 }}>
-      {done && <CompletionOverlay onPDF={function() { window.print(); }} onClose={onBack} lang={lang}/>}
+      {done && <CompletionOverlay onPDF={function() {
+        const originalTitle = document.title;
+        const firstName = alunoNome ? alunoNome.trim().split(/\s+/)[0] : "";
+        document.title = (firstName ? firstName + " - " : "") + "ShapeMap";
+        window.print();
+        document.title = originalTitle;
+      }} onClose={onBack} lang={lang}/>}
       <div className="no-print" style={{ position:"sticky", top:0, zIndex:60, background:T.bg, borderBottom:"1px solid "+T.border, padding:"11px 16px 0" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:11 }}>
           <button onClick={handleBack} style={{ background:"none", border:"1.5px solid "+T.border, borderRadius:8, padding:"7px 10px", cursor:"pointer", display:"flex", alignItems:"center" }}>
@@ -6233,7 +6239,13 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
           </div>
         </div>
         <div className="no-print">
-          <Btn onClick={function() { window.print(); }} icon={<IcPdf c="#fff" s={16}/>}>{t("salvar_pdf", lang)}</Btn>
+          <Btn onClick={function() {
+            const originalTitle = document.title;
+            const firstName = aluno && aluno.nome ? aluno.nome.trim().split(/\s+/)[0] : "";
+            document.title = (firstName ? firstName + " - Comparativo - " : "") + "ShapeMap";
+            window.print();
+            document.title = originalTitle;
+          }} icon={<IcPdf c="#fff" s={16}/>}>{t("salvar_pdf", lang)}</Btn>
         </div>
       </div>
 
