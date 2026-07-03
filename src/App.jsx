@@ -9092,6 +9092,19 @@ export default function App() {
 
       if (trainerError) throw trainerError;
 
+      // Sincronizar o idioma do banco com o idioma local/URL da tela de cadastro
+      if (trainerData && trainerData.lang === 'pt' && (trainer.lang === 'es' || trainer.lang === 'en')) {
+        const { data: updated, error: updateError } = await supabase
+          .from('trainers')
+          .update({ lang: trainer.lang })
+          .eq('id', sessionUser.id)
+          .select()
+          .single();
+        if (!updateError && updated) {
+          trainerData = updated;
+        }
+      }
+
       if (!trainerData) {
         const defaultSettings = {
           defaultMetodo: "pollock7",
