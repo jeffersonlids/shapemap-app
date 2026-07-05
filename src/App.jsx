@@ -7759,6 +7759,7 @@ function ConfigurarOnlineScreen({ aluno, onBack, onSend, settings, trainer }) {
       fotosTypes: fotosTypes,
       trainerNome: trainer.nome || "Prof. ShapeMap",
       trainerCor: trainer.corPrimaria || "#1A1A2E",
+      trainerFoto: trainer.foto || "",
       studentNome: aluno.nome || ""
     };
     onSend(finalConfig);
@@ -8454,9 +8455,17 @@ function StudentResponseScreen({ evalId }) {
   return (
     <div style={{ padding: "24px 16px 80px", display: "flex", flexDirection: "column", gap: 20 }}>
       <Card sx={{ padding: 20, border: "1.5px solid " + T.border, background: "linear-gradient(135deg, " + ac() + "0a, " + ac() + "18)", textAlign: "center" }}>
-        <div style={{ width: 50, height: 50, borderRadius: "50%", background: ac(), color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800, margin: "0 auto 12px" }}>
-          {config.trainerNome ? config.trainerNome.charAt(0).toUpperCase() : "T"}
-        </div>
+        {config.trainerFoto ? (
+          <img 
+            src={config.trainerFoto} 
+            alt={config.trainerNome} 
+            style={{ width: 50, height: 50, borderRadius: "50%", objectFit: "cover", margin: "0 auto 12px", display: "block", border: "2px solid " + ac() }} 
+          />
+        ) : (
+          <div style={{ width: 50, height: 50, borderRadius: "50%", background: ac(), color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800, margin: "0 auto 12px" }}>
+            {config.trainerNome ? config.trainerNome.charAt(0).toUpperCase() : "T"}
+          </div>
+        )}
         <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>
           {lang === "es" ? "Evaluación Física Online" : lang === "en" ? "Online Physical Evaluation" : "Avaliação Física Online"}
         </div>
@@ -9724,6 +9733,7 @@ export default function App() {
           const configJson = Object.assign({}, onlineConfig, {
             trainerColor: trainer.corPrimaria || "#1A1A2E",
             trainerNome: trainer.nome || "Prof. Jefferson",
+            trainerFoto: trainer.foto || "",
             alunoNome: alunoProf.nome,
             alunoSexo: alunoProf.sexo || "M",
             unitSystem: trainer.unitSystem || "metric"
