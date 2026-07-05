@@ -4803,41 +4803,17 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
                       }}/>
                     </div>
                     
-                    {(q.pergunta === "Já treinou antes?" || q.pergunta === "Está fazendo dieta?" || q.pergunta === "Fuma?") ? (
-                      <FSelect
-                        value={q.resposta}
-                        onChange={function(v) {
-                          var newAnam = av.anamnese.map(function(item) {
-                            return item.id === q.id ? Object.assign({}, item, { resposta: v }) : item;
-                          });
-                          upd("anamnese", newAnam);
-                        }}
-                        options={[{value:"",label:lang === "en" ? "Select..." : lang === "es" ? "Seleccione..." : "Selecione..."}, {value:"Sim",label:lang === "en" ? "Yes" : lang === "es" ? "Sí" : "Sim"}, {value:"Não",label:lang === "en" ? "No" : lang === "es" ? "No" : "Não"}]}
-                      />
-                    ) : q.pergunta === "Consumo de alcool?" ? (
-                      <FSelect
-                        value={q.resposta}
-                        onChange={function(v) {
-                          var newAnam = av.anamnese.map(function(item) {
-                            return item.id === q.id ? Object.assign({}, item, { resposta: v }) : item;
-                          });
-                          upd("anamnese", newAnam);
-                        }}
-                        options={[{value:"",label:lang === "en" ? "Select..." : lang === "es" ? "Seleccione..." : "Selecione..."}, {value:"Não consome",label:lang === "en" ? "Does not consume" : lang === "es" ? "No consume" : "Não consome"}, {value:"Socialmente",label:lang === "en" ? "Socially" : lang === "es" ? "Socialmente" : "Socialmente"}, {value:"Frequente",label:lang === "en" ? "Frequently" : lang === "es" ? "Frecuente" : "Frequente"}]}
-                      />
-                    ) : (
-                      <FTextarea
-                        value={q.resposta}
-                        onChange={function(v) {
-                          var newAnam = av.anamnese.map(function(item) {
-                            return item.id === q.id ? Object.assign({}, item, { resposta: v }) : item;
-                          });
-                          upd("anamnese", newAnam);
-                        }}
-                        placeholder={lang === "en" ? "Student's answer..." : lang === "es" ? "Respuesta del evaluado..." : "Resposta do avaliado..."}
-                        rows={2}
-                      />
-                    )}
+                    <FTextarea
+                      value={q.resposta}
+                      onChange={function(v) {
+                        var newAnam = av.anamnese.map(function(item) {
+                          return item.id === q.id ? Object.assign({}, item, { resposta: v }) : item;
+                        });
+                        upd("anamnese", newAnam);
+                      }}
+                      placeholder={lang === "en" ? "Student's answer..." : lang === "es" ? "Respuesta del evaluado..." : "Resposta do avaliado..."}
+                      rows={2}
+                    />
                   </Card>
                 );
               })}
