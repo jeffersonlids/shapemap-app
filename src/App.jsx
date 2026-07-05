@@ -8459,10 +8459,10 @@ function StudentResponseScreen({ evalId }) {
           <img 
             src={config.trainerFoto} 
             alt={config.trainerNome} 
-            style={{ width: 50, height: 50, borderRadius: "50%", objectFit: "cover", margin: "0 auto 12px", display: "block", border: "2px solid " + ac() }} 
+            style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", margin: "0 auto 12px", display: "block", border: "2px solid " + ac() }} 
           />
         ) : (
-          <div style={{ width: 50, height: 50, borderRadius: "50%", background: ac(), color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800, margin: "0 auto 12px" }}>
+          <div style={{ width: 72, height: 72, borderRadius: "50%", background: ac(), color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, fontWeight: 800, margin: "0 auto 12px" }}>
             {config.trainerNome ? config.trainerNome.charAt(0).toUpperCase() : "T"}
           </div>
         )}
