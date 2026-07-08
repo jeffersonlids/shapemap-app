@@ -3308,7 +3308,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
         >
           <div 
             style={{ 
-              background: T.card || "#1E1E2E", 
+              background: T.surface || "#FFFFFF", 
               borderRadius: 16, 
               border: "1.5px solid " + T.border,
               padding: 24, 
@@ -3318,7 +3318,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
               display: "flex", 
               flexDirection: "column", 
               position: "relative",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.3)"
+              boxShadow: "0 10px 30px rgba(0,0,0,0.15)"
             }} 
             onClick={function(e) { e.stopPropagation(); }}
           >
@@ -3376,7 +3376,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
         >
           <div 
             style={{ 
-              background: T.card || "#1E1E2E", 
+              background: T.surface || "#FFFFFF", 
               borderRadius: 16, 
               border: "1.5px solid " + T.border,
               padding: 24, 
@@ -3386,7 +3386,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
               display: "flex", 
               flexDirection: "column", 
               position: "relative",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.3)"
+              boxShadow: "0 10px 30px rgba(0,0,0,0.15)"
             }} 
             onClick={function(e) { e.stopPropagation(); }}
           >
