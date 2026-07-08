@@ -5,7 +5,10 @@ import {
   BarChart, Bar, LabelList
 } from "recharts";
 import { supabase } from "./supabase";
-import { TERMOS_DE_SERVICO, POLITICA_DE_PRIVACIDADE } from "./termosText";
+import { 
+  TERMOS_DE_SERVICO_PT, TERMOS_DE_SERVICO_EN, TERMOS_DE_SERVICO_ES, 
+  POLITICA_DE_PRIVACIDADE_PT, POLITICA_DE_PRIVACIDADE_EN, POLITICA_DE_PRIVACIDADE_ES 
+} from "./termosText";
 
 
 // ── TRANSLATIONS ──────────────────────────────────────────────────────────────
@@ -3347,7 +3350,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
               whiteSpace: "pre-line",
               textAlign: "left"
             }}>
-              {TERMOS_DE_SERVICO}
+              {lang === "es" ? TERMOS_DE_SERVICO_ES : lang === "en" ? TERMOS_DE_SERVICO_EN : TERMOS_DE_SERVICO_PT}
             </div>
             
             <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
@@ -3415,7 +3418,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
               whiteSpace: "pre-line",
               textAlign: "left"
             }}>
-              {POLITICA_DE_PRIVACIDADE}
+              {lang === "es" ? POLITICA_DE_PRIVACIDADE_ES : lang === "en" ? POLITICA_DE_PRIVACIDADE_EN : POLITICA_DE_PRIVACIDADE_PT}
             </div>
             
             <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
