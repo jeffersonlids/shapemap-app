@@ -5,6 +5,7 @@ import {
   BarChart, Bar, LabelList
 } from "recharts";
 import { supabase } from "./supabase";
+import { TERMOS_DE_SERVICO, POLITICA_DE_PRIVACIDADE } from "./termosText";
 
 
 // ── TRANSLATIONS ──────────────────────────────────────────────────────────────
@@ -2918,6 +2919,9 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
            hash === "#cadastro" || 
            hash === "#register";
   });
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [isResetMode, setIsResetMode] = useState(false);
   const [recoveryEmailSent, setRecoveryEmailSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -2934,6 +2938,16 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
       setErrorMsg(lang === "pt" ? "Os e-mails informados não coincidem" : lang === "es" ? "Los correos electrónicos no coinciden" : "The emails entered do not match");
       return;
     }
+    if (isSignUp && !acceptTerms) {
+      setErrorMsg(
+        lang === "pt" 
+          ? "Você deve aceitar os Termos de Serviço e a Política de Privacidade" 
+          : lang === "es"
+          ? "Debe aceptar los Términos de Servicio y la Política de Privacidad"
+          : "You must accept the Terms of Service and Privacy Policy"
+      );
+      return;
+    }
     setLoading(true);
     setErrorMsg("");
     
@@ -2943,7 +2957,9 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
         password: senha,
         options: {
           data: {
-            nome: nome
+            nome: nome,
+            termos_aceite_data: new Date().toISOString(),
+            termos_versao: "1.0"
           }
         }
       });
@@ -3144,6 +3160,97 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
                   </span>
                 </div>
 
+                {isSignUp && (
+                  <div 
+                    style={{ 
+                      display: "flex", 
+                      alignItems: "flex-start", 
+                      gap: 8, 
+                      userSelect: "none", 
+                      cursor: "pointer",
+                      padding: "2px 0",
+                      marginTop: 4,
+                      marginBottom: 8
+                    }}
+                    onClick={function() { setAcceptTerms(!acceptTerms); }}
+                  >
+                    <div style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 6,
+                      border: "1.5px solid " + (acceptTerms ? ac() : T.border),
+                      background: acceptTerms ? ac() : "transparent",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "all 0.15s ease",
+                      boxShadow: acceptTerms ? "0 2px 8px " + ac() + "33" : "none",
+                      marginTop: 2,
+                      flexShrink: 0
+                    }}>
+                      {acceptTerms && (
+                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                          <path d="M1.5 4L3.75 6.25L8.5 1.5" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </div>
+                    <span style={{ fontSize: 12, color: T.text, fontWeight: 500, lineHeight: "16px" }}>
+                      {lang === "pt" ? (
+                        <>
+                          Li e concordo com os{" "}
+                          <span 
+                            style={{ color: ac(), textDecoration: "underline", fontWeight: 600 }} 
+                            onClick={function(e) { e.stopPropagation(); setShowTermsModal(true); }}
+                          >
+                            Termos de Serviço
+                          </span>{" "}
+                          e a{" "}
+                          <span 
+                            style={{ color: ac(), textDecoration: "underline", fontWeight: 600 }} 
+                            onClick={function(e) { e.stopPropagation(); setShowPrivacyModal(true); }}
+                          >
+                            Política de Privacidade
+                          </span>.
+                        </>
+                      ) : lang === "es" ? (
+                        <>
+                          He leído y acepto los{" "}
+                          <span 
+                            style={{ color: ac(), textDecoration: "underline", fontWeight: 600 }} 
+                            onClick={function(e) { e.stopPropagation(); setShowTermsModal(true); }}
+                          >
+                            Términos de Servicio
+                          </span>{" "}
+                          y la{" "}
+                          <span 
+                            style={{ color: ac(), textDecoration: "underline", fontWeight: 600 }} 
+                            onClick={function(e) { e.stopPropagation(); setShowPrivacyModal(true); }}
+                          >
+                            Política de Privacidad
+                          </span>.
+                        </>
+                      ) : (
+                        <>
+                          I have read and agree to the{" "}
+                          <span 
+                            style={{ color: ac(), textDecoration: "underline", fontWeight: 600 }} 
+                            onClick={function(e) { e.stopPropagation(); setShowTermsModal(true); }}
+                          >
+                            Terms of Service
+                          </span>{" "}
+                          and the{" "}
+                          <span 
+                            style={{ color: ac(), textDecoration: "underline", fontWeight: 600 }} 
+                            onClick={function(e) { e.stopPropagation(); setShowPrivacyModal(true); }}
+                          >
+                            Privacy Policy
+                          </span>.
+                        </>
+                      )}
+                    </span>
+                  </div>
+                )}
+
                 <Btn full onClick={go} disabled={loading}>{buttonText}</Btn>
               </>
             )}
@@ -3166,6 +3273,157 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
               ? (lang === "pt" ? "Entrar" : lang === "es" ? "Entrar" : "Log in")
               : t("criar_conta_gratis", lang)}
           </span>
+        </div>
+      )}
+
+      <div style={{ marginTop: 24, textAlign: "center", display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
+        <span 
+          style={{ fontSize: 11, color: T.muted, cursor: "pointer", textDecoration: "underline", fontWeight: 500 }}
+          onClick={function() { setShowTermsModal(true); }}
+        >
+          {lang === "pt" ? "Termos de Serviço" : lang === "es" ? "Términos de Servicio" : "Terms of Service"}
+        </span>
+        <span 
+          style={{ fontSize: 11, color: T.muted, cursor: "pointer", textDecoration: "underline", fontWeight: 500 }}
+          onClick={function() { setShowPrivacyModal(true); }}
+        >
+          {lang === "pt" ? "Política de Privacidade" : lang === "es" ? "Política de Privacidad" : "Privacy Policy"}
+        </span>
+      </div>
+
+      {showTermsModal && (
+        <div 
+          style={{ 
+            position: "fixed", 
+            inset: 0, 
+            background: "rgba(0,0,0,0.5)", 
+            backdropFilter: "blur(4px)", 
+            zIndex: 9999, 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center", 
+            padding: 24 
+          }} 
+          onClick={function() { setShowTermsModal(false); }}
+        >
+          <div 
+            style={{ 
+              background: T.card || "#1E1E2E", 
+              borderRadius: 16, 
+              border: "1.5px solid " + T.border,
+              padding: 24, 
+              width: "100%", 
+              maxWidth: 600, 
+              maxHeight: "80vh", 
+              display: "flex", 
+              flexDirection: "column", 
+              position: "relative",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.3)"
+            }} 
+            onClick={function(e) { e.stopPropagation(); }}
+          >
+            <div 
+              style={{ 
+                position: "absolute", 
+                top: 16, 
+                right: 18, 
+                cursor: "pointer", 
+                fontSize: 16, 
+                color: T.muted, 
+                fontWeight: "bold",
+                padding: 4
+              }} 
+              onClick={function() { setShowTermsModal(false); }}
+            >
+              ✕
+            </div>
+            
+            <div style={{ 
+              overflowY: "auto", 
+              paddingRight: 8, 
+              fontSize: 13, 
+              color: T.text, 
+              lineHeight: "1.6",
+              whiteSpace: "pre-line",
+              textAlign: "left"
+            }}>
+              {TERMOS_DE_SERVICO}
+            </div>
+            
+            <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
+              <Btn onClick={function() { setShowTermsModal(false); }}>
+                {lang === "pt" ? "Fechar" : lang === "es" ? "Cerrar" : "Close"}
+              </Btn>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPrivacyModal && (
+        <div 
+          style={{ 
+            position: "fixed", 
+            inset: 0, 
+            background: "rgba(0,0,0,0.5)", 
+            backdropFilter: "blur(4px)", 
+            zIndex: 9999, 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center", 
+            padding: 24 
+          }} 
+          onClick={function() { setShowPrivacyModal(false); }}
+        >
+          <div 
+            style={{ 
+              background: T.card || "#1E1E2E", 
+              borderRadius: 16, 
+              border: "1.5px solid " + T.border,
+              padding: 24, 
+              width: "100%", 
+              maxWidth: 600, 
+              maxHeight: "80vh", 
+              display: "flex", 
+              flexDirection: "column", 
+              position: "relative",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.3)"
+            }} 
+            onClick={function(e) { e.stopPropagation(); }}
+          >
+            <div 
+              style={{ 
+                position: "absolute", 
+                top: 16, 
+                right: 18, 
+                cursor: "pointer", 
+                fontSize: 16, 
+                color: T.muted, 
+                fontWeight: "bold",
+                padding: 4
+              }} 
+              onClick={function() { setShowPrivacyModal(false); }}
+            >
+              ✕
+            </div>
+            
+            <div style={{ 
+              overflowY: "auto", 
+              paddingRight: 8, 
+              fontSize: 13, 
+              color: T.text, 
+              lineHeight: "1.6",
+              whiteSpace: "pre-line",
+              textAlign: "left"
+            }}>
+              {POLITICA_DE_PRIVACIDADE}
+            </div>
+            
+            <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
+              <Btn onClick={function() { setShowPrivacyModal(false); }}>
+                {lang === "pt" ? "Fechar" : lang === "es" ? "Cerrar" : "Close"}
+              </Btn>
+            </div>
+          </div>
         </div>
       )}
     </div>
