@@ -1182,6 +1182,11 @@ function GlobalStyle() {
       @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
       @keyframes popIn { 0%{opacity:0;transform:scale(0.4)} 60%{transform:scale(1.12)} 100%{opacity:1;transform:scale(1)} }
       @keyframes checkDraw { from{stroke-dashoffset:60} to{stroke-dashoffset:0} }
+      @keyframes shakeRed {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-6px); }
+        40%, 80% { transform: translateX(6px); }
+      }
       @keyframes fall { 0%{transform:translateY(-10px) rotate(0deg);opacity:1} 100%{transform:translateY(140px) rotate(700deg);opacity:0} }
       @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
       @keyframes pulse { 0% { opacity: 0.35; } 100% { opacity: 1; } }
@@ -2925,6 +2930,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [shakeTerms, setShakeTerms] = useState(false);
   const [isResetMode, setIsResetMode] = useState(false);
   const [recoveryEmailSent, setRecoveryEmailSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -2942,6 +2948,8 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
       return;
     }
     if (isSignUp && !acceptTerms) {
+      setShakeTerms(true);
+      setTimeout(function() { setShakeTerms(false); }, 500);
       setErrorMsg(
         lang === "pt" 
           ? "Você deve aceitar os Termos de Serviço e a Política de Privacidade" 
@@ -3173,7 +3181,8 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
                       cursor: "pointer",
                       padding: "2px 0",
                       marginTop: 4,
-                      marginBottom: 8
+                      marginBottom: 8,
+                      animation: shakeTerms ? "shakeRed 0.4s ease-in-out" : "none"
                     }}
                     onClick={function() { setAcceptTerms(!acceptTerms); }}
                   >
@@ -3181,8 +3190,8 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
                       width: 18,
                       height: 18,
                       borderRadius: 6,
-                      border: "1.5px solid " + (acceptTerms ? ac() : T.border),
-                      background: acceptTerms ? ac() : "transparent",
+                      border: "1.5px solid " + (shakeTerms ? T.danger : (acceptTerms ? ac() : T.border)),
+                      background: shakeTerms ? T.danger + "18" : (acceptTerms ? ac() : "transparent"),
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
