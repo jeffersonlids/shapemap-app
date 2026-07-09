@@ -6196,7 +6196,7 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
   }
 
   function renderHistoryLineChart(title, data, dataKey, color, unit = "", label = "", goodDecreasing = true, val1 = null, val2 = null) {
-    var filtered = data.filter(function(d) { return d[dataKey] !== null; });
+    var filtered = data.filter(function(d) { return d[dataKey] !== null && d[dataKey] !== undefined; });
     if (filtered.length < 1) return null;
     
     var v1 = (val1 !== null && val1 !== undefined && val1 !== "") ? val1 : (filtered.length >= 1 ? filtered[0][dataKey] : null);
@@ -6255,16 +6255,18 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
   }
 
   // Composição Corporal Calculations
-  var perimForComp1 = Object.assign({}, av1.perimetria, { altura: av1.altura });
-  var perimForComp2 = Object.assign({}, av2.perimetria, { altura: av2.altura });
+  var perimForComp1 = Object.assign({}, av1.perimetria || {}, { altura: av1.altura });
+  var perimForComp2 = Object.assign({}, av2.perimetria || {}, { altura: av2.altura });
   
   var comps1 = av1.composicoes ? av1.composicoes.map(function(comp, i) {
+    if (!comp) return { label: "", v: null, i: i };
     return { label: METODOS[comp.metodo] ? METODOS[comp.metodo].label : comp.metodo, v: compResult(av1.sexo, av1.idade, perimForComp1, comp), i: i };
   }) : [];
   var vals1 = comps1.filter(function(c) { return c.v && !isNaN(parseFloat(c.v)); });
   var mediaGordura1 = vals1.length >= 2 ? (vals1.reduce(function(s, c) { return s + parseFloat(c.v); }, 0) / vals1.length).toFixed(1) : (vals1.length === 1 ? vals1[0].v : null);
 
   var comps2 = av2.composicoes ? av2.composicoes.map(function(comp, i) {
+    if (!comp) return { label: "", v: null, i: i };
     return { label: METODOS[comp.metodo] ? METODOS[comp.metodo].label : comp.metodo, v: compResult(av2.sexo, av2.idade, perimForComp2, comp), i: i };
   }) : [];
   var vals2 = comps2.filter(function(c) { return c.v && !isNaN(parseFloat(c.v)); });
@@ -6337,9 +6339,9 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
   ];
   var camposPerim = settings ? settings.perimetriaCampos : defaultCampos;
   var activePerims = camposPerim.filter(function(f) {
-    var v1 = av1.perimetria && av1.perimetria[f.key];
-    var v2 = av2.perimetria && av2.perimetria[f.key];
-    return (v1 !== undefined && v1 !== "") || (v2 !== undefined && v2 !== "");
+    var v1 = (av1.perimetria && av1.perimetria[f.key] !== undefined && av1.perimetria[f.key] !== null) ? av1.perimetria[f.key] : "";
+    var v2 = (av2.perimetria && av2.perimetria[f.key] !== undefined && av2.perimetria[f.key] !== null) ? av2.perimetria[f.key] : "";
+    return v1 !== "" || v2 !== "";
   });
 
   // RCQ Calculation
@@ -6359,8 +6361,9 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
   var historyCompData = sortedSelected.map(function(idx) {
     var a = avs[idx];
     if (!a) return {};
-    var pForComp = Object.assign({}, a.perimetria, { altura: a.altura });
+    var pForComp = Object.assign({}, a.perimetria || {}, { altura: a.altura });
     var comps = a.composicoes ? a.composicoes.map(function(comp, i) {
+      if (!comp) return { label: "", v: null, i: i };
       return { label: METODOS[comp.metodo] ? METODOS[comp.metodo].label : comp.metodo, v: compResult(a.sexo, a.idade, pForComp, comp), i: i };
     }) : [];
     var vals = comps.filter(function(c) { return c.v && !isNaN(parseFloat(c.v)); });
@@ -6394,20 +6397,20 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
   var testes1 = av1.testes || [];
   var testes2 = av2.testes || [];
   testes1.forEach(function(t) {
-    if (t.exercicio && allExercises.indexOf(t.exercicio) < 0) allExercises.push(t.exercicio);
+    if (t && t.exercicio && allExercises.indexOf(t.exercicio) < 0) allExercises.push(t.exercicio);
   });
   testes2.forEach(function(t) {
-    if (t.exercicio && allExercises.indexOf(t.exercicio) < 0) allExercises.push(t.exercicio);
+    if (t && t.exercicio && allExercises.indexOf(t.exercicio) < 0) allExercises.push(t.exercicio);
   });
   function findTeste(testes, ex) {
-    return testes.find(function(t) { return t.exercicio === ex; });
+    return testes ? testes.find(function(t) { return t && t.exercicio === ex; }) : null;
   }
 
   function getExerciseHistory(exerciseName) {
     return sortedSelected.map(function(idx) {
       var a = avs[idx];
       if (!a) return { shortName: (idx + 1) + "º", carga: null, reps: null, data: null };
-      var t = a.testes ? a.testes.find(function(item) { return item.exercicio === exerciseName; }) : null;
+      var t = a.testes ? a.testes.find(function(item) { return item && item.exercicio === exerciseName; }) : null;
       var rawCarga = (t && t.carga && !isNaN(parseFloat(t.carga))) ? parseFloat(t.carga) : null;
       var convertedCarga = rawCarga ? parseFloat(toSystemWeight(rawCarga, unitSystem)) : null;
       return {
@@ -6636,8 +6639,8 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
             </div>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(180px, 1fr))", gap:"6px 16px" }}>
               {activePerims.map(function(f) {
-                var rawV1 = av1.perimetria[f.key];
-                var rawV2 = av2.perimetria[f.key];
+                var rawV1 = (av1.perimetria && av1.perimetria[f.key] !== undefined && av1.perimetria[f.key] !== null) ? av1.perimetria[f.key] : "";
+                var rawV2 = (av2.perimetria && av2.perimetria[f.key] !== undefined && av2.perimetria[f.key] !== null) ? av2.perimetria[f.key] : "";
                 var v1 = rawV1 ? toSystemLength(rawV1, unitSystem) : "";
                 var v2 = rawV2 ? toSystemLength(rawV2, unitSystem) : "";
                 var unit = getLengthUnit(unitSystem);
