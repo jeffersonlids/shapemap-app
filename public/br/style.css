@@ -683,7 +683,7 @@ img {
     width: 100%;
     max-width: 330px;
     aspect-ratio: 9 / 16;
-    margin: 30px auto 40px auto; /* Positive margin bottom to prevent overlap on desktop */
+    margin: 15px auto 40px auto; /* Positive margin bottom to prevent overlap on desktop */
     overflow: hidden;
     display: flex;
     align-items: flex-end;
@@ -756,6 +756,10 @@ img {
 .benefits-video-hero .benefits-section-header h2 .gradient-text {
     position: relative;
     z-index: 16;
+}
+
+.benefits-top-header {
+    margin-bottom: 25px !important;
 }
 
 .benefits-grid {
@@ -1481,12 +1485,16 @@ img {
     }
 
     .benefits-section {
-        padding: 0 0 40px 0;
+        padding: 50px 0 40px 0;
+    }
+
+    .benefits-top-header {
+        margin-bottom: 10px !important;
     }
 
     .benefits-video-hero {
         max-width: 310px;
-        margin-top: 20px;
+        margin-top: 10px !important;
         margin-bottom: -25px;
     }
 
