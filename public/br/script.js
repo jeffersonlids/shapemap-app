@@ -261,12 +261,64 @@ document.addEventListener('DOMContentLoaded', () => {
                     openItem.classList.remove('active');
                     openItem.querySelector('.faq-answer').style.maxHeight = '0';
                 });
-                
-                // Open clicked FAQ item
+                               // Open clicked FAQ item
                 item.classList.add('active');
                 answer.style.maxHeight = answer.scrollHeight + 'px';
             }
         });
     });
+
+    // ==========================================
+    // 6. INTERACTIVE ROI CALCULATOR
+    // ==========================================
+    const qtySlider = document.getElementById('qty-slider');
+    const priceSlider = document.getElementById('price-slider');
+    const qtyVal = document.getElementById('qty-val');
+    const priceVal = document.getElementById('price-val');
+    const revenueResult = document.getElementById('revenue-result');
+    const comparisonText = document.getElementById('comparison-text');
+    
+    if (qtySlider && priceSlider) {
+        function updateROI() {
+            const qty = parseInt(qtySlider.value);
+            const price = parseInt(priceSlider.value);
+            
+            // Update labels
+            qtyVal.textContent = qty;
+            priceVal.textContent = 'R$ ' + price;
+            
+            // Calculate revenue
+            const totalRevenue = qty * price;
+            
+            // Format revenue to currency BRL
+            const formattedRevenue = totalRevenue.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+            
+            revenueResult.textContent = formattedRevenue;
+            
+            // Dynamic comparison hint (e.g. "1 única avaliação paga X meses de sistema!")
+            const monthlyCost = 19.90;
+            if (totalRevenue > 0) {
+                const singleEvalPaidMonths = Math.floor(price / monthlyCost);
+                if (singleEvalPaidMonths > 1) {
+                    comparisonText.textContent = `1 única avaliação paga ${singleEvalPaidMonths} meses de sistema!`;
+                } else if (singleEvalPaidMonths === 1) {
+                    comparisonText.textContent = `1 única avaliação paga 1 mês de sistema!`;
+                } else {
+                    comparisonText.textContent = `Retorno financeiro garantido!`;
+                }
+            } else {
+                comparisonText.textContent = `Simule seu retorno`;
+            }
+        }
+        
+        qtySlider.addEventListener('input', updateROI);
+        priceSlider.addEventListener('input', updateROI);
+        
+        // Initial run
+        updateROI();
+    }
 
 });

@@ -228,14 +228,14 @@
 
     <!-- Benefits Section -->
     <section id="beneficios" class="benefits-section">
-        <!-- Desktop-only Section Header -->
-        <div class="container desktop-only-header">
-            <div class="section-header">
+        <!-- Unified Section Header above the phone video mockup -->
+        <div class="container">
+            <div class="section-header benefits-top-header">
                 <h2>Sua Avaliação Física no <span class="gradient-text">Próximo Nível</span></h2>
             </div>
         </div>
 
-        <!-- Background Video Header Container -->
+        <!-- Background Video Header Container (Phone Mockup) -->
         <div class="benefits-video-hero">
             <div class="video-hero-bg">
                 <video class="video-hero-media" autoplay loop muted playsinline preload="none">
@@ -243,9 +243,57 @@
                 </video>
                 <div class="video-hero-overlay"></div>
             </div>
-            <div class="section-header-container mobile-only-header-container">
-                <div class="section-header benefits-section-header">
-                    <h2>Sua Avaliação Física no <span class="gradient-text">Próximo Nível</span></h2>
+        </div>
+
+        <!-- Interactive ROI Calculator Card -->
+        <div class="roi-calculator-container scroll-animate">
+            <div class="roi-card">
+                <h3 class="roi-title">Simulador de Faturamento</h3>
+                <p class="roi-subtitle">Veja quanto você pode lucrar por mês cobrando por suas avaliações com o ShapeMap</p>
+                
+                <div class="roi-sliders">
+                    <!-- Slider 1 -->
+                    <div class="roi-field-group">
+                        <div class="roi-field-header">
+                            <span class="roi-field-label">Avaliações por mês</span>
+                            <span id="qty-val" class="roi-field-value">15</span>
+                        </div>
+                        <input type="range" id="qty-slider" min="1" max="100" value="15" class="roi-slider">
+                        <div class="roi-slider-ticks">
+                            <span>1</span>
+                            <span>50</span>
+                            <span>100</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider 2 -->
+                    <div class="roi-field-group">
+                        <div class="roi-field-header">
+                            <span class="roi-field-label">Preço cobrado por avaliação</span>
+                            <span id="price-val" class="roi-field-value">R$ 100</span>
+                        </div>
+                        <input type="range" id="price-slider" min="30" max="300" step="5" value="100" class="roi-slider">
+                        <div class="roi-slider-ticks">
+                            <span>R$ 30</span>
+                            <span>R$ 165</span>
+                            <span>R$ 300</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="roi-result-card">
+                    <div class="roi-result-item">
+                        <span class="roi-result-label">Seu faturamento mensal estimado</span>
+                        <span id="revenue-result" class="roi-result-value">R$ 1.500,00</span>
+                    </div>
+                    <div class="roi-divider"></div>
+                    <div class="roi-result-footer">
+                        <span class="roi-footer-hint">Seu investimento na ferramenta é insignificante:</span>
+                        <div class="roi-metric-row">
+                            <span class="roi-footer-cost">Mensalidade do ShapeMap: <strong>R$ 19,90</strong></span>
+                            <span class="roi-footer-comparison" id="comparison-text">Carregando retorno...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
