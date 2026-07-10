@@ -321,4 +321,43 @@ document.addEventListener('DOMContentLoaded', () => {
         updateROI();
     }
 
+    // ==========================================
+    // 8. ANIMATED CLIENTS COUNTER
+    // ==========================================
+    const counterElement = document.getElementById('clients-counter');
+    if (counterElement) {
+        const targetNumber = 600;
+        const duration = 2000; // 2 seconds
+        
+        const animateCounter = () => {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                
+                // Easing function: easeOutQuad
+                const easeProgress = progress * (2 - progress);
+                
+                counterElement.textContent = Math.floor(easeProgress * targetNumber);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    counterElement.textContent = targetNumber;
+                }
+            };
+            window.requestAnimationFrame(step);
+        };
+        
+        const counterObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateCounter();
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        counterObserver.observe(counterElement);
+    }
+
 });
