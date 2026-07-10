@@ -1946,7 +1946,11 @@ img {
     }
     
     .counter-number-container {
-        font-size: 0.95rem;
+        font-size: 2.6rem;
+    }
+    
+    .counter-label {
+        font-size: 0.8rem;
     }
 }
 
@@ -1958,16 +1962,25 @@ img {
     margin-top: 40px;
     margin-bottom: 12px;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
 }
 
 .counter-number-container {
     font-family: var(--font-heading);
-    font-size: 1.3rem;
-    font-weight: 700;
+    font-size: 3.4rem;
+    font-weight: 800;
     color: #ffffff;
-    letter-spacing: 1px;
+    margin-bottom: 4px;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.counter-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
     text-transform: uppercase;
-    line-height: 1.2;
+    letter-spacing: 1px;
 }
