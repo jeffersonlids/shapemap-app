@@ -1941,14 +1941,11 @@ img {
     }
 
     .counter-header-wrapper {
-        margin-bottom: 24px;
+        margin-top: 28px;
+        margin-bottom: 8px;
     }
     
     .counter-number-container {
-        font-size: 2.2rem;
-    }
-    
-    .counter-label {
         font-size: 0.95rem;
     }
 }
@@ -1958,27 +1955,19 @@ img {
    ========================================== */
 .counter-header-wrapper {
     text-align: center;
-    margin-bottom: 36px;
+    margin-top: 40px;
+    margin-bottom: 12px;
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
+    align-items: center;
 }
 
 .counter-number-container {
     font-family: var(--font-heading);
-    font-size: 3.4rem;
-    font-weight: 800;
-    color: #fff;
-    margin-bottom: 4px;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-}
-
-.counter-label {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.7);
-    text-transform: uppercase;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #ffffff;
     letter-spacing: 1px;
+    text-transform: uppercase;
+    line-height: 1.2;
 }
