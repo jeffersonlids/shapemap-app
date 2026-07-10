@@ -86,8 +86,18 @@
                 <div class="vsl-wrapper">
                     <div class="vsl-mockup">
                         <div class="vsl-video-container" style="position: relative; overflow: hidden; background: #000; border-radius: 12px;">
+                            <!-- Embedded Iframe ready to play -->
+                            <iframe 
+                                id="vslPlayer"
+                                src="https://www.youtube.com/embed/zzPiKMaeN48?enablejsapi=1&autoplay=0&mute=0&controls=1&rel=0&playsinline=1" 
+                                title="ShapeMap VSL" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allowfullscreen
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; border-radius: 12px; z-index: 1;">
+                            </iframe>
                             <!-- Youtube Facade (Preview Image) to prevent initial render blocking -->
-                            <div class="vsl-facade" id="vslFacade" onclick="loadVSLVideo()" style="position: absolute; inset: 0; cursor: pointer; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; z-index: 10;">
+                            <div class="vsl-facade" id="vslFacade" onclick="playVSLVideo()" style="position: absolute; inset: 0; cursor: pointer; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; z-index: 10; transition: opacity 0.5s ease;">
                                 <img src="/br/thumbnail.png" alt="ShapeMap VSL Preview" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: opacity 0.3s, transform 0.3s;">
                                 <div class="play-btn-wrapper" style="position: absolute; width: 68px; height: 68px; background: rgba(0, 0, 0, 0.65); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.4); transition: transform 0.2s, background-color 0.2s;">
                                     <svg width="24" height="26" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: 3px;">
@@ -697,19 +707,19 @@
 
     <!-- Video Facade and Lazy-loading Video Scripts -->
     <script>
-        // Load YouTube VSL dynamically on click
-        function loadVSLVideo() {
-            const container = document.querySelector('.vsl-video-container');
-            container.innerHTML = `
-                <iframe 
-                    src="https://www.youtube.com/embed/zzPiKMaeN48?autoplay=1&mute=0&controls=1&rel=0" 
-                    title="ShapeMap VSL" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowfullscreen
-                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; border-radius: 12px;">
-                </iframe>
-            `;
+        // Play YouTube VSL with fade-out effect and postMessage
+        function playVSLVideo() {
+            const facade = document.getElementById('vslFacade');
+            if (facade) {
+                facade.style.opacity = '0';
+                setTimeout(() => {
+                    facade.style.display = 'none';
+                }, 500);
+            }
+            const iframe = document.getElementById('vslPlayer');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+            }
         }
 
         // Lazy-load autoplay videos to prevent network congestion during initial paint

@@ -93,12 +93,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { passive: true });
 
         // Retoma o scroll automático no mobile após um pequeno delay pós-gesto
-        testimonialsSlider.addEventListener('touchend', () => {
+        const resumeAutoScroll = () => {
             clearTimeout(resumeTimeout);
             resumeTimeout = setTimeout(() => {
                 isPaused = false;
             }, 2000); // 2 segundos de pausa para cessar a inércia do scroll manual
-        }, { passive: true });
+        };
+
+        testimonialsSlider.addEventListener('touchend', resumeAutoScroll, { passive: true });
+        testimonialsSlider.addEventListener('touchcancel', resumeAutoScroll, { passive: true });
     }
 
     // ==========================================
