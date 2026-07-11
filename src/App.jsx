@@ -9787,19 +9787,19 @@ export default function App() {
         selector: null,
         title: lang === "es" ? "¡Bienvenido a ShapeMap!" : lang === "en" ? "Welcome to ShapeMap!" : "Bem-vindo ao ShapeMap!",
         text: lang === "es" 
-          ? "Este es su panel. Aquí usted gestiona a sus alumnos y agrega nuevos."
+          ? "Este es su panel. Aquí usted gestiona a sus clientes y agrega nuevos."
           : lang === "en"
-            ? "This is your dashboard. Here you manage your students and add new ones."
-            : "Este é o seu painel. Aqui você gerencia seus alunos e adiciona novos."
+            ? "This is your dashboard. Here you manage your clients and add new ones."
+            : "Este é o seu painel. Aqui você gerencia seus clientes e adiciona novos."
       },
       {
         selector: "#tour-new-student-btn",
         title: lang === "es" ? "Registre a sus Clientes" : lang === "en" ? "Register your Clients" : "Cadastre seus Clientes",
         text: lang === "es"
-          ? "Haga clic en este botón \"+ Nuevo Aluno\" para registrar a su primer cliente y comenzar a guardar las evaluaciones físicas."
+          ? "Haga clic en este botón \"+ Nuevo Cliente\" para registrar a su primer cliente y comenzar a guardar las evaluaciones físicas."
           : lang === "en"
-            ? "Click this \"+ New Student\" button to register your first client and start recording physical evaluations."
-            : "Clique neste botão \"+ Novo Aluno\" para cadastrar seu primeiro cliente e começar a registrar as avaliações físicas."
+            ? "Click this \"+ New Client\" button to register your first client and start recording physical evaluations."
+            : "Clique neste botão \"+ Novo Cliente\" para cadastrar seu primeiro cliente e começar a registrar as avaliações físicas."
       }
     ],
     modelos: [
@@ -9816,10 +9816,10 @@ export default function App() {
         selector: "#tour-online-settings",
         title: lang === "es" ? "Configuración de Evaluación Online" : lang === "en" ? "Online Evaluation Settings" : "Configuração da Avaliação Online",
         text: lang === "es"
-          ? "Haga clic en estas pestañas y campos para definir qué secciones vendrán marcadas por defecto al enviar una evaluación online para que el alumno la complete."
+          ? "Haga clic en estas pestañas y campos para definir qué secciones vendrán marcadas por defecto al enviar una evaluación online para que el cliente la complete."
           : lang === "en"
-            ? "Click these tabs and fields to define which sections will be checked by default when sending an online evaluation for the student to complete."
-            : "Clique nestas abas e campos para definir quais seções virão marcadas por padrão ao enviar uma avaliação online para o aluno preencher."
+            ? "Click these tabs and fields to define which sections will be checked by default when sending an online evaluation for the client to complete."
+            : "Clique nestas abas e campos para definir quais seções virão marcadas por padrão ao enviar uma avaliação online para o cliente preencher."
       }
     ],
     perfil: [
@@ -9865,10 +9865,10 @@ export default function App() {
         selector: "#tour-compare-btn",
         title: lang === "es" ? "Historial y Comparación" : lang === "en" ? "History and Comparison" : "Linha do Tempo e Comparação",
         text: lang === "es"
-          ? "Aquí se guardan todas las evaluaciones del alumno. Cuando tenga 2 o más registradas, puede hacer clic en el botón **\"Comparar\"** para seleccionarlas y ver la evolución en gráficos."
+          ? "Aquí se guardan todas las evaluaciones del cliente. Cuando tenga 2 o más registradas, puede hacer clic en el botón **\"Comparar\"** para seleccionarlas y ver la evolución en gráficos."
           : lang === "en"
-            ? "Here all student evaluations are saved. When they have 2 or more registered, you can click the **\"Compare\"** button to select them and view evolution graphs."
-            : "Aqui ficam salvas todas as avaliações do aluno. Quando ele tiver 2 ou mais cadastradas, você pode clicar no botão **\"Comparar\"** para selecioná-las e ver a evolução deles em gráficos."
+            ? "Here all client evaluations are saved. When they have 2 or more registered, you can click the **\"Compare\"** button to select them and view evolution graphs."
+            : "Aqui ficam salvas todas as avaliações do cliente. Quando ele tiver 2 ou mais cadastradas, você pode clicar no botão **\"Comparar\"** para selecioná-las e ver a evolução deles em gráficos."
       }
     ],
     avaliacao: [
@@ -9885,10 +9885,10 @@ export default function App() {
         selector: "#tour-send-online-btn",
         title: lang === "es" ? "Evaluación Online" : lang === "en" ? "Online Evaluation" : "Avaliação Online",
         text: lang === "es"
-          ? "Comparta un enlace con su alumno para que complete la evaluación en línea. ¡Las respuestas se guardan automáticamente en esta evaluación para que usted tenga acceso!"
+          ? "Comparta un enlace con su cliente para que complete la evaluación en línea. Las respuestas se guardan automáticamente en la evaluación para que usted tenga acceso."
           : lang === "en"
-            ? "Share a link with your student to fill out the online evaluation. Responses are automatically saved to this evaluation for you to access!"
-            : "Compartilhe um link com seu aluno para que ele preencha a avaliação online. As respostas são salvas automaticamente nessa avaliação para você ter acesso!"
+            ? "Share a link with your client to fill out the online evaluation. Responses are automatically saved to the evaluation for you to access."
+            : "Compartilhe um link com seu cliente para que ele preencha a avaliação online. As respostas são salvas automaticamente na avaliação para que você tenha acesso."
       },
       {
         selector: "#tour-finish-eval-btn",
