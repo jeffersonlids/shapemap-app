@@ -2751,6 +2751,7 @@ function BottomNav({ active, onChange, trainer }) {
         const on = active === t.id;
         return (
           <button
+            id={"nav-" + t.id}
             key={t.id}
             onClick={function() { onChange(t.id); }}
             style={{ flex:1, background:"none", border:"none", cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"4px 0" }}
@@ -3644,7 +3645,7 @@ function HomeScreen({ alunos, trainer, onSelectAluno, onDeleteAluno, onAddAluno,
             <div style={{ fontSize:12, color:T.muted, fontWeight:500 }}>{t("bem_vindo", lang)}</div>
           </div>
         </div>
-        <Btn small onClick={function() { setShowModal(true); }} icon={<IcPlus c="#fff" s={15}/>}>{t("novo_aluno", lang)}</Btn>
+        <Btn id="tour-new-student-btn" small onClick={function() { setShowModal(true); }} icon={<IcPlus c="#fff" s={15}/>}>{t("novo_aluno", lang)}</Btn>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:24 }}>
         {stats.map(function(s) {
@@ -3913,7 +3914,7 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         
         {/* 1. PERSONALIZAÇÃO (CORES) */}
-        <div>
+        <div id="tour-settings-general">
           <SecHead title={t("aparencia", lang)} sub={t("cor_principal_sub", lang)} />
           <Card sx={{ padding: 16 }}>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 9 }}>
@@ -4177,7 +4178,7 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
         </div>
 
         {/* 6. MODELO DE AVALIAÇÃO ONLINE */}
-        <div>
+        <div id="tour-online-settings">
           <SecHead 
             title={lang === "es" ? "Modelo de Evaluación Online" : lang === "en" ? "Online Evaluation Template" : "Modelo de Avaliação Online"} 
             sub={lang === "es" ? "Defina qué secciones y campos vendrán marcados por defecto al enviar una evaluación online." : lang === "en" ? "Define which sections and fields will be checked by default when sending an online evaluation." : "Defina quais seções e campos virão marcados por padrão ao enviar uma avaliação online."} 
@@ -4650,9 +4651,9 @@ function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare
         </div>
       </div>
       <div style={{ display:"grid", gridTemplateColumns: (aluno.avaliacoes ? aluno.avaliacoes.length : 0) >= 2 ? "1fr 1fr" : "1fr", gap:10, marginBottom:12 }}>
-        <Btn full onClick={onNewAval} icon={<IcPlus c="#fff" s={16}/>}>{t("nova_avaliacao", lang)}</Btn>
+        <Btn id="tour-new-eval-btn" full onClick={onNewAval} icon={<IcPlus c="#fff" s={16}/>}>{t("nova_avaliacao", lang)}</Btn>
         {aluno.avaliacoes.length >= 2 && (
-          <Btn full variant={comparing ? "primary" : "outline"} icon={comparing ? <IcCheck c={comparing?"#fff":ac()} s={16}/> : <IcCompare c={ac()} s={16}/>} onClick={function() { setComparing(function(c) { return !c; }); setSel([]); }}>
+          <Btn id="tour-compare-btn" full variant={comparing ? "primary" : "outline"} icon={comparing ? <IcCheck c={comparing?"#fff":ac()} s={16}/> : <IcCompare c={ac()} s={16}/>} onClick={function() { setComparing(function(c) { return !c; }); setSel([]); }}>
             {comparing ? t("cancelar", lang) : t("comparar", lang)}
           </Btn>
         )}
@@ -4674,7 +4675,7 @@ function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare
           <Btn onClick={onNewAval}>{t("iniciar_avaliacao", lang)}</Btn>
         </Card>
       ) : (
-        <div style={{ display:"flex", flexDirection:"column", gap:9 }}>
+        <div id="tour-student-history" style={{ display:"flex", flexDirection:"column", gap:9 }}>
           <div style={{ fontSize:12, fontWeight:700, color:T.sub, letterSpacing:0.5, textTransform:"uppercase", marginBottom:3 }}>{t("historico_av", lang)}</div>
           {[].concat(aluno.avaliacoes || []).reverse().map(function(av, i) {
             var isLatest = i === 0;
@@ -5003,12 +5004,12 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
           <div style={{ flex:1, fontSize:13, color:T.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
             {isNew ? t("nova_avaliacao", lang) : (lang === "en" ? "Edit" : lang === "es" ? "Editar" : "Editar")} · {alunoNome}
           </div>
-          <Btn small variant="outline" onClick={enviarAluno} style={{ borderColor: ac(), color: ac(), padding: "6px 8px" }}>
+          <Btn id="tour-send-online-btn" small variant="outline" onClick={enviarAluno} style={{ borderColor: ac(), color: ac(), padding: "6px 8px" }}>
             {lang === "en" ? "Send Online Form" : lang === "es" ? "Enviar Formulario Online" : "Enviar Formulário Online"}
           </Btn>
-          <Btn small onClick={finalizar} icon={<IcCheck c="#fff" s={15}/>}>{lang === "en" ? "Finish" : lang === "es" ? "Finalizar" : "Finalizar"}</Btn>
+          <Btn id="tour-finish-eval-btn" small onClick={finalizar} icon={<IcCheck c="#fff" s={15}/>}>{lang === "en" ? "Finish" : lang === "es" ? "Finalizar" : "Finalizar"}</Btn>
         </div>
-        <div ref={tabsRef} style={{ display:"flex", gap:5, overflowX:"auto", paddingBottom:11, scrollbarWidth:"none" }}>
+        <div id="tour-eval-tabs" ref={tabsRef} style={{ display:"flex", gap:5, overflowX:"auto", paddingBottom:11, scrollbarWidth:"none" }}>
           {FORM_TABS.map(function(tName, i) {
             const tabKeys = {
               "Dados": "dados",
@@ -7176,7 +7177,7 @@ function ImageCropperModal({ imageSrc, onCrop, onCancel }) {
 }
 
 // ── PERFIL ────────────────────────────────────────────────────────────────────
-function PerfilScreen({ trainer, onUpdate, onLogout }) {
+function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour }) {
   const lang = trainer.lang || "pt";
   const [cropImageSrc, setCropImageSrc] = useState(null);
   const fileRef = useRef();
@@ -7349,7 +7350,7 @@ function PerfilScreen({ trainer, onUpdate, onLogout }) {
         </div>
         <Btn small variant="ghost" onClick={onLogout} icon={<IcLogout c={T.sub} s={16}/>}>{t("sair", lang)}</Btn>
       </div>
-      <Card sx={{ padding:18, marginBottom:14 }}>
+      <Card id="tour-profile-logo" sx={{ padding:18, marginBottom:14 }}>
         <div style={{ display:"flex", alignItems:"center", gap:14 }}>
           <div style={{ position:"relative" }}>
             <Avatar name={trainer.nome} foto={trainer.foto} size={68} color={trainer.corPrimaria}/>
@@ -7548,6 +7549,25 @@ function PerfilScreen({ trainer, onUpdate, onLogout }) {
             }
           >
             WhatsApp
+          </Btn>
+        </div>
+      </Card>
+
+      {/* Tutorial Guiado Card */}
+      <Card sx={{ padding:18, marginBottom:14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <div style={{ width:3, height:17, borderRadius:2, background:ac() }}/>
+            <div style={{ fontSize:12, fontWeight:700, color:ac(), letterSpacing:1.2, textTransform:"uppercase" }}>
+              {lang === "pt" ? "Tutorial Guiado" : lang === "es" ? "Tutorial Guiado" : "Guided Tutorial"}
+            </div>
+          </div>
+          <Btn 
+            small 
+            variant="outline" 
+            onClick={onRestartTour}
+          >
+            {lang === "pt" ? "Reiniciar Tour" : lang === "es" ? "Reiniciar Tour" : "Restart Tour"}
           </Btn>
         </div>
       </Card>
@@ -9162,6 +9182,190 @@ function StudentResponseScreen({ evalId }) {
   );
 }
 
+// ── ONBOARDING TOUR ───────────────────────────────────────────────────────────
+function OnboardingTour({ active, steps, onClose, lang = "pt" }) {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [coords, setCoords] = useState(null);
+  const [windowSize, setWindowSize] = useState({ w: window.innerWidth, h: window.innerHeight });
+
+  const step = steps[currentStep];
+
+  useEffect(() => {
+    if (!active || !step) return;
+
+    function updatePosition() {
+      setWindowSize({ w: window.innerWidth, h: window.innerHeight });
+      if (step.selector) {
+        const el = document.querySelector(step.selector);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+          setTimeout(() => {
+            const r = el.getBoundingClientRect();
+            setCoords({
+              left: r.left,
+              top: r.top,
+              width: r.width,
+              height: r.height
+            });
+          }, 300);
+        } else {
+          setCoords(null);
+        }
+      } else {
+        setCoords(null);
+      }
+    }
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    // Use capture to listen to scrolls on inner scrollable divs
+    window.addEventListener("scroll", updatePosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [active, currentStep, step]);
+
+  if (!active || !step) return null;
+
+  const hasSpotlight = coords !== null;
+  const maskPath = hasSpotlight
+    ? `M 0 0 H ${windowSize.w} V ${windowSize.h} H 0 Z M ${coords.left} ${coords.top} H ${coords.left + coords.width} V ${coords.top + coords.height} H ${coords.left} Z`
+    : `M 0 0 H ${windowSize.w} V ${windowSize.h} H 0 Z`;
+
+  let tooltipStyle = {
+    position: "fixed",
+    zIndex: 10001,
+    background: "#1E293B",
+    color: "#F8FAFC",
+    padding: "16px",
+    borderRadius: "12px",
+    boxShadow: "0 10px 25px -5px rgba(0,0,0,0.4), 0 8px 10px -6px rgba(0,0,0,0.4)",
+    width: "290px",
+    maxWidth: "calc(100vw - 32px)",
+    border: "1px solid #334155",
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+  };
+
+  let animationClass = "tour-anim-relative";
+
+  if (hasSpotlight) {
+    const elementCenterX = coords.left + coords.width / 2;
+    const tooltipLeft = Math.max(16, Math.min(windowSize.w - 306, elementCenterX - 145));
+    tooltipStyle.left = `${tooltipLeft}px`;
+
+    const spaceBelow = windowSize.h - (coords.top + coords.height);
+    const spaceAbove = coords.top;
+
+    if (spaceBelow > 180) {
+      tooltipStyle.top = `${coords.top + coords.height + 12}px`;
+    } else if (spaceAbove > 180) {
+      tooltipStyle.bottom = `${windowSize.h - coords.top + 12}px`;
+    } else {
+      tooltipStyle.top = "50%";
+      tooltipStyle.left = "50%";
+      tooltipStyle.transform = "translate(-50%, -50%)";
+      animationClass = "tour-anim-center";
+    }
+  } else {
+    tooltipStyle.top = "50%";
+    tooltipStyle.left = "50%";
+    tooltipStyle.transform = "translate(-50%, -50%)";
+    animationClass = "tour-anim-center";
+  }
+
+  const isLastStep = currentStep === steps.length - 1;
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 10000, pointerEvents: "auto" }}>
+      <style>{`
+        @keyframes tourFadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes tourFadeInCenter {
+          from { opacity: 0; transform: translate(-50%, -40%); }
+          to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+        .tour-anim-relative {
+          animation: tourFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .tour-anim-center {
+          animation: tourFadeInCenter 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+      `}</style>
+
+      {/* SVG Spotlight Overlay */}
+      <svg style={{ position: "fixed", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
+        <path d={maskPath} fill="rgba(15, 23, 42, 0.7)" fillRule="evenodd" />
+      </svg>
+
+      {/* Tooltip Card */}
+      <div className={animationClass} style={tooltipStyle}>
+        <div>
+          <div style={{ fontSize: "15px", fontWeight: "800", color: "#F8FAFC", marginBottom: "4px" }}>
+            {step.title}
+          </div>
+          <div style={{ fontSize: "13px", color: "#94A3B8", lineHeight: "1.5" }}>
+            {step.text}
+          </div>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "4px" }}>
+          <span style={{ fontSize: "11px", color: "#64748B", fontWeight: "600" }}>
+            {currentStep + 1} / {steps.length}
+          </span>
+
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              onClick={onClose}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#94A3B8",
+                fontSize: "12px",
+                fontWeight: "600",
+                cursor: "pointer",
+                padding: "6px 12px",
+                borderRadius: "6px"
+              }}
+            >
+              {lang === "en" ? "Skip" : lang === "es" ? "Omitir" : "Pular"}
+            </button>
+            <button
+              onClick={function() {
+                if (isLastStep) {
+                  onClose();
+                } else {
+                  setCurrentStep(currentStep + 1);
+                }
+              }}
+              style={{
+                background: ac(),
+                border: "none",
+                color: "#FFFFFF",
+                fontSize: "12px",
+                fontWeight: "700",
+                cursor: "pointer",
+                padding: "6px 14px",
+                borderRadius: "6px",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.15)"
+              }}
+            >
+              {isLastStep
+                ? (lang === "en" ? "Finish" : lang === "es" ? "Finalizar" : "Concluir")
+                : (lang === "en" ? "Next" : lang === "es" ? "Siguiente" : "Próximo")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── ROOT APP ──────────────────────────────────────────────────────────────────
 export default function App() {
   const [logged, setLogged] = useState(false);
@@ -9173,6 +9377,7 @@ export default function App() {
   const [hasAccess, setHasAccess] = useState(true);
   const [user, setUser] = useState(null);
   const [loadingSession, setLoadingSession] = useState(true);
+  const [activeTour, setActiveTour] = useState(null);
   
   const [trainer, setTrainer] = useState(function() {
     const saved = localStorage.getItem("avaliapro_trainer");
@@ -9560,6 +9765,168 @@ export default function App() {
     document.documentElement.style.setProperty('--primary-color', trainer.corPrimaria);
     document.documentElement.style.setProperty('--primary-color-light', trainer.corPrimaria + "14");
   }, [trainer.corPrimaria]);
+
+  // ── ONBOARDING TOUR CONFIGURATION & LOGIC ──────────────────────────────────
+  const tourSteps = {
+    home: [
+      {
+        selector: null,
+        title: lang === "es" ? "¡Bienvenido a ShapeMap!" : lang === "en" ? "Welcome to ShapeMap!" : "Bem-vindo ao ShapeMap!",
+        text: lang === "es" 
+          ? "Este es su panel. Aquí usted gestiona a sus alumnos, ve estadísticas rápidas y acompaña su facturación mensual estimada."
+          : lang === "en"
+            ? "This is your dashboard. Here you manage your students, view quick stats, and track your estimated monthly revenue."
+            : "Este é o seu painel. Aqui você gerencia seus alunos, vê estatísticas rápidas e acompanha seu faturamento mensal estimado."
+      },
+      {
+        selector: "#tour-new-student-btn",
+        title: lang === "es" ? "Registre a sus Alunos" : lang === "en" ? "Register your Students" : "Cadastre seus Alunos",
+        text: lang === "es"
+          ? "Haga clic aquí para registrar a su primer alumno y comenzar a guardar las evaluaciones físicas."
+          : lang === "en"
+            ? "Click here to register your first student and start recording physical evaluations."
+            : "Clique aqui para cadastrar seu primeiro aluno e começar a registrar as avaliações físicas."
+      }
+    ],
+    modelos: [
+      {
+        selector: "#tour-settings-general",
+        title: lang === "es" ? "Personalice su Sistema" : lang === "en" ? "Personalize your System" : "Personalize seu Sistema",
+        text: lang === "es"
+          ? "Deje la aplicación a su manera: configure los colores del panel, elija el método de composición corporal preferido y gestione los campos de perímetros, anamnesis y pruebas de fuerza."
+          : lang === "en"
+            ? "Customize the app your way: configure dashboard colors, choose your preferred body composition method, and manage perimeter fields, anamnesis, and strength tests."
+            : "Deixe o aplicativo do seu jeito: configure as cores do painel, escolha o método de composição corporal preferido e gerencie os campos de perímetros, anamnese e testes de força."
+      },
+      {
+        selector: "#tour-online-settings",
+        title: lang === "es" ? "Configuración de Evaluación Online" : lang === "en" ? "Online Evaluation Settings" : "Configuração da Avaliação Online",
+        text: lang === "es"
+          ? "Configure aquí qué secciones y datos podrá completar el alumno por su cuenta cuando usted elija enviar una evaluación online."
+          : lang === "en"
+            ? "Configure here which sections and data the student will fill out on their own when you choose to send an online evaluation."
+            : "Configure aqui quais seções e dados o aluno poderá preencher por conta própria quando você optar por enviar uma avaliação online."
+      }
+    ],
+    perfil: [
+      {
+        selector: "#tour-profile-logo",
+        title: lang === "es" ? "Su Marca en los Reportes" : lang === "en" ? "Your Brand on Reports" : "Sua Marca nos Relatórios",
+        text: lang === "es"
+          ? "Suba su foto de perfil o el logo de su estudio. Aparecerá de forma profesional en la parte superior de todos los reportes PDF que genere."
+          : lang === "en"
+            ? "Upload your profile photo or studio logo. It will display professionally at the top of all PDF reports you generate."
+            : "Envie sua foto de perfil ou a logo do seu estúdio. Ela aparecerá de forma profissional no topo de todos os relatórios PDF que você gerar."
+      },
+      {
+        selector: null,
+        title: lang === "es" ? "Idioma y Suscripción" : lang === "en" ? "Language and Subscription" : "Idioma e Assinatura",
+        text: lang === "es"
+          ? "Elija su idioma (portugués, inglés o español), cambie el sistema de medidas (métrico o imperial) y gestione su suscripción de la aplicación de forma sencilla."
+          : lang === "en"
+            ? "Choose your language (Portuguese, English, or Spanish), switch your measurement system (metric or imperial), and manage your app subscription simply."
+            : "Escolha seu idioma (Português, Inglês ou Espanhol), mude o sistema de medidas (métrico ou imperial) e gerencie sua assinatura do aplicativo de forma simples."
+      }
+    ],
+    aluno: [
+      {
+        selector: "#tour-new-eval-btn",
+        title: lang === "es" ? "Registrar Evaluación" : lang === "en" ? "Record Evaluation" : "Registrar Avaliação",
+        text: lang === "es"
+          ? "Haga clic aquí para iniciar un nuevo registro, ya sea una evaluación presencial o enviando un enlace online para que el alumno lo complete."
+          : lang === "en"
+            ? "Click here to start a new record, whether it's an in-person evaluation or sending an online form for the student to complete."
+            : "Clique aqui para iniciar um novo registro, seja uma avaliação física presencial ou enviando um formulário online para o aluno preencher."
+      },
+      {
+        selector: "#tour-compare-btn",
+        title: lang === "es" ? "Historial y Comparación" : lang === "en" ? "History and Comparison" : "Linha do Tempo e Comparação",
+        text: lang === "es"
+          ? "Aquí se guardan todas las evaluaciones del alumno. Cuando tenga 2 o más registradas, puede hacer clic en el botón 'Comparador' para seleccionarlas y ver la evolución en gráficos."
+          : lang === "en"
+            ? "Here all student evaluations are saved. When they have 2 or more registered, you can click the 'Compare' button to select them and view evolution graphs."
+            : "Aqui ficam salvas todas as avaliações do aluno. Quando ele tiver 2 ou mais cadastradas, você pode clicar no botão **\"Comparador\"** para selecioná-las e ver a evolução deles em gráficos."
+      }
+    ],
+    avaliacao: [
+      {
+        selector: "#tour-eval-tabs",
+        title: lang === "es" ? "Navegación Práctica" : lang === "en" ? "Practical Navigation" : "Navegação Prática",
+        text: lang === "es"
+          ? "Use las pestañas superiores para navegar. Consejo: Complete solo lo que vaya a evaluar. Los campos vacíos se ignoran automáticamente y no salen en el PDF."
+          : lang === "en"
+            ? "Use the top tabs to navigate. Tip: Fill out only what you evaluate. Empty fields are automatically ignored and won't appear in the PDF."
+            : "Use as abas no topo para navegar. **Dica:** Preencha apenas o que for avaliar. Os campos em branco são ignorados automaticamente e não saem no PDF final."
+      },
+      {
+        selector: "#tour-send-online-btn",
+        title: lang === "es" ? "Envíe el Enlace al Alumno" : lang === "en" ? "Send Link to Student" : "Envie o Link para o Aluno",
+        text: lang === "es"
+          ? "¿Quiere ahorrar tempo en la consulta? Haga clic aquí para seleccionar qué pestañas desea enviar, generar un enlace de llenado exclusivo para el WhatsApp del alumno y recibir sus respuestas directamente en su aplicación."
+          : lang === "en"
+            ? "Want to save time in the consultation? Click here to select which tabs you want to send, generate a unique link for your student's WhatsApp, and receive their responses directly inside your app."
+            : "Quer poupar tempo na consulta? Clique aqui para selecionar quais abas deseja enviar, gerar um link de preenchimento exclusivo para o WhatsApp do aluno e receber as respostas dele direto no seu aplicativo."
+      },
+      {
+        selector: "#tour-finish-eval-btn",
+        title: lang === "es" ? "Generar Reporte PDF" : lang === "en" ? "Generate PDF Report" : "Gerar Relatório PDF",
+        text: lang === "es"
+          ? "Al concluir las mediciones, haga clic aquí para finalizar, guardar la evaluación en la base de datos y generar el PDF completo con sus colores."
+          : lang === "en"
+            ? "When finished, click here to save the evaluation, record it, and generate the complete PDF with your colors."
+            : "Ao concluir as medições, clique aqui para finalizar, salvar a avaliação no banco e gerar o PDF completo com suas cores."
+      }
+    ]
+  };
+
+  useEffect(function() {
+    if (!logged) {
+      setActiveTour(null);
+      return;
+    }
+    const timer = setTimeout(function() {
+      if (tab === "home" && !cur) {
+        if (!localStorage.getItem("shapemap_tour_home_completed")) {
+          setActiveTour("home");
+        }
+      } else if (tab === "modelos" && !cur) {
+        if (!localStorage.getItem("shapemap_tour_modelos_completed")) {
+          setActiveTour("modelos");
+        }
+      } else if (tab === "perfil" && !cur) {
+        if (!localStorage.getItem("shapemap_tour_perfil_completed")) {
+          setActiveTour("perfil");
+        }
+      } else if (cur && cur.type === "aluno") {
+        if (!localStorage.getItem("shapemap_tour_aluno_completed")) {
+          setActiveTour("aluno");
+        }
+      } else if (cur && cur.type === "avaliacao") {
+        if (!localStorage.getItem("shapemap_tour_avaliacao_completed")) {
+          setActiveTour("avaliacao");
+        }
+      } else {
+        setActiveTour(null);
+      }
+    }, 450);
+
+    return function() { clearTimeout(timer); };
+  }, [tab, cur, logged]);
+
+  function handleCloseTour(tourKey) {
+    localStorage.setItem("shapemap_tour_" + tourKey + "_completed", "true");
+    setActiveTour(null);
+  }
+
+  function handleRestartTour() {
+    localStorage.removeItem("shapemap_tour_home_completed");
+    localStorage.removeItem("shapemap_tour_modelos_completed");
+    localStorage.removeItem("shapemap_tour_perfil_completed");
+    localStorage.removeItem("shapemap_tour_aluno_completed");
+    localStorage.removeItem("shapemap_tour_avaliacao_completed");
+    alert(lang === "es" ? "¡Tutorial reiniciado! Las explicaciones aparecerán automáticamente en cada pantalla." : lang === "en" ? "Tutorial restarted! Explanations will automatically appear on each screen." : "Tutorial reiniciado! O passo a passo aparecerá automaticamente nas telas.");
+    window.location.reload();
+  }
 
   function push(s) { setStack(function(p) { return p.concat([s]); }); }
   function pop()   { setStack(function(p) { return p.slice(0, -1); }); }
@@ -10104,7 +10471,7 @@ export default function App() {
       <>
         {tab === "home"    && <HomeScreen alunos={alunos} trainer={trainer} onSelectAluno={function(id) { push({ type:"aluno", id: id }); }} onDeleteAluno={deleteAluno} onAddAluno={addAluno} onSelectPerfil={function() { setTab("perfil"); }}/>}
         {tab === "modelos" && <AjustesScreen settings={settings} onUpdateSettings={handleUpdateSettings} trainer={trainer} onUpdateTrainer={handleUpdateTrainer} />}
-        {tab === "perfil"  && <PerfilScreen trainer={trainer} onUpdate={handleUpdateTrainer} onLogout={handleLogout}/>}
+        {tab === "perfil"  && <PerfilScreen trainer={trainer} onUpdate={handleUpdateTrainer} onLogout={handleLogout} onRestartTour={handleRestartTour}/>}
       </>
     );
   }
@@ -10189,6 +10556,17 @@ export default function App() {
           </div>
         </div>
       </div>
+      )}
+
+      {activeTour && (
+        <OnboardingTour
+          active={true}
+          steps={tourSteps[activeTour]}
+          lang={lang}
+          onClose={function() {
+            handleCloseTour(activeTour);
+          }}
+        />
       )}
     </div>
   );
