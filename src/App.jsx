@@ -2471,7 +2471,7 @@ function ToggleGroup({ label, value, onChange, options, clearable }) {
   );
 }
 
-function Btn({ children, onClick, variant, full, small, disabled, icon, style }) {
+function Btn({ id, children, onClick, variant, full, small, disabled, icon, style }) {
   const v = variant || "primary";
   const [hov, setHov] = useState(false);
   const styles = {
@@ -2483,6 +2483,7 @@ function Btn({ children, onClick, variant, full, small, disabled, icon, style })
   };
   return (
     <button
+      id={id}
       onClick={onClick}
       disabled={disabled}
       onMouseEnter={function() { setHov(true); }}
@@ -9311,7 +9312,7 @@ function OnboardingTour({ active, steps, onClose, lang = "pt" }) {
           <div style={{ fontSize: "15px", fontWeight: "800", color: "#F8FAFC", marginBottom: "4px" }}>
             {step.title}
           </div>
-          <div style={{ fontSize: "13px", color: "#94A3B8", lineHeight: "1.5" }}>
+          <div style={{ fontSize: "13px", color: "#94A3B8", lineHeight: "1.5", whiteSpace: "pre-line" }}>
             {step.text}
           </div>
         </div>
@@ -9777,10 +9778,10 @@ export default function App() {
         selector: null,
         title: lang === "es" ? "Descargar la Aplicación" : lang === "en" ? "Download the App" : "Baixar o Aplicativo",
         text: lang === "es" 
-          ? "Añada ShapeMap a la pantalla de inicio de su celular para abrir en pantalla completa como una aplicación real:\n\n📱 **En Android (Chrome):** Toque el menú (...) y seleccione **'Instalar aplicación'** o **'Añadir a la pantalla de inicio'**.\n\n🍏 **En iPhone (Safari):** Toque el botón de compartir (icono de flecha hacia arriba) y seleccione **'Añadir a la pantalla de inicio'**."
+          ? "Añada ShapeMap a la pantalla de inicio de su celular para abrir en pantalla completa como una aplicación real:\n\nEn Android (Chrome): Toque el menú (...) y seleccione \"Instalar aplicación\" o \"Añadir a la pantalla de inicio\".\n\nEn iPhone (Safari): Toque el botón de compartir (icono de flecha hacia arriba) y seleccione \"Añadir a la pantalla de inicio\"."
           : lang === "en"
-            ? "Add ShapeMap to your phone's home screen to open in full screen like a native app:\n\n📱 **On Android (Chrome):** Tap the menu (...) and select **'Install app'** or **'Add to Home screen'**.\n\n🍏 **On iPhone (Safari):** Tap the share button (arrow up icon) and select **'Add to Home Screen'**."
-            : "Adicione o ShapeMap à tela inicial do seu celular para abrir em tela cheia como se fosse um aplicativo de verdade:\n\n📱 **No Android (Chrome):** Toque no menu (...) e selecione **'Instalar aplicativo'** ou **'Adicionar à tela inicial'**.\n\n🍏 **No iPhone (Safari):** Toque no botão de compartilhar (ícone de seta para cima) na barra inferior e selecione **'Adicionar à Tela de Início'**."
+            ? "Add ShapeMap to your phone's home screen to open in full screen like a native app:\n\nOn Android (Chrome): Tap the menu (...) and select \"Install app\" or \"Add to Home screen\".\n\nOn iPhone (Safari): Tap the share button (arrow up icon) and select \"Add to Home Screen\"."
+            : "Adicione o ShapeMap à tela inicial do seu celular para abrir em tela cheia como um aplicativo de verdade:\n\nNo Android (Chrome): Toque no menu (...) e selecione \"Instalar aplicativo\" ou \"Adicionar à tela inicial\".\n\nNo iPhone (Safari): Toque no botão de compartilhar (ícone de seta para cima) na barra inferior e selecione \"Adicionar à Tela de Início\"."
       },
       {
         selector: null,
@@ -9795,10 +9796,10 @@ export default function App() {
         selector: "#tour-new-student-btn",
         title: lang === "es" ? "Registre a sus Alunos" : lang === "en" ? "Register your Students" : "Cadastre seus Alunos",
         text: lang === "es"
-          ? "Haga clic en este botão '+ Aluno' para registrar a su primer alumno y comenzar a guardar las evaluaciones físicas."
+          ? "Haga clic en este botón \"+ Nuevo Aluno\" para registrar a su primer alumno y comenzar a guardar las evaluaciones físicas."
           : lang === "en"
-            ? "Click this '+ Aluno' button to register your first student and start recording physical evaluations."
-            : "Clique neste botão '+ Aluno' para cadastrar seu primeiro aluno e começar a registrar as avaliações físicas."
+            ? "Click this \"+ New Student\" button to register your first student and start recording physical evaluations."
+            : "Clique neste botão \"+ Novo Aluno\" para cadastrar seu primeiro aluno e começar a registrar as avaliações físicas."
       }
     ],
     modelos: [
