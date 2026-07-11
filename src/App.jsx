@@ -9402,6 +9402,8 @@ export default function App() {
     return initialTrainer;
   });
 
+  const lang = (trainer && trainer.lang) || "pt";
+
   const [alunos, setAlunos] = useState(function() {
     const saved = localStorage.getItem("avaliapro_alunos");
     if (saved) {
@@ -10475,8 +10477,6 @@ export default function App() {
       </>
     );
   }
-
-  const lang = (trainer && trainer.lang) || "pt";
 
   return (
     <div className="app-container" style={{ minHeight:"100vh", background:T.bg, fontFamily:"'Outfit', sans-serif", maxWidth:640, margin:"0 auto", position:"relative" }}>
