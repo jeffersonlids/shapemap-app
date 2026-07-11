@@ -9794,12 +9794,12 @@ export default function App() {
       },
       {
         selector: "#tour-new-student-btn",
-        title: lang === "es" ? "Registre a sus Alunos" : lang === "en" ? "Register your Students" : "Cadastre seus Alunos",
+        title: lang === "es" ? "Registre a sus Clientes" : lang === "en" ? "Register your Clients" : "Cadastre seus Clientes",
         text: lang === "es"
-          ? "Haga clic en este botón \"+ Nuevo Aluno\" para registrar a su primer alumno y comenzar a guardar las evaluaciones físicas."
+          ? "Haga clic en este botón \"+ Nuevo Aluno\" para registrar a su primer cliente y comenzar a guardar las evaluaciones físicas."
           : lang === "en"
-            ? "Click this \"+ New Student\" button to register your first student and start recording physical evaluations."
-            : "Clique neste botão \"+ Novo Aluno\" para cadastrar seu primeiro aluno e começar a registrar as avaliações físicas."
+            ? "Click this \"+ New Student\" button to register your first client and start recording physical evaluations."
+            : "Clique neste botão \"+ Novo Aluno\" para cadastrar seu primeiro cliente e começar a registrar as avaliações físicas."
       }
     ],
     modelos: [
@@ -9883,21 +9883,21 @@ export default function App() {
       },
       {
         selector: "#tour-send-online-btn",
-        title: lang === "es" ? "Envíe el Enlace al Alumno" : lang === "en" ? "Send Link to Student" : "Envie o Link para o Aluno",
+        title: lang === "es" ? "Evaluación Online" : lang === "en" ? "Online Evaluation" : "Avaliação Online",
         text: lang === "es"
-          ? "¿Quiere ahorrar tempo en la consulta? Haga clic aquí para seleccionar qué pestañas desea enviar, generar un enlace de llenado exclusivo para el WhatsApp del alumno y recibir sus respuestas directamente en su aplicación."
+          ? "Comparta un enlace con su alumno para que complete la evaluación en línea. ¡Las respuestas se guardan automáticamente en esta evaluación para que usted tenga acceso!"
           : lang === "en"
-            ? "Want to save time in the consultation? Click here to select which tabs you want to send, generate a unique link for your student's WhatsApp, and receive their responses directly inside your app."
-            : "Quer poupar tempo na consulta? Clique aqui para selecionar quais abas deseja enviar, gerar um link de preenchimento exclusivo para o WhatsApp do aluno e receber as respostas dele direto no seu aplicativo."
+            ? "Share a link with your student to fill out the online evaluation. Responses are automatically saved to this evaluation for you to access!"
+            : "Compartilhe um link com seu aluno para que ele preencha a avaliação online. As respostas são salvas automaticamente nessa avaliação para você ter acesso!"
       },
       {
         selector: "#tour-finish-eval-btn",
         title: lang === "es" ? "Generar Reporte PDF" : lang === "en" ? "Generate PDF Report" : "Gerar Relatório PDF",
         text: lang === "es"
-          ? "Al concluir las mediciones, haga clic aquí para finalizar, guardar la evaluación en la base de datos y generar el PDF completo con sus colores."
+          ? "Al concluir la evaluación, haga clic aquí para finalizar y generar el PDF para enviar a su cliente"
           : lang === "en"
-            ? "When finished, click here to save the evaluation, record it, and generate the complete PDF with your colors."
-            : "Ao concluir as medições, clique aqui para finalizar, salvar a avaliação no banco e gerar o PDF completo com suas cores."
+            ? "Upon completing the evaluation, click here to finish and generate the PDF to send to your client"
+            : "Ao concluir a avaliação, clique aqui para finalizar e gerar PDF para enviar para seu cliente"
       }
     ]
   };
