@@ -7350,9 +7350,9 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour }) {
         </div>
         <Btn small variant="ghost" onClick={onLogout} icon={<IcLogout c={T.sub} s={16}/>}>{t("sair", lang)}</Btn>
       </div>
-      <Card id="tour-profile-logo" sx={{ padding:18, marginBottom:14 }}>
+      <Card sx={{ padding:18, marginBottom:14 }}>
         <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-          <div style={{ position:"relative" }}>
+          <div id="tour-profile-logo" style={{ position:"relative" }}>
             <Avatar name={trainer.nome} foto={trainer.foto} size={68} color={trainer.corPrimaria}/>
             <button onClick={function() { fileRef.current.click(); }} style={{ position:"absolute", bottom:0, right:0, width:24, height:24, background:ac(), border:"2px solid white", borderRadius:"50%", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
               <IcEdit c="#fff" s={12}/>
@@ -7405,6 +7405,7 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour }) {
             </div>
             {trainer.stripeCustomerId ? (
               <Btn 
+                id="tour-profile-manage-btn"
                 small 
                 variant="outline" 
                 onClick={async function() {
@@ -7430,6 +7431,7 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour }) {
               </Btn>
             ) : (
               <Btn 
+                id="tour-profile-manage-btn"
                 small 
                 onClick={async function() {
                   if (typeof window.fbq === 'function') {
@@ -9773,18 +9775,27 @@ export default function App() {
     home: [
       {
         selector: null,
+        title: lang === "es" ? "Descargar la Aplicación" : lang === "en" ? "Download the App" : "Baixar o Aplicativo",
+        text: lang === "es" 
+          ? "Añada ShapeMap a la pantalla de inicio de su celular para abrir en pantalla completa como una aplicación real:\n\n📱 **En Android (Chrome):** Toque el menú (...) y seleccione **'Instalar aplicación'** o **'Añadir a la pantalla de inicio'**.\n\n🍏 **En iPhone (Safari):** Toque el botón de compartir (icono de flecha hacia arriba) y seleccione **'Añadir a la pantalla de inicio'**."
+          : lang === "en"
+            ? "Add ShapeMap to your phone's home screen to open in full screen like a native app:\n\n📱 **On Android (Chrome):** Tap the menu (...) and select **'Install app'** or **'Add to Home screen'**.\n\n🍏 **On iPhone (Safari):** Tap the share button (arrow up icon) and select **'Add to Home Screen'**."
+            : "Adicione o ShapeMap à tela inicial do seu celular para abrir em tela cheia como se fosse um aplicativo de verdade:\n\n📱 **No Android (Chrome):** Toque no menu (...) e selecione **'Instalar aplicativo'** ou **'Adicionar à tela inicial'**.\n\n🍏 **No iPhone (Safari):** Toque no botão de compartilhar (ícone de seta para cima) na barra inferior e selecione **'Adicionar à Tela de Início'**."
+      },
+      {
+        selector: null,
         title: lang === "es" ? "¡Bienvenido a ShapeMap!" : lang === "en" ? "Welcome to ShapeMap!" : "Bem-vindo ao ShapeMap!",
         text: lang === "es" 
-          ? "Este es su panel. Aquí usted gestiona a sus alumnos y agrega nuevos.\n\n💡 Para acceder más rápido y usar en pantalla completa, toque el menú del navegador (...) y elija la opción 'Añadir a la pantalla de inicio'."
+          ? "Este es su panel. Aquí usted gestiona a sus alumnos y agrega nuevos."
           : lang === "en"
-            ? "This is your dashboard. Here you manage your students and add new ones.\n\n💡 For faster access and full-screen view, tap your browser's menu (...) and choose 'Add to Home Screen'."
-            : "Este é o seu painel. Aqui você gerencia seus alunos e adiciona novos.\n\n💡 Para acessar mais rápido e usar em tela cheia, toque no menu do seu navegador (...) e escolha a opção 'Adicionar à Tela de Início'."
+            ? "This is your dashboard. Here you manage your students and add new ones."
+            : "Este é o seu painel. Aqui você gerencia seus alunos e adiciona novos."
       },
       {
         selector: "#tour-new-student-btn",
         title: lang === "es" ? "Registre a sus Alunos" : lang === "en" ? "Register your Students" : "Cadastre seus Alunos",
         text: lang === "es"
-          ? "Haga clic en este botón '+ Aluno' para registrar a su primer alumno y comenzar a guardar las evaluaciones físicas."
+          ? "Haga clic en este botão '+ Aluno' para registrar a su primer alumno y comenzar a guardar las evaluaciones físicas."
           : lang === "en"
             ? "Click this '+ Aluno' button to register your first student and start recording physical evaluations."
             : "Clique neste botão '+ Aluno' para cadastrar seu primeiro aluno e começar a registrar as avaliações físicas."
@@ -9821,19 +9832,19 @@ export default function App() {
             : "Clique no botão de edição sobre o avatar para enviar sua foto de perfil ou a logo do seu estúdio. Ela aparecerá no topo de todos os relatórios PDF."
       },
       {
-        selector: "#tour-profile-subscription",
+        selector: "#tour-profile-manage-btn",
         title: lang === "es" ? "Gestione su Suscripción" : lang === "en" ? "Manage your Subscription" : "Gerencie sua Assinatura",
         text: lang === "es"
-          ? "Haga clic en el botón 'Gerenciar' (o 'Assinar') para suscribirse al plan anual/mensal o para cambiar la forma de pago y ver facturas en el portal de Stripe."
+          ? "Haga clic en el botón 'Gerenciar' para realizar el seguimiento de su plan activo, cambiar su forma de pago o ver sus facturas de forma sencilla."
           : lang === "en"
-            ? "Click the 'Manage' (or 'Subscribe') button to sign up for the annual/monthly plan or to change your payment method and view invoices in the Stripe portal."
-            : "Clique no botão 'Gerenciar' (ou 'Assinar') para assinar o plano anual/mensal ou para alterar sua forma de pagamento e ver faturas no portal da Stripe."
+            ? "Click the 'Gerenciar' button to track your active plan details, change your payment method, or view your invoices simply."
+            : "Clique no botão 'Gerenciar' para acompanhar os dados do seu plano ativo, alterar sua forma de pagamento ou visualizar suas faturas de forma simples."
       },
       {
         selector: "#tour-profile-lang",
         title: lang === "es" ? "Idioma del Panel" : lang === "en" ? "Dashboard Language" : "Idioma do Painel",
         text: lang === "es"
-          ? "Haga clic en el selector de idioma para cambiar el idioma del panel y de los reportes PDF (portugués, inglés o español) de forma instantánea."
+          ? "Haga clic en el seletor de idioma para cambiar el idioma del panel y de los reportes PDF (portugués, inglés o español) de forma instantánea."
           : lang === "en"
             ? "Click the language selector to switch the dashboard and PDF reports language (Portuguese, English, or Spanish) instantly."
             : "Clique no seletor de idioma para alterar o idioma do painel e dos relatórios PDF (Português, Inglês ou Espanhol) instantaneamente."
