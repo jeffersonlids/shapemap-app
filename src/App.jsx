@@ -4472,15 +4472,18 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
 }
 
 // ── ALUNO PROFILE ─────────────────────────────────────────────────────────────
-function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare, onDeleteAval, onUpdateAluno, onUpdateAlunoAvalStatus, trainer, startComparing }) {
+function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare, onDeleteAval, onUpdateAluno, onUpdateAlunoAvalStatus, trainer, startComparing, onClearStartComparing }) {
   const lang = (trainer && trainer.lang) || "pt";
   const [comparing, setComparing] = useState(!!startComparing);
   
   useEffect(function() {
     if (startComparing) {
       setComparing(true);
+      if (onClearStartComparing) {
+        onClearStartComparing();
+      }
     }
-  }, [startComparing]);
+  }, [startComparing, onClearStartComparing]);
   const [sel, setSel] = useState([]);
   const [confirmDel, setConfirmDel] = useState(false);
   const [confirmDelAvalId, setConfirmDelAvalId] = useState(null);
@@ -9984,6 +9987,18 @@ export default function App() {
       <AlunoScreen
         aluno={alunoProf}
         startComparing={cur.startComparing}
+        onClearStartComparing={function() {
+          setStack(function(p) {
+            return p.map(function(item) {
+              if (item === cur) {
+                const copy = Object.assign({}, item);
+                delete copy.startComparing;
+                return copy;
+              }
+              return item;
+            });
+          });
+        }}
         onBack={pop}
         onNewAval={function() { if (alunoProf) push({ type: "avaliacao", alunoId: alunoProf.id, isNew: true }); }}
         onOpenAval={function(id) { if (alunoProf) push({ type: "avaliacao", alunoId: alunoProf.id, avalId: id, isNew: false }); }}
