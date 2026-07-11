@@ -9856,19 +9856,19 @@ export default function App() {
         selector: "#tour-new-eval-btn",
         title: lang === "es" ? "Registrar Evaluación" : lang === "en" ? "Record Evaluation" : "Registrar Avaliação",
         text: lang === "es"
-          ? "Haga clic aquí para iniciar un nuevo registro, ya sea una evaluación presencial o enviando un enlace online para que el alumno lo complete."
+          ? "Haga clic aquí para iniciar una evaluación, presencial o en línea."
           : lang === "en"
-            ? "Click here to start a new record, whether it's an in-person evaluation or sending an online form for the student to complete."
-            : "Clique aqui para iniciar um novo registro, seja uma avaliação física presencial ou enviando um formulário online para o aluno preencher."
+            ? "Click here to start an evaluation, in-person or online."
+            : "Clique aqui para iniciar uma avaliação, presencial ou online."
       },
       {
         selector: "#tour-compare-btn",
         title: lang === "es" ? "Historial y Comparación" : lang === "en" ? "History and Comparison" : "Linha do Tempo e Comparação",
         text: lang === "es"
-          ? "Aquí se guardan todas las evaluaciones del alumno. Cuando tenga 2 o más registradas, puede hacer clic en el botón 'Comparador' para seleccionarlas y ver la evolución en gráficos."
+          ? "Aquí se guardan todas las evaluaciones del alumno. Cuando tenga 2 o más registradas, puede hacer clic en el botón **\"Comparar\"** para seleccionarlas y ver la evolución en gráficos."
           : lang === "en"
-            ? "Here all student evaluations are saved. When they have 2 or more registered, you can click the 'Compare' button to select them and view evolution graphs."
-            : "Aqui ficam salvas todas as avaliações do aluno. Quando ele tiver 2 ou mais cadastradas, você pode clicar no botão **\"Comparador\"** para selecioná-las e ver a evolução deles em gráficos."
+            ? "Here all student evaluations are saved. When they have 2 or more registered, you can click the **\"Compare\"** button to select them and view evolution graphs."
+            : "Aqui ficam salvas todas as avaliações do aluno. Quando ele tiver 2 ou mais cadastradas, você pode clicar no botão **\"Comparar\"** para selecioná-las e ver a evolução deles em gráficos."
       }
     ],
     avaliacao: [
