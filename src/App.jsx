@@ -9775,19 +9775,19 @@ export default function App() {
         selector: null,
         title: lang === "es" ? "¡Bienvenido a ShapeMap!" : lang === "en" ? "Welcome to ShapeMap!" : "Bem-vindo ao ShapeMap!",
         text: lang === "es" 
-          ? "Este es su panel. Aquí usted gestiona a sus alumnos, ve estadísticas rápidas y acompaña su facturación mensual estimada."
+          ? "Este es su panel. Aquí usted gestiona a sus alumnos y agrega nuevos.\n\n💡 Para acceder más rápido y usar en pantalla completa, toque el menú del navegador (...) y elija la opción 'Añadir a la pantalla de inicio'."
           : lang === "en"
-            ? "This is your dashboard. Here you manage your students, view quick stats, and track your estimated monthly revenue."
-            : "Este é o seu painel. Aqui você gerencia seus alunos, vê estatísticas rápidas e acompanha seu faturamento mensal estimado."
+            ? "This is your dashboard. Here you manage your students and add new ones.\n\n💡 For faster access and full-screen view, tap your browser's menu (...) and choose 'Add to Home Screen'."
+            : "Este é o seu painel. Aqui você gerencia seus alunos e adiciona novos.\n\n💡 Para acessar mais rápido e usar em tela cheia, toque no menu do seu navegador (...) e escolha a opção 'Adicionar à Tela de Início'."
       },
       {
         selector: "#tour-new-student-btn",
         title: lang === "es" ? "Registre a sus Alunos" : lang === "en" ? "Register your Students" : "Cadastre seus Alunos",
         text: lang === "es"
-          ? "Haga clic aquí para registrar a su primer alumno y comenzar a guardar las evaluaciones físicas."
+          ? "Haga clic en este botón '+ Aluno' para registrar a su primer alumno y comenzar a guardar las evaluaciones físicas."
           : lang === "en"
-            ? "Click here to register your first student and start recording physical evaluations."
-            : "Clique aqui para cadastrar seu primeiro aluno e começar a registrar as avaliações físicas."
+            ? "Click this '+ Aluno' button to register your first student and start recording physical evaluations."
+            : "Clique neste botão '+ Aluno' para cadastrar seu primeiro aluno e começar a registrar as avaliações físicas."
       }
     ],
     modelos: [
@@ -9795,19 +9795,19 @@ export default function App() {
         selector: "#tour-settings-general",
         title: lang === "es" ? "Personalice su Sistema" : lang === "en" ? "Personalize your System" : "Personalize seu Sistema",
         text: lang === "es"
-          ? "Deje la aplicación a su manera: configure los colores del panel, elija el método de composición corporal preferido y gestione los campos de perímetros, anamnesis y pruebas de fuerza."
+          ? "En este menú usted configura todo: elija los colores de destaque del panel, defina el protocolo estándar de composición corporal (como Pollock o Marina), seleccione qué perímetros medir, edite las preguntas de anamnesis y ordene las pruebas de fuerza."
           : lang === "en"
-            ? "Customize the app your way: configure dashboard colors, choose your preferred body composition method, and manage perimeter fields, anamnesis, and strength tests."
-            : "Deixe o aplicativo do seu jeito: configure as cores do painel, escolha o método de composição corporal preferido e gerencie os campos de perímetros, anamnese e testes de força."
+            ? "In this menu you configure everything: choose dashboard accent colors, set the default body composition protocol (like Pollock or US Navy), select which perimeter fields to measure, edit anamnesis questions, and reorder strength tests."
+            : "Neste menu você configura tudo: escolha as cores de destaque do painel, defina o protocolo padrão de composição corporal (como Pollock ou Marinha), selecione quais perímetros medir, edite as perguntas da anamnese e ordene os testes de força."
       },
       {
         selector: "#tour-online-settings",
         title: lang === "es" ? "Configuración de Evaluación Online" : lang === "en" ? "Online Evaluation Settings" : "Configuração da Avaliação Online",
         text: lang === "es"
-          ? "Configure aquí qué secciones y datos podrá completar el alumno por su cuenta cuando usted elija enviar una evaluación online."
+          ? "Haga clic en estas pestañas y campos para definir qué secciones vendrán marcadas por defecto al enviar una evaluación online para que el alumno la complete."
           : lang === "en"
-            ? "Configure here which sections and data the student will fill out on their own when you choose to send an online evaluation."
-            : "Configure aqui quais seções e dados o aluno poderá preencher por conta própria quando você optar por enviar uma avaliação online."
+            ? "Click these tabs and fields to define which sections will be checked by default when sending an online evaluation for the student to complete."
+            : "Clique nestas abas e campos para definir quais seções virão marcadas por padrão ao enviar uma avaliação online para o aluno preencher."
       }
     ],
     perfil: [
@@ -9815,19 +9815,28 @@ export default function App() {
         selector: "#tour-profile-logo",
         title: lang === "es" ? "Su Marca en los Reportes" : lang === "en" ? "Your Brand on Reports" : "Sua Marca nos Relatórios",
         text: lang === "es"
-          ? "Suba su foto de perfil o el logo de su estudio. Aparecerá de forma profesional en la parte superior de todos los reportes PDF que genere."
+          ? "Haga clic en el botón de edición sobre el avatar para subir su foto de perfil o el logo de su estudio. Aparecerá en la parte superior de todos los reportes PDF."
           : lang === "en"
-            ? "Upload your profile photo or studio logo. It will display professionally at the top of all PDF reports you generate."
-            : "Envie sua foto de perfil ou a logo do seu estúdio. Ela aparecerá de forma profissional no topo de todos os relatórios PDF que você gerar."
+            ? "Click the edit button over the avatar to upload your profile photo or studio logo. It will appear at the top of all PDF reports."
+            : "Clique no botão de edição sobre o avatar para enviar sua foto de perfil ou a logo do seu estúdio. Ela aparecerá no topo de todos os relatórios PDF."
       },
       {
-        selector: null,
-        title: lang === "es" ? "Idioma y Suscripción" : lang === "en" ? "Language and Subscription" : "Idioma e Assinatura",
+        selector: "#tour-profile-subscription",
+        title: lang === "es" ? "Gestione su Suscripción" : lang === "en" ? "Manage your Subscription" : "Gerencie sua Assinatura",
         text: lang === "es"
-          ? "Elija su idioma (portugués, inglés o español), cambie el sistema de medidas (métrico o imperial) y gestione su suscripción de la aplicación de forma sencilla."
+          ? "Haga clic en el botón 'Gerenciar' (o 'Assinar') para suscribirse al plan anual/mensal o para cambiar la forma de pago y ver facturas en el portal de Stripe."
           : lang === "en"
-            ? "Choose your language (Portuguese, English, or Spanish), switch your measurement system (metric or imperial), and manage your app subscription simply."
-            : "Escolha seu idioma (Português, Inglês ou Espanhol), mude o sistema de medidas (métrico ou imperial) e gerencie sua assinatura do aplicativo de forma simples."
+            ? "Click the 'Manage' (or 'Subscribe') button to sign up for the annual/monthly plan or to change your payment method and view invoices in the Stripe portal."
+            : "Clique no botão 'Gerenciar' (ou 'Assinar') para assinar o plano anual/mensal ou para alterar sua forma de pagamento e ver faturas no portal da Stripe."
+      },
+      {
+        selector: "#tour-profile-lang",
+        title: lang === "es" ? "Idioma del Panel" : lang === "en" ? "Dashboard Language" : "Idioma do Painel",
+        text: lang === "es"
+          ? "Haga clic en el selector de idioma para cambiar el idioma del panel y de los reportes PDF (portugués, inglés o español) de forma instantánea."
+          : lang === "en"
+            ? "Click the language selector to switch the dashboard and PDF reports language (Portuguese, English, or Spanish) instantly."
+            : "Clique no seletor de idioma para alterar o idioma do painel e dos relatórios PDF (Português, Inglês ou Espanhol) instantaneamente."
       }
     ],
     aluno: [
