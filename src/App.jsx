@@ -4472,9 +4472,15 @@ function AjustesScreen({ settings, onUpdateSettings, trainer, onUpdateTrainer })
 }
 
 // ── ALUNO PROFILE ─────────────────────────────────────────────────────────────
-function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare, onDeleteAval, onUpdateAluno, onUpdateAlunoAvalStatus, trainer }) {
+function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare, onDeleteAval, onUpdateAluno, onUpdateAlunoAvalStatus, trainer, startComparing }) {
   const lang = (trainer && trainer.lang) || "pt";
-  const [comparing, setComparing] = useState(false);
+  const [comparing, setComparing] = useState(!!startComparing);
+  
+  useEffect(function() {
+    if (startComparing) {
+      setComparing(true);
+    }
+  }, [startComparing]);
   const [sel, setSel] = useState([]);
   const [confirmDel, setConfirmDel] = useState(false);
   const [confirmDelAvalId, setConfirmDelAvalId] = useState(null);
@@ -4785,7 +4791,7 @@ function AlunoScreen({ aluno, onBack, onNewAval, onOpenAval, onDelete, onCompare
 }
 
 // ── COMPLETION OVERLAY ────────────────────────────────────────────────────────
-function CompletionOverlay({ onPDF, onClose, lang = "pt" }) {
+function CompletionOverlay({ onPDF, onClose, onCompare, showCompare, lang = "pt" }) {
   const [pieces] = useState(function() {
     var COLS = ["#FF6B6B","#FFD93D","#6BCB77","#4ECDC4","#A78BFA","#F97316","#EC4899"];
     var list = [];
@@ -4811,6 +4817,11 @@ function CompletionOverlay({ onPDF, onClose, lang = "pt" }) {
         <div style={{ fontSize:25, fontWeight:800, color:T.text, marginBottom:7 }}>{t("concluida", lang)}</div>
         <div style={{ fontSize:14, color:T.muted, marginBottom:30, lineHeight:1.5 }}>{t("todos_dados_registrados", lang)}</div>
         <div style={{ display:"flex", flexDirection:"column", gap:11, width:"100%", maxWidth:300 }}>
+          {showCompare && (
+            <Btn full onClick={onCompare} variant="outline" style={{ borderColor: ac(), color: ac() }}>
+              {lang === "en" ? "Compare Evaluations" : lang === "es" ? "Comparar Evaluaciones" : "Comparar Avaliações"}
+            </Btn>
+          )}
           <Btn full onClick={onPDF} icon={<IcPdf c="#fff" s={16}/>}>{t("salvar_pdf", lang)}</Btn>
           <Btn full variant="ghost" onClick={onClose}>{t("continuar_sem_pdf", lang)}</Btn>
         </div>
@@ -4822,7 +4833,7 @@ function CompletionOverlay({ onPDF, onClose, lang = "pt" }) {
 // ── ASSESSMENT FORM ───────────────────────────────────────────────────────────
 var FORM_TABS = ["Dados", "Anamnese", "Composição", "Perímetros", "Força", "Flexibilidade", "Cardiovascular", "Metabolismo", "Fotos", "Resultados"];
 
-function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, trainer, prevAval, onSendToStudent }) {
+function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, trainer, prevAval, onSendToStudent, alunoAvaliacoesCount = 0, onCompare }) {
   const lang = (trainer && trainer.lang) || "pt";
   const firstName = alunoNome ? alunoNome.split(" ")[0] : (lang === "en" ? "Student" : lang === "es" ? "Alumno" : "Aluno");
   const unitSystem = (trainer && trainer.unitSystem) || "metric";
@@ -4980,7 +4991,7 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
 
   return (
     <div style={{ paddingBottom:80 }}>
-      {done && <CompletionOverlay onPDF={function() { window.print(); }} onClose={onBack} lang={lang}/>}
+      {done && <CompletionOverlay onPDF={function() { window.print(); }} onClose={onBack} onCompare={onCompare} showCompare={alunoAvaliacoesCount >= 2} lang={lang}/>}
       <div className="no-print" style={{ position:"sticky", top:0, zIndex:60, background:T.bg, borderBottom:"1px solid "+T.border, padding:"11px 16px 0" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:11 }}>
           <button onClick={handleBack} style={{ background:"none", border:"1.5px solid "+T.border, borderRadius:8, padding:"7px 10px", cursor:"pointer", display:"flex", alignItems:"center" }}>
@@ -9929,6 +9940,7 @@ export default function App() {
       <AvalForm 
         av={avalData || newAval(null, null, null, null, settings)} 
         alunoNome={alunoAv ? alunoAv.nome : ""} 
+        alunoAvaliacoesCount={alunoAv ? (alunoAv.avaliacoes || []).length : 0}
         isNew={cur.isNew} 
         onSave={async function(av) {
           if (alunoAv) {
@@ -9944,6 +9956,18 @@ export default function App() {
           }
         }} 
         onBack={pop} 
+        onCompare={function() {
+          setStack(function(prev) {
+            const next = prev.slice(0, -1);
+            if (next.length > 0) {
+              const lastIdx = next.length - 1;
+              if (next[lastIdx].type === "aluno") {
+                next[lastIdx] = Object.assign({}, next[lastIdx], { startComparing: true });
+              }
+            }
+            return next;
+          });
+        }}
         settings={settings} 
         trainer={trainer} 
         prevAval={prevAval}
@@ -9959,6 +9983,7 @@ export default function App() {
     content = (
       <AlunoScreen
         aluno={alunoProf}
+        startComparing={cur.startComparing}
         onBack={pop}
         onNewAval={function() { if (alunoProf) push({ type: "avaliacao", alunoId: alunoProf.id, isNew: true }); }}
         onOpenAval={function(id) { if (alunoProf) push({ type: "avaliacao", alunoId: alunoProf.id, avalId: id, isNew: false }); }}
