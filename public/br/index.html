@@ -560,12 +560,37 @@
                 <div class="pricing-card popular-plan">
                     <div class="pricing-badge">Plano Completo</div>
                     
-                    <div class="pricing-header">
-                        <div class="price-wrapper">
+                    <div class="pricing-header" style="flex-direction: column; align-items: center; padding-top: 25px; padding-bottom: 25px;">
+                        <!-- Preço Original Cortado -->
+                        <div class="price-original-line" style="font-size: 1rem; color: #94a3b8; font-weight: 500; margin-bottom: 6px; letter-spacing: 0.5px;">
+                            De <span class="original-amount" style="text-decoration: line-through; color: #ef4444; font-weight: 600;">R$ 19,90</span> por apenas
+                        </div>
+                        <!-- Novo Preço -->
+                        <div class="price-wrapper" style="margin-top: 2px;">
                             <span class="currency">R$</span>
-                            <span class="amount">19</span>
+                            <span class="amount">9</span>
                             <span class="cents">,90</span>
-                            <span class="period">/mês</span>
+                        </div>
+                        <!-- Texto do Período -->
+                        <div class="price-period-note" style="font-size: 0.95rem; color: #2dd4bf; font-weight: 700; margin-top: 6px; letter-spacing: 0.5px; text-transform: uppercase;">
+                            no primeiro mês
+                        </div>
+                        <!-- Informação do preço recorrente -->
+                        <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">
+                            (Depois apenas R$ 19,90/mês)
+                        </div>
+
+                        <!-- Caixinha do Cupom de Desconto -->
+                        <div class="coupon-box" style="margin-top: 18px; width: 100%; max-width: 280px; background: rgba(13, 148, 136, 0.05); border: 1px dashed rgba(13, 148, 136, 0.3); border-radius: 12px; padding: 10px 14px; box-sizing: border-box; text-align: center;">
+                            <div class="coupon-label" style="font-size: 0.75rem; color: #94a3b8; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">
+                                Cupom de Desconto de 50%
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <span id="promo-code" style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 800; color: #ffffff; letter-spacing: 1px; background: rgba(255, 255, 255, 0.05); padding: 4px 10px; border-radius: 6px;">BEMVINDO</span>
+                                <button class="btn-copy-coupon" onclick="copyCouponCode()" style="background: rgba(13, 148, 136, 0.2); border: 1px solid rgba(13, 148, 136, 0.4); color: #2dd4bf; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; font-family: inherit;">
+                                    <i class="fa-regular fa-copy"></i> Copiar
+                                </button>
+                            </div>
                         </div>
                     </div>
 
