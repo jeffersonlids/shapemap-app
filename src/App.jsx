@@ -9503,15 +9503,30 @@ export default function App() {
   useEffect(function() {
     const search = window.location.search;
     if (search && search.includes("success=true")) {
+      let sessionId = null;
+      let urlCurrency = "BRL";
+      let urlValue = 99.00;
+      try {
+        const urlParams = new URLSearchParams(search);
+        sessionId = urlParams.get("session_id");
+        urlCurrency = urlParams.get("currency") || "BRL";
+        urlValue = parseFloat(urlParams.get("value") || "99.00");
+      } catch (e) {
+        console.warn("Erro ao ler parametros de conversão:", e);
+      }
+
       if (typeof window.fbq === 'function') {
         window.fbq('track', 'Purchase', {
-          value: 99.00,
-          currency: 'BRL'
-        });
+          value: urlValue,
+          currency: urlCurrency
+        }, sessionId ? { eventID: sessionId } : undefined);
       }
       try {
         const url = new URL(window.location.href);
         url.searchParams.delete("success");
+        url.searchParams.delete("session_id");
+        url.searchParams.delete("currency");
+        url.searchParams.delete("value");
         window.history.replaceState({}, document.title, url.pathname + url.search);
       } catch (e) {
         console.warn(e);

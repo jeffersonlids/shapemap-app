@@ -60,9 +60,10 @@ export default async function handler(req, res) {
       });
     }
 
-    // 2. Criar a sessão do Checkout
     const origin = req.headers.origin || 'http://localhost:5173';
-    
+    const currency = isUsd ? 'USD' : 'BRL';
+    const value = isUsd ? '3.90' : '19.90';
+
     const session = await stripe.checkout.sessions.create({
       customer: customer.id,
       line_items: [
@@ -76,7 +77,7 @@ export default async function handler(req, res) {
       phone_number_collection: {
         enabled: true
       },
-      success_url: `${origin}/?success=true`,
+      success_url: `${origin}/?success=true&session_id={CHECKOUT_SESSION_ID}&currency=${currency}&value=${value}`,
       cancel_url: `${origin}/?success=false`,
       metadata: {
         trainerId: trainerId,

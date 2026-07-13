@@ -7,7 +7,7 @@ function sha256(text) {
   return crypto.createHash('sha256').update(text.trim().toLowerCase()).digest('hex');
 }
 
-async function sendMetaCapiEvent(email, amount, currency, eventName = 'Purchase') {
+async function sendMetaCapiEvent(email, amount, currency, eventName = 'Purchase', eventId = null, phone = null, name = null) {
   const pixelId = process.env.META_PIXEL_ID;
   const accessToken = process.env.META_ACCESS_TOKEN;
 
@@ -18,21 +18,40 @@ async function sendMetaCapiEvent(email, amount, currency, eventName = 'Purchase'
 
   try {
     const hashedEmail = sha256(email);
+    const hashedPhone = phone ? sha256(phone.replace(/\D/g, '')) : null;
+    
+    let hashedFirstName = null;
+    let hashedLastName = null;
+    if (name) {
+      const parts = name.trim().split(/\s+/);
+      if (parts.length > 0) hashedFirstName = sha256(parts[0]);
+      if (parts.length > 1) hashedLastName = sha256(parts[parts.length - 1]);
+    }
+
+    const userData = {
+      em: hashedEmail ? [hashedEmail] : []
+    };
+    if (hashedPhone) userData.ph = [hashedPhone];
+    if (hashedFirstName) userData.fn = [hashedFirstName];
+    if (hashedLastName) userData.ln = [hashedLastName];
+
+    const eventObj = {
+      event_name: eventName,
+      event_time: Math.floor(Date.now() / 1000),
+      action_source: 'website',
+      user_data: userData,
+      custom_data: {
+        value: amount,
+        currency: currency ? currency.toUpperCase() : 'BRL'
+      }
+    };
+
+    if (eventId) {
+      eventObj.event_id = eventId;
+    }
+
     const payload = {
-      data: [
-        {
-          event_name: eventName,
-          event_time: Math.floor(Date.now() / 1000),
-          action_source: 'website',
-          user_data: {
-            em: hashedEmail ? [hashedEmail] : []
-          },
-          custom_data: {
-            value: amount,
-            currency: currency ? currency.toUpperCase() : 'BRL'
-          }
-        }
-      ]
+      data: [eventObj]
     };
 
     const response = await fetch(`https://graph.facebook.com/v19.0/${pixelId}/events?access_token=${accessToken}`, {
@@ -47,7 +66,7 @@ async function sendMetaCapiEvent(email, amount, currency, eventName = 'Purchase'
     if (!response.ok) {
       console.error('❌ Erro Meta Conversions API:', resData);
     } else {
-      console.log(`✅ Evento Meta CAPI '${eventName}' enviado com sucesso. Response:`, resData);
+      console.log(`✅ Evento Meta CAPI '${eventName}' enviado com sucesso (Event ID: ${eventId}). Response:`, resData);
     }
   } catch (error) {
     console.error('❌ Falha ao enviar evento Meta CAPI:', error);
@@ -146,10 +165,19 @@ export default async function handler(req, res) {
 
         // Disparar evento de conversão para a Meta (Facebook) via CAPI
         const buyerEmail = session.customer_details?.email || session.customer_email;
+        const buyerName = session.customer_details?.name || '';
         const totalAmount = session.amount_total ? session.amount_total / 100 : 99.00;
         const totalCurrency = session.currency || 'brl';
         if (buyerEmail) {
-          await sendMetaCapiEvent(buyerEmail, totalAmount, totalCurrency, 'Purchase');
+          await sendMetaCapiEvent(
+            buyerEmail, 
+            totalAmount, 
+            totalCurrency, 
+            'Purchase', 
+            session.id, // eventId
+            buyerPhone,
+            buyerName
+          );
         }
         break;
       }
