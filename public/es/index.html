@@ -12,7 +12,7 @@
     <!-- Preload Critical Assets for faster FCP/LCP -->
     <link rel="preload" href="/es/style.css" as="style">
     <link rel="preload" href="/es/logo.webp" as="image">
-    <link rel="preload" href="/es/thumbnail.webp" as="image">
+    <link rel="preload" href="/es/thumbnail.png" as="image">
 
     <!-- Non-blocking Google Fonts stylesheet loading -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
@@ -79,9 +79,19 @@
                 <div class="vsl-wrapper">
                     <div class="vsl-mockup">
                         <div class="vsl-video-container" style="position: relative; overflow: hidden; background: #000; border-radius: 12px;">
+                            <!-- Embedded Iframe ready to play -->
+                            <iframe 
+                                id="vslPlayer"
+                                src="https://www.youtube.com/embed/Nj0wah8hk2A?enablejsapi=1&autoplay=0&mute=0&controls=1&rel=0&playsinline=1" 
+                                title="ShapeMap VSL" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allowfullscreen
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; border-radius: 12px; z-index: 1;">
+                            </iframe>
                             <!-- Youtube Facade (Preview Image) to prevent initial render blocking -->
-                            <div class="vsl-facade" id="vslFacade" onclick="loadVSLVideo()" style="position: absolute; inset: 0; cursor: pointer; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; z-index: 10;">
-                                <img src="/es/thumbnail.webp" alt="ShapeMap VSL Preview" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: opacity 0.3s, transform 0.3s;">
+                            <div class="vsl-facade" id="vslFacade" onclick="playVSLVideo()" style="position: absolute; inset: 0; cursor: pointer; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; z-index: 10; transition: opacity 0.5s ease;">
+                                <img src="/es/thumbnail.png" alt="ShapeMap VSL Preview" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: opacity 0.3s, transform 0.3s;">
                                 <div class="play-btn-wrapper" style="position: absolute; width: 68px; height: 68px; background: rgba(0, 0, 0, 0.65); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.4); transition: transform 0.2s, background-color 0.2s;">
                                     <svg width="24" height="26" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: 3px;">
                                         <path d="M4 2.69v22.62c0 1.57 1.73 2.53 3.06 1.7l18.1-11.31c1.23-.77 1.23-2.62 0-3.39L7.06.99C5.73.16 4 1.12 4 2.69z" fill="#ffffff"/>
@@ -240,6 +250,68 @@
                 <div class="section-header benefits-section-header">
                     <h2>Su Evaluación Física al <span class="gradient-text">Siguiente Nivel</span></h2>
                 </div>
+            </div>
+        </div>
+
+        <!-- Interactive ROI Calculator Card -->
+        <div class="roi-calculator-container scroll-animate">
+            <div class="roi-card">
+                <h3 class="roi-title">Simulador de Ingresos</h3>
+                <div class="roi-sliders">
+                    <!-- Slider 1 -->
+                    <div class="roi-field-group">
+                        <span class="roi-field-label">¿Cuántas evaluaciones haces al mes?</span>
+                        <div class="roi-value-display">
+                            <span id="qty-val">15</span>
+                        </div>
+                        <input type="range" id="qty-slider" min="1" max="100" value="15" class="roi-slider">
+                        <div class="roi-slider-ticks">
+                            <span>1</span>
+                            <span>50</span>
+                            <span>100</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider 2 -->
+                    <div class="roi-field-group">
+                        <span class="roi-field-label">¿Cuánto cobras a tu cliente por evaluación?</span>
+                        <div class="roi-value-display">
+                            <span id="price-val">$ 30</span>
+                        </div>
+                        <input type="range" id="price-slider" min="10" max="100" step="5" value="30" class="roi-slider">
+                        <div class="roi-slider-ticks">
+                            <span>$ 10</span>
+                            <span>$ 55</span>
+                            <span>$ 100</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="roi-result-card">
+                    <div class="roi-result-item">
+                        <span class="roi-result-label">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                            Tus ingresos mensuales estimados
+                        </span>
+                        <span id="revenue-result" class="roi-result-value">$ 450,00</span>
+                    </div>
+                    <div class="roi-divider"></div>
+                    <div class="roi-result-footer">
+                        <span class="roi-footer-hint">Su inversión en la herramienta es insignificante:</span>
+                        <div class="roi-metric-row">
+                            <span class="roi-footer-cost">Mensualidad de ShapeMap: <strong>$ 3,90</strong></span>
+                            <span class="roi-footer-comparison" id="comparison-text">Cargando retorno...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="roi-cta-wrapper" style="margin-top: 30px; width: 100%; display: flex; justify-content: center;">
+                <a href="#plano-mensal" class="btn btn-gradient scroll-trigger btn-pulse" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; padding: 14px 32px; font-size: 1rem; font-weight: 700; border-radius: 12px; min-width: 220px; box-shadow: 0 4px 15px rgba(13, 148, 136, 0.2);">
+                    <i class="fa-solid fa-rocket"></i> ¡QUIERO EMPEZAR AHORA!
+                </a>
             </div>
         </div>
 
@@ -645,19 +717,19 @@
 
     <!-- Video Facade and Lazy-loading Video Scripts -->
     <script>
-        // Load YouTube VSL dynamically on click
-        function loadVSLVideo() {
-            const container = document.querySelector('.vsl-video-container');
-            container.innerHTML = `
-                <iframe 
-                    src="https://www.youtube.com/embed/Nj0wah8hk2A?autoplay=1&mute=0&controls=1&rel=0" 
-                    title="ShapeMap VSL" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowfullscreen
-                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; border-radius: 12px;">
-                </iframe>
-            `;
+        // Play YouTube VSL with fade-out effect and postMessage
+        function playVSLVideo() {
+            const facade = document.getElementById('vslFacade');
+            if (facade) {
+                facade.style.opacity = '0';
+                setTimeout(() => {
+                    facade.style.display = 'none';
+                }, 500);
+            }
+            const iframe = document.getElementById('vslPlayer');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+            }
         }
 
         // Lazy-load autoplay videos to prevent network congestion during initial paint

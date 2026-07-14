@@ -269,6 +269,59 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // ==========================================
+    // 6. INTERACTIVE ROI CALCULATOR
+    // ==========================================
+    const qtySlider = document.getElementById('qty-slider');
+    const priceSlider = document.getElementById('price-slider');
+    const qtyVal = document.getElementById('qty-val');
+    const priceVal = document.getElementById('price-val');
+    const revenueResult = document.getElementById('revenue-result');
+    const comparisonText = document.getElementById('comparison-text');
+    
+    if (qtySlider && priceSlider) {
+        function updateROI() {
+            const qty = parseInt(qtySlider.value);
+            const price = parseInt(priceSlider.value);
+            
+            // Update labels
+            qtyVal.textContent = qty;
+            priceVal.textContent = '$ ' + price;
+            
+            // Calculate revenue
+            const totalRevenue = qty * price;
+            
+            // Format revenue
+            const formattedRevenue = '$ ' + totalRevenue.toLocaleString('es-ES', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            
+            revenueResult.textContent = formattedRevenue;
+            
+            // Dynamic comparison hint
+            const monthlyCost = 3.90;
+            if (totalRevenue > 0) {
+                const singleEvalPaidMonths = Math.floor(price / monthlyCost);
+                if (singleEvalPaidMonths > 1) {
+                    comparisonText.textContent = `¡1 sola evaluación paga ${singleEvalPaidMonths} meses de sistema!`;
+                } else if (singleEvalPaidMonths === 1) {
+                    comparisonText.textContent = `¡1 sola evaluación paga 1 mes de sistema!`;
+                } else {
+                    comparisonText.textContent = `¡Retorno financiero garantizado!`;
+                }
+            } else {
+                comparisonText.textContent = `Simule su retorno`;
+            }
+        }
+        
+        qtySlider.addEventListener('input', updateROI);
+        priceSlider.addEventListener('input', updateROI);
+        
+        // Initial run
+        updateROI();
+    }
+
 });
 
 function copyCouponCode() {
