@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShapeMap - Physical Evaluation Software for Health Professionals</title>
+    <!-- Google Fonts: Outfit (modern/tech) & Inter (clean reading) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Preload Critical Assets for faster FCP/LCP -->
+    <link rel="preload" href="/en/style.css" as="style">
+    <link rel="preload" href="/en/logo.webp" as="image">
+    <link rel="preload" href="/en/thumbnail.png" as="image">
+
+    <!-- Non-blocking Google Fonts stylesheet loading -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap">
+    </noscript>
+
+    <!-- Non-blocking FontAwesome stylesheet loading -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    </noscript>
+
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="/en/style.css">
+
+    <!-- Custom styles for the Video Facade hover effect -->
+    <style>
+        .vsl-facade:hover img {
+            opacity: 0.75 !important;
+            transform: scale(1.02);
+        }
+        .vsl-facade:hover .play-btn-wrapper {
+            transform: scale(1.08);
+            background-color: rgba(0, 0, 0, 0.85) !important;
+        }
+    </style>
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1230329092413734');
+    fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1230329092413734&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-bg-glow"></div>
+        <div class="container hero-container-stacked">
+            <div class="logo-hero">
+                <img src="/en/logo.webp" alt="ShapeMap Logo" class="logo-img-hero" decoding="async">
+            </div>
+            <h1 class="hero-title">
+                Transform your physical evaluations into <span class="gradient-text">professional reports</span> with automatic calculations.
+            </h1>
+            <p class="hero-subtitle">
+                More organization, fewer spreadsheets. Track the evolution of your clients in a simple, fast, and professional way.
+            </p>
+
+            <!-- VSL (Video Sales Letter) Container -->
+            <div class="vsl-section">
+                <div class="vsl-wrapper">
+                    <div class="vsl-mockup">
+                        <div class="vsl-video-container" style="position: relative; overflow: hidden; background: #000; border-radius: 12px;">
+                            <!-- Embedded Iframe ready to play -->
+                            <iframe 
+                                id="vslPlayer"
+                                src="https://www.youtube.com/embed/ugkdRLqOaDs?enablejsapi=1&autoplay=0&mute=0&controls=1&rel=0&playsinline=1" 
+                                title="ShapeMap VSL" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allowfullscreen
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; border-radius: 12px; z-index: 1;">
+                            </iframe>
+                            <!-- Youtube Facade (Preview Image) to prevent initial render blocking -->
+                            <div class="vsl-facade" id="vslFacade" onclick="playVSLVideo()" style="position: absolute; inset: 0; cursor: pointer; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; z-index: 10; transition: opacity 0.5s ease;">
+                                <img src="/en/thumbnail.png" alt="ShapeMap VSL Preview" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: opacity 0.3s, transform 0.3s;">
+                                <div class="play-btn-wrapper" style="position: absolute; width: 68px; height: 68px; background: rgba(0, 0, 0, 0.65); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.4); transition: transform 0.2s, background-color 0.2s;">
+                                    <svg width="24" height="26" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: 3px;">
+                                        <path d="M4 2.69v22.62c0 1.57 1.73 2.53 3.06 1.7l18.1-11.31c1.23-.77 1.23-2.62 0-3.39L7.06.99C5.73.16 4 1.12 4 2.69z" fill="#ffffff"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA Button below video -->
+            <div class="hero-cta-wrapper">
+                <a href="#plano-mensal" class="btn btn-gradient btn-large scroll-trigger btn-pulse">
+                    <i class="fa-solid fa-rocket"></i> GET STARTED NOW!
+                </a>
+                <span class="cta-micro-proof">
+                    <i class="fa-solid fa-shield-halved"></i> Zero Risk, Immediate Access
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="depoimentos" class="testimonials-section">
+        <div class="container">
+            <!-- Testimonials Slider Wrapper -->
+            <div class="slider-wrapper">
+                <div class="slider-container" id="testimonialsSlider">
+                    
+                    <!-- Testimonial 1 -->
+                    <div class="testimonial-card benefit-card">
+                        <div class="card-tag benefit-tag"><i class="fa-solid fa-star"></i> Easy & Practical</div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="/en/depoimento1.webp" alt="Felipe Andrade" class="avatar-img" loading="lazy" decoding="async" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                            </div>
+                            <div class="author-info">
+                                <h4>Felipe Andrade</h4>
+                                <span>Personal Trainer</span>
+                            </div>
+                        </div>
+                        <p class="testimonial-text">
+                            "The convenience of performing physical evaluations directly on my phone in the weight room changed my routine. ShapeMap is incredibly intuitive and fast."
+                        </p>
+                    </div>
+
+                    <!-- Testimonial 2 -->
+                    <div class="testimonial-card benefit-card">
+                        <div class="card-tag benefit-tag"><i class="fa-solid fa-heart"></i> Incredible Support</div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="/en/depoimento2.webp" alt="Aline Mendes" class="avatar-img" loading="lazy" decoding="async" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                            </div>
+                            <div class="author-info">
+                                <h4>Aline Mendes</h4>
+                                <span>Nutritionist</span>
+                            </div>
+                        </div>
+                        <p class="testimonial-text">
+                            "I had a question about the body composition protocol and support answered me in less than 5 minutes on WhatsApp. The service is 10/10."
+                        </p>
+                    </div>
+
+                    <!-- Testimonial 3 -->
+                    <div class="testimonial-card benefit-card">
+                        <div class="card-tag benefit-tag"><i class="fa-solid fa-sack-dollar"></i> New Revenue Stream</div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="/en/depoimento3.webp" alt="Dr. Ricardo Silva" class="avatar-img" loading="lazy" decoding="async" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                            </div>
+                            <div class="author-info">
+                                <h4>Dr. Ricardo Silva</h4>
+                                <span>Sports Physician</span>
+                            </div>
+                        </div>
+                        <p class="testimonial-text">
+                            "With the professional PDFs generated by ShapeMap, my clients gladly pay for every evaluation I do, and they already schedule follow-ups. My income has increased significantly!"
+                        </p>
+                    </div>
+
+                    <!-- Testimonial 4 -->
+                    <div class="testimonial-card problem-card">
+                        <div class="card-tag problem-tag"><i class="fa-solid fa-hourglass-half"></i> Goodbye Spreadsheets</div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="/en/depoimento4.webp" alt="Mariana Costa" class="avatar-img" loading="lazy" decoding="async" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                            </div>
+                            <div class="author-info">
+                                <h4>Mariana Costa</h4>
+                                <span>Physiotherapist & Personal</span>
+                            </div>
+                        </div>
+                        <p class="testimonial-text">
+                            "I used to waste more than an hour and a half per student creating graphs in Excel and sending reports. Today I do everything in less than 30 minutes, sending a beautiful, top-notch PDF. Thank you."
+                        </p>
+                    </div>
+
+                    <!-- Testimonial 5 -->
+                    <div class="testimonial-card problem-card">
+                        <div class="card-tag problem-tag"><i class="fa-solid fa-users"></i> Client Retention</div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="/en/depoimento5.webp" alt="Thiago Ramos" class="avatar-img" loading="lazy" decoding="async" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                            </div>
+                            <div class="author-info">
+                                <h4>Thiago Ramos</h4>
+                                <span>Coach & Studio Owner</span>
+                            </div>
+                        </div>
+                        <p class="testimonial-text">
+                            "Now, in addition to my income from in-person classes, I also make extra money with physical evaluations. All of my clients book one evaluation per month."
+                        </p>
+                    </div>
+
+                    <!-- Testimonial 6 -->
+                    <div class="testimonial-card problem-card">
+                        <div class="card-tag problem-tag"><i class="fa-solid fa-circle-exclamation"></i> Hassle-Free</div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <img src="/en/depoimento6.webp" alt="Beatriz Neves" class="avatar-img" loading="lazy" decoding="async" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%230d9488\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'">
+                            </div>
+                            <div class="author-info">
+                                <h4>Beatriz Neves</h4>
+                                <span>Clinical Nutritionist</span>
+                            </div>
+                        </div>
+                        <p class="testimonial-text">
+                            "I've always struggled with apps, but ShapeMap is so practical that I didn't have any doubts. I perform evaluations much more easily now."
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+            
+            <!-- Animated Counter Below Carousel -->
+            <div class="counter-header-wrapper">
+                <div class="counter-number-container">
+                    +<span id="clients-counter">0</span>
+                </div>
+                <div class="counter-label">
+                    PROFESSIONALS TRUST AND USE IT
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section id="beneficios" class="benefits-section">
+        <!-- Unified Section Header above the phone video mockup -->
+        <div class="container">
+            <div class="section-header benefits-top-header">
+                <h2>Your Physical Evaluation at the <span class="gradient-text">Next Level</span></h2>
+            </div>
+        </div>
+
+        <!-- Background Video Header Container (Phone Mockup) -->
+        <div class="benefits-video-hero">
+            <div class="video-hero-bg">
+                <video class="video-hero-media" autoplay loop muted playsinline preload="none">
+                    <source data-src="/en/vídeocelular.mp4" type="video/mp4">
+                </video>
+                <div class="video-hero-overlay"></div>
+            </div>
+        </div>
+
+        <!-- Interactive ROI Calculator Card -->
+        <div class="roi-calculator-container scroll-animate">
+            <div class="roi-card">
+                <h3 class="roi-title">Revenue Simulator</h3>
+                <div class="roi-sliders">
+                    <!-- Slider 1 -->
+                    <div class="roi-field-group">
+                        <span class="roi-field-label">How many evaluations do you do per month?</span>
+                        <div class="roi-value-display">
+                            <span id="qty-val">15</span>
+                        </div>
+                        <input type="range" id="qty-slider" min="1" max="100" value="15" class="roi-slider">
+                        <div class="roi-slider-ticks">
+                            <span>1</span>
+                            <span>50</span>
+                            <span>100</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider 2 -->
+                    <div class="roi-field-group">
+                        <span class="roi-field-label">How much do you charge your client per evaluation?</span>
+                        <div class="roi-value-display">
+                            <span id="price-val">$ 30</span>
+                        </div>
+                        <input type="range" id="price-slider" min="10" max="100" step="5" value="30" class="roi-slider">
+                        <div class="roi-slider-ticks">
+                            <span>$ 10</span>
+                            <span>$ 55</span>
+                            <span>$ 100</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="roi-result-card">
+                    <div class="roi-result-item">
+                        <span class="roi-result-label">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                            Your estimated monthly revenue
+                        </span>
+                        <span id="revenue-result" class="roi-result-value">$ 450,00</span>
+                    </div>
+                    <div class="roi-divider"></div>
+                    <div class="roi-result-footer">
+                        <span class="roi-footer-hint">Your investment in the tool is insignificant:</span>
+                        <div class="roi-metric-row">
+                            <span class="roi-footer-cost">ShapeMap Subscription: <strong>$ 3.90</strong></span>
+                            <span class="roi-footer-comparison" id="comparison-text">Loading return...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="roi-cta-wrapper" style="margin-top: 30px; width: 100%; display: flex; justify-content: center;">
+                <a href="#plano-mensal" class="btn btn-gradient scroll-trigger btn-pulse" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; padding: 14px 32px; font-size: 1rem; font-weight: 700; border-radius: 12px; min-width: 220px; box-shadow: 0 4px 15px rgba(13, 148, 136, 0.2);">
+                    <i class="fa-solid fa-rocket"></i> GET STARTED NOW!
+                </a>
+            </div>
+        </div>
+
+        <div class="container">
+
+            <!-- Scroll Interactive Benefits Grid -->
+            <div class="benefits-grid">
+                <!-- Benefit 1 -->
+                <div class="benefit-item scroll-animate">
+                    <div class="benefit-image-container">
+                        <img src="/en/beneficio1.webp" alt="Work from anywhere" class="benefit-img" loading="lazy" decoding="async">
+                    </div>
+                    <div class="benefit-content">
+                        <h3>Work from <span class="gradient-text">anywhere</span></h3>
+                        <p>perform your evaluations from your phone, computer, or tablet</p>
+                    </div>
+                </div>
+                <!-- Benefit 2 -->
+                <div class="benefit-item scroll-animate">
+                    <div class="benefit-image-container">
+                        <img src="/en/beneficio2.svg" alt="Impress your clients" class="benefit-img" loading="lazy" decoding="async">
+                    </div>
+                    <div class="benefit-content">
+                        <h3><span class="gradient-text">Impress</span> your clients</h3>
+                        <p>Generate professional PDF reports with a few clicks.</p>
+                    </div>
+                </div>
+
+                <!-- Benefit 3 -->
+                <div class="benefit-item scroll-animate">
+                    <div class="benefit-image-container">
+                        <video class="benefit-img" autoplay loop muted playsinline preload="none">
+                            <source data-src="/en/beneficio3.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    <div class="benefit-content">
+                        <h3><span class="gradient-text">Save</span> hours of work</h3>
+                        <p>Perform physical evaluations in minutes with automatic calculations.</p>
+                    </div>
+                </div>
+
+                <!-- Benefit 4 -->
+                <div class="benefit-item scroll-animate">
+                    <div class="benefit-image-container">
+                        <img src="/en/beneficio4.webp" alt="Increase your revenue" class="benefit-img" loading="lazy" decoding="async">
+                    </div>
+                    <div class="benefit-content">
+                        <h3><span class="gradient-text">Increase</span> your revenue</h3>
+                        <p>Offer professional physical evaluations and add more value to your service.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="funcionalidades" class="features-section">
+        <div class="features-bg-glow"></div>
+        <div class="container">
+            <div class="section-header">
+                <h2>Everything You Need in <span class="gradient-text">One Place</span></h2>
+            </div>
+
+            <!-- Interactive Features Slider Component -->
+            <div class="features-slider-component">
+                <button class="nav-arrow-btn feat-prev" aria-label="Previous"><i class="fa-solid fa-chevron-left"></i></button>
+                <div class="features-slider-container" id="featuresSlider">
+ 
+                    <!-- Feature Card 1 -->
+                    <div class="feature-slide-card active" data-index="0">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-clipboard-question feature-card-icon"></i>
+                            <h3>Health History</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> 100% customizable questions</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Automatic saving of answers</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- Feature Card 2 -->
+                    <div class="feature-slide-card" data-index="1">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-weight-scale feature-card-icon"></i>
+                            <h3>Body Composition</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Automatic weight, height, and BMI</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Protocols: Pollock (3 & 7 Skinfolds), Faulkner, Petroski, Durnin, US Navy, and bioimpedance</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Fat percentage, lean mass, and fat mass</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- Feature Card 3 -->
+                    <div class="feature-slide-card" data-index="2">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-tape feature-card-icon"></i>
+                            <h3>Body Circumference</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Freely add any body measurement</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Automatic WHR (Waist-to-Hip Ratio) calculation</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- Feature Card 4 -->
+                    <div class="feature-slide-card" data-index="3">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-dumbbell feature-card-icon"></i>
+                            <h3>Strength Testing</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Add customized exercises</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Load and repetition history</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Muscle strength evolution graph</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+  
+                    <!-- Feature Card 5 -->
+                    <div class="feature-slide-card" data-index="4">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-child-reaching feature-card-icon"></i>
+                            <h3>Flexibility</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Sit and Reach test (Wells bench)</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Popliteal angle test (hamstrings)</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Thomas test (hip flexors)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+  
+                    <!-- Feature Card 6 -->
+                    <div class="feature-slide-card" data-index="5">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-heart-pulse feature-card-icon"></i>
+                            <h3>Cardio & VO2 Max</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Cooper test and incremental treadmill test</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Heart rate (resting, maximum, and recovery)</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Blood pressure with evolutionary history</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+  
+                    <!-- Feature Card 7 -->
+                    <div class="feature-slide-card" data-index="6">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-bolt feature-card-icon"></i>
+                            <h3>Metabolic Rate</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Automatic BMR calculation using consolidated formulas</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+  
+                    <!-- Feature Card 8 -->
+                    <div class="feature-slide-card" data-index="7">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-camera feature-card-icon"></i>
+                            <h3>Comparative Photos</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Front, side, and back photos</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Observations and notes for posture analysis</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+  
+                    <!-- Feature Card 9 -->
+                    <div class="feature-slide-card" data-index="8">
+                        <div class="feature-card-header">
+                            <i class="fa-solid fa-file-contract feature-card-icon"></i>
+                            <h3>Final Results & PDF</h3>
+                        </div>
+                        <div class="feature-card-content">
+                            <div class="feature-card-inner">
+                                <ul class="feature-list">
+                                    <li><i class="fa-solid fa-circle-check"></i> Super fast PDF export</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Comparative history graphs</li>
+                                    <li><i class="fa-solid fa-circle-check"></i> Simplified sending via WhatsApp or Email</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                </div>
+                <button class="nav-arrow-btn feat-next" aria-label="Next"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="features-slider-indicators" id="featuresIndicators"></div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="preco" class="pricing-section">
+        <div class="pricing-glow-1"></div>
+        <div class="pricing-glow-2"></div>
+        <div class="container">
+
+            <!-- Pricing Card -->
+            <div class="pricing-card-container" id="plano-mensal">
+                <div class="pricing-card popular-plan">
+                    <div class="pricing-badge">Full Plan</div>
+                    
+                    <div class="pricing-header" style="display: flex; flex-direction: column; align-items: center; padding-top: 25px; padding-bottom: 25px;">
+                        <!-- Preço Original Cortado -->
+                        <div class="price-original-line" style="font-size: 1.05rem; color: #94a3b8; font-weight: 500; margin-bottom: 6px; letter-spacing: 0.5px;">
+                            De <span class="original-amount" style="text-decoration: line-through; color: #ef4444; font-weight: 700; font-size: 1.25rem;">$3.90</span> por solo
+                        </div>
+                        <!-- Novo Preço -->
+                        <div class="price-wrapper" style="margin-top: 2px;">
+                            <span class="currency">$</span>
+                            <span class="amount">1</span>
+                            <span class="cents">,90</span>
+                        </div>
+                        <!-- Texto do Período -->
+                        <div class="price-period-note" style="font-size: 0.95rem; color: #2dd4bf; font-weight: 700; margin-top: 6px; letter-spacing: 0.5px; text-transform: uppercase;">
+                            for the first month using the coupon 👇
+                        </div>
+
+                        <!-- Caixinha do Cupom de Desconto -->
+                        <div class="coupon-box" style="margin: 14px auto 0 auto; width: 100%; max-width: 290px; background: rgba(13, 148, 136, 0.05); border: 1px dashed rgba(13, 148, 136, 0.3); border-radius: 12px; padding: 12px 16px; box-sizing: border-box; text-align: center;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                <span id="promo-code" style="font-family: 'Outfit', sans-serif; font-size: 1.35rem; font-weight: 900; color: #ffffff; letter-spacing: 1.5px; background: rgba(255, 255, 255, 0.05); padding: 6px 14px; border-radius: 8px;">WELCOME</span>
+                                <button class="btn-copy-coupon" onclick="copyCouponCode()" style="background: rgba(13, 148, 136, 0.2); border: 1px solid rgba(13, 148, 136, 0.4); color: #2dd4bf; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; font-family: inherit;">
+                                    <i class="fa-regular fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Informação do preço recorrente -->
+                        <div style="font-size: 0.8rem; color: #64748b; margin-top: 10px;">
+                            (Afterwards only $3.90/month)
+                        </div>
+                    </div>
+
+                    <div class="pricing-body">
+                        <ul class="pricing-features">
+                            <li><i class="fa-solid fa-circle-check"></i> Unlimited evaluations</li>
+                            <li><i class="fa-solid fa-circle-check"></i> PDF reports with your logo and custom colors</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Support via WhatsApp</li>
+                            <li><i class="fa-solid fa-circle-check"></i> No contract, cancel anytime</li>
+                        </ul>
+                    </div>
+
+                    <div class="pricing-footer">
+                        <a href="https://shapemapapp.com/?register=true&lang=en" class="btn btn-primary btn-full-width btn-pulse">
+                            Subscribe Now
+                        </a>
+                        <div class="guarantee-simple">
+                            <i class="fa-solid fa-shield-halved guarantee-icon-simple"></i>
+                            <div class="guarantee-text-simple">
+                                <strong>7-Day Unconditional Guarantee:</strong>
+                                <span>If you don't like it, we'll refund 100% of your money.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Frequently Asked Questions</h2>
+            </div>
+
+            <!-- FAQ Accordion Container -->
+            <div class="faq-accordion-container">
+                
+                <!-- FAQ Item 1 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>How does access to the app work?</span>
+                        <i class="fa-solid fa-plus faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>ShapeMap is an online web application. As soon as your subscription is confirmed, you can log in with your email and password at shapemapapp.com.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 2 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Can I access it on computer, tablet, and mobile?</span>
+                        <i class="fa-solid fa-plus faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes, you can access it on any device.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 3 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Can I download the app on my phone?</span>
+                        <i class="fa-solid fa-plus faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes, after you log in, you will see a very simple guide on how to add the application to your phone's home screen.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 4 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Is there a free trial?</span>
+                        <i class="fa-solid fa-plus faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Currently we do not offer a free trial. However, we provide a 7-day unconditional guarantee. You sign up for the monthly plan, and if for any reason you feel the tool does not suit your needs, simply request a refund and we will return all your money immediately.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 5 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Can I register as many clients/patients as I want?</span>
+                        <i class="fa-solid fa-plus faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes, you can register unlimited clients and physical evaluations.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 6 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Can I export the PDF reports with my own logo?</span>
+                        <i class="fa-solid fa-plus faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes, ShapeMap allows you to generate PDF reports with your custom photo and colors to enhance your work and demonstrate authority.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 7 -->
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Is cancellation easy? Is there a contract?</span>
+                        <i class="fa-solid fa-plus faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>There is no contract or commitment! You sign up for a monthly subscription and can cancel at any time directly through the user panel or by contacting our support team via WhatsApp. No bureaucracy, no termination fees.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container footer-centered-content">
+            <div class="logo-footer">
+                <img src="/en/logo_white.webp" alt="ShapeMap Logo" class="logo-img-footer" loading="lazy" decoding="async">
+            </div>
+            <p class="footer-copyright">&copy; 2026 ShapeMap. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Floating Action Button -->
+    <a href="https://wa.me/5516993419103?text=Hi!%20I%20am%20interested%20in%20ShapeMap%20and%20I%20have%20the%20following%20question%3A" class="whatsapp-float-btn" target="_blank" rel="noopener noreferrer">
+        <i class="fa-brands fa-whatsapp"></i>
+        <span class="whatsapp-tooltip">Have questions? Talk to us!</span>
+    </a>
+
+    <!-- Custom Script -->
+    <script src="/en/script.js"></script>
+
+    <!-- Video Facade and Lazy-loading Video Scripts -->
+    <script>
+        // Play YouTube VSL with fade-out effect and postMessage
+        function playVSLVideo() {
+            const facade = document.getElementById('vslFacade');
+            if (facade) {
+                facade.style.opacity = '0';
+                setTimeout(() => {
+                    facade.style.display = 'none';
+                }, 500);
+            }
+            const iframe = document.getElementById('vslPlayer');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+            }
+        }
+
+        // Lazy-load autoplay videos to prevent network congestion during initial paint
+        window.addEventListener('load', function() {
+            const lazyVideos = [].slice.call(document.querySelectorAll('video'));
+            lazyVideos.forEach(function(video) {
+                const source = video.querySelector('source');
+                if (source && source.dataset.src) {
+                    source.src = source.dataset.src;
+                    video.load();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
