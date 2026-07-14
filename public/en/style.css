@@ -1984,3 +1984,12 @@ img {
     text-transform: uppercase;
     letter-spacing: 1px;
 }
+
+.price-disclaimer {
+    font-size: 0.72rem;
+    color: #64748b;
+    margin-top: 12px;
+    line-height: 1.4;
+    max-width: 280px;
+    text-align: center;
+}
