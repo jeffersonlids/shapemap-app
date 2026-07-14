@@ -270,3 +270,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 });
+
+function copyCouponCode() {
+    const codeText = document.getElementById("promo-code").innerText;
+    navigator.clipboard.writeText(codeText).then(() => {
+        const btn = document.querySelector(".btn-copy-coupon");
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copiado!';
+            btn.classList.add("copied");
+            
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copiar';
+                btn.classList.remove("copied");
+            }, 2000);
+        }
+    }).catch(err => {
+        console.error("Falha ao copiar cupom: ", err);
+    });
+}
+window.copyCouponCode = copyCouponCode;
