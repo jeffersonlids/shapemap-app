@@ -5157,8 +5157,8 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
                     unit="cm"
                     placeholder="175"
                   />
-                  <div style={{ color: "rgba(229, 59, 59, 0.8)", fontSize: 10.5, fontWeight: 500, marginTop: 4, display: "flex", alignItems: "center", gap: 4, marginLeft: 4 }}>
-                    <span>ℹ️</span> {lang === "es" ? "Use centímetros (ej: 172 en lugar de 1,72)" : lang === "en" ? "Use centimeters (e.g. 172 instead of 1.72)" : "Use centímetro (ex: 172 em vez de 1,72)"}
+                  <div style={{ color: "rgba(229, 59, 59, 0.8)", fontSize: 10.5, fontWeight: 500, marginTop: 4, marginLeft: 4 }}>
+                    {lang === "es" ? "Use centímetros (ej: 172 en lugar de 1,72)" : lang === "en" ? "Use centimeters (e.g. 172 instead of 1.72)" : "Use centímetro (ex: 172 em vez de 1,72)"}
                   </div>
                 </div>
               )}
@@ -8840,8 +8840,8 @@ function StudentResponseScreen({ evalId }) {
                         type="number"
                         placeholder="Ex: 175" 
                       />
-                      <div style={{ color: "rgba(229, 59, 59, 0.8)", fontSize: 10.5, fontWeight: 500, marginTop: 4, display: "flex", alignItems: "center", gap: 4, marginLeft: 4 }}>
-                        <span>ℹ️</span> {lang === "es" ? "Use centímetros (ej: 172 en lugar de 1,72)" : lang === "en" ? "Use centimeters (e.g. 172 instead of 1.72)" : "Use centímetro (ex: 172 em vez de 1,72)"}
+                      <div style={{ color: "rgba(229, 59, 59, 0.8)", fontSize: 10.5, fontWeight: 500, marginTop: 4, marginLeft: 4 }}>
+                        {lang === "es" ? "Use centímetros (ej: 172 en lugar de 1,72)" : lang === "en" ? "Use centimeters (e.g. 172 instead of 1.72)" : "Use centímetro (ex: 172 em vez de 1,72)"}
                       </div>
                     </div>
                   )
@@ -9383,9 +9383,7 @@ function OnboardingTour({ active, steps, onClose, lang = "pt" }) {
 export default function App() {
   const [logged, setLogged] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
-  const [showInstallModal, setShowInstallModal] = useState(function() {
-    return localStorage.getItem("avaliapro_hide_install_prompt") !== "true";
-  });
+  const [showInstallModal, setShowInstallModal] = useState(false);
   const [tab, setTab] = useState("home");
   const [hasAccess, setHasAccess] = useState(true);
   const [user, setUser] = useState(null);
@@ -10530,79 +10528,7 @@ export default function App() {
       {content}
       {!cur && <BottomNav active={tab} onChange={function(t) { setTab(t); resetStack(); }} trainer={trainer}/>}
 
-      {showInstallModal && logged && hasAccess && !isResettingPassword && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)", zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }} onClick={function() { setShowInstallModal(false); }}>
-          <div onClick={function(e) { e.stopPropagation(); }} style={{ background:T.surface, borderRadius:20, padding:24, width:"100%", maxWidth:360, boxShadow:"0 20px 40px rgba(0,0,0,0.15)", position:"relative", border:"1px solid "+T.border }}>
-            <div style={{ position: "absolute", top: 16, right: 18, cursor: "pointer", fontSize: 16, color: T.muted, fontWeight: "bold" }} onClick={function() { setShowInstallModal(false); }}>✕</div>
-            
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <span style={{ fontSize: 24 }}>📱</span>
-              <div style={{ fontWeight: 800, fontSize: 16, color: T.text }}>
-                {lang === "pt" ? "Instalar o ShapeMap no Celular" : lang === "es" ? "Instalar ShapeMap en tu Celular" : "Install ShapeMap on your Phone"}
-              </div>
-            </div>
-            
-            <div style={{ fontSize: 14, color: T.sub, lineHeight: 1.6, marginBottom: 20 }}>
-              {lang === "pt" ? (
-                <>
-                  Acesse mais rápido e use em tela cheia como se fosse um aplicativo de verdade:
-                  <div style={{ marginTop: 12, paddingLeft: 2 }}>
-                    1. <strong>iPhone:</strong> toque nos <strong>três pontinhos (...)</strong> no canto inferior direito, selecione <strong>Compartilhar</strong>, role a tela para baixo e clique em <strong>"Adicionar à Tela de Início"</strong>.
-                  </div>
-                  <div style={{ marginTop: 10, paddingLeft: 2 }}>
-                    2. <strong>Android (Chrome):</strong> toque no menu de <strong>três pontinhos (⋮)</strong> no topo, role e selecione <strong>"Adicionar à tela inicial"</strong> ou <strong>"Instalar aplicativo"</strong>.
-                  </div>
-                </>
-              ) : lang === "es" ? (
-                <>
-                  Accede más rápido y úsalo en pantalla completa como una aplicación real:
-                  <div style={{ marginTop: 12, paddingLeft: 2 }}>
-                    1. <strong>iPhone:</strong> toca los <strong>tres puntos (...)</strong> en la esquina inferior derecha, selecciona <strong>Compartir</strong>, desplázate hacia abajo y toca <strong>"Añadir a la pantalla de inicio"</strong>.
-                  </div>
-                  <div style={{ marginTop: 10, paddingLeft: 2 }}>
-                    2. <strong>Android (Chrome):</strong> toca el menú de <strong>tres puntos (⋮)</strong> en la parte superior, desplázate y selecciona <strong>"Añadir a la pantalla de inicio"</strong> o <strong>"Instalar aplicación"</strong>.
-                  </div>
-                </>
-              ) : (
-                <>
-                  Access faster and use in full-screen mode like a native app:
-                  <div style={{ marginTop: 12, paddingLeft: 2 }}>
-                    1. <strong>iPhone:</strong> tap the <strong>three dots (...)</strong> in the bottom right corner, select <strong>Share</strong>, scroll down and tap <strong>"Add to Home Screen"</strong>.
-                  </div>
-                  <div style={{ marginTop: 10, paddingLeft: 2 }}>
-                    2. <strong>Android (Chrome):</strong> tap the <strong>three dots (⋮)</strong> menu at the top, scroll and select <strong>"Add to Home Screen"</strong> or <strong>"Install app"</strong>.
-                </div>
-              </>
-            )}
-          </div>
-          
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <Btn full onClick={function() { setShowInstallModal(false); }}>
-              {lang === "pt" ? "Entendi, vou seguir o passo a passo" : lang === "es" ? "Entendido, seguiré los pasos" : "Got it, I'll follow the steps"}
-            </Btn>
-            <button 
-              onClick={function() {
-                localStorage.setItem("avaliapro_hide_install_prompt", "true");
-                setShowInstallModal(false);
-              }}
-              style={{
-                background: "none",
-                border: "none",
-                color: ac(),
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: "pointer",
-                padding: "8px 0",
-                textDecoration: "underline",
-                textAlign: "center"
-              }}
-            >
-              {lang === "pt" ? "Não me avisar novamente" : lang === "es" ? "No volver a mostrar" : "Don't show this again"}
-            </button>
-          </div>
-        </div>
-      </div>
-      )}
+
 
       {activeTour && (
         <OnboardingTour
