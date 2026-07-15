@@ -5157,18 +5157,9 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
                     unit="cm"
                     placeholder="175"
                   />
-                  {av.altura && (function() {
-                    const valNum = parseFloat(String(av.altura).replace(',', '.'));
-                    const hasCommaOrDot = String(av.altura).includes('.') || String(av.altura).includes(',');
-                    if (hasCommaOrDot || (valNum > 0 && valNum < 3)) {
-                      return (
-                        <div style={{ color: T.danger, fontSize: 11, fontWeight: 600, marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
-                          <span>⚠️</span> {lang === "es" ? "Use centímetros (ej: 158 en lugar de 1.58)" : lang === "en" ? "Use centimeters (e.g. 158 instead of 1.58)" : "Use centímetros (ex: 158 em vez de 1.58)"}
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
+                  <div style={{ color: "rgba(229, 59, 59, 0.8)", fontSize: 10.5, fontWeight: 500, marginTop: 4, display: "flex", alignItems: "center", gap: 4, marginLeft: 4 }}>
+                    <span>ℹ️</span> {lang === "es" ? "Use centímetros (ej: 172 en lugar de 1,72)" : lang === "en" ? "Use centimeters (e.g. 172 instead of 1.72)" : "Use centímetro (ex: 172 em vez de 1,72)"}
+                  </div>
                 </div>
               )}
             </div>
@@ -8849,18 +8840,9 @@ function StudentResponseScreen({ evalId }) {
                         type="number"
                         placeholder="Ex: 175" 
                       />
-                      {altura && (function() {
-                        const valNum = parseFloat(String(altura).replace(',', '.'));
-                        const hasCommaOrDot = String(altura).includes('.') || String(altura).includes(',');
-                        if (hasCommaOrDot || (valNum > 0 && valNum < 3)) {
-                          return (
-                            <div style={{ color: T.danger, fontSize: 11, fontWeight: 600, marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
-                              <span>⚠️</span> {lang === "es" ? "Use centímetros (ej: 158 en lugar de 1.58)" : lang === "en" ? "Use centimeters (e.g. 158 instead of 1.58)" : "Use centímetros (ex: 158 em vez de 1.58)"}
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
+                      <div style={{ color: "rgba(229, 59, 59, 0.8)", fontSize: 10.5, fontWeight: 500, marginTop: 4, display: "flex", alignItems: "center", gap: 4, marginLeft: 4 }}>
+                        <span>ℹ️</span> {lang === "es" ? "Use centímetros (ej: 172 en lugar de 1,72)" : lang === "en" ? "Use centimeters (e.g. 172 instead of 1.72)" : "Use centímetro (ex: 172 em vez de 1,72)"}
+                      </div>
                     </div>
                   )
                 )}
