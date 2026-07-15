@@ -5148,14 +5148,28 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
                   />
                 </div>
               ) : (
-                <FInput
-                  label={t("altura", lang)}
-                  value={av.altura || ""}
-                  onChange={function(v) { upd("altura", v); }}
-                  type="number"
-                  unit="cm"
-                  placeholder="175"
-                />
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <FInput
+                    label={t("altura", lang)}
+                    value={av.altura || ""}
+                    onChange={function(v) { upd("altura", v); }}
+                    type="number"
+                    unit="cm"
+                    placeholder="175"
+                  />
+                  {av.altura && (function() {
+                    const valNum = parseFloat(String(av.altura).replace(',', '.'));
+                    const hasCommaOrDot = String(av.altura).includes('.') || String(av.altura).includes(',');
+                    if (hasCommaOrDot || (valNum > 0 && valNum < 3)) {
+                      return (
+                        <div style={{ color: T.danger, fontSize: 11, fontWeight: 600, marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                          <span>⚠️</span> {lang === "es" ? "Use centímetros (ej: 158 en lugar de 1.58)" : lang === "en" ? "Use centimeters (e.g. 158 instead of 1.58)" : "Use centímetros (ex: 158 em vez de 1.58)"}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
               )}
             </div>
             {imc && (
@@ -8827,13 +8841,27 @@ function StudentResponseScreen({ evalId }) {
                       />
                     </div>
                   ) : (
-                    <FInput 
-                      label={lang === "es" ? "Altura (cm)" : lang === "en" ? "Height (cm)" : "Altura (cm)"}
-                      value={altura}
-                      onChange={setAltura}
-                      type="number"
-                      placeholder="Ex: 175" 
-                    />
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                      <FInput 
+                        label={lang === "es" ? "Altura (cm)" : lang === "en" ? "Height (cm)" : "Altura (cm)"}
+                        value={altura}
+                        onChange={setAltura}
+                        type="number"
+                        placeholder="Ex: 175" 
+                      />
+                      {altura && (function() {
+                        const valNum = parseFloat(String(altura).replace(',', '.'));
+                        const hasCommaOrDot = String(altura).includes('.') || String(altura).includes(',');
+                        if (hasCommaOrDot || (valNum > 0 && valNum < 3)) {
+                          return (
+                            <div style={{ color: T.danger, fontSize: 11, fontWeight: 600, marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                              <span>⚠️</span> {lang === "es" ? "Use centímetros (ej: 158 en lugar de 1.58)" : lang === "en" ? "Use centimeters (e.g. 158 instead of 1.58)" : "Use centímetros (ex: 158 em vez de 1.58)"}
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
                   )
                 )}
                 
