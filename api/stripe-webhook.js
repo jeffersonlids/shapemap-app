@@ -195,6 +195,30 @@ export default async function handler(req, res) {
           break;
         }
 
+        // Buscar dados atuais do treinador para prevenir sobrescrever uma assinatura ativa por uma antiga/abandonada
+        let fetchQuery = supabase
+          .from('trainers')
+          .select('id, subscription_id, subscription_status');
+        if (trainerId) {
+          fetchQuery = fetchQuery.eq('id', trainerId);
+        } else {
+          fetchQuery = fetchQuery.eq('stripe_customer_id', customerId);
+        }
+        const { data: trainersData } = await fetchQuery;
+        const existingTrainer = trainersData && trainersData[0];
+
+        // Se a assinatura atualizada NÃO for ativa e o treinador já possui OUTRA assinatura ativa gravada, ignora
+        if (
+          existingTrainer &&
+          subscription.status !== 'active' &&
+          existingTrainer.subscription_id &&
+          existingTrainer.subscription_id !== subscription.id &&
+          existingTrainer.subscription_status === 'active'
+        ) {
+          console.log(`ℹ️ Ignorando atualização não-ativa (${subscription.status}) da assinatura antiga/abandonada ${subscription.id} pois o treinador já possui a assinatura ativa ${existingTrainer.subscription_id}.`);
+          break;
+        }
+
         let query = supabase
           .from('trainers')
           .update({
@@ -223,6 +247,29 @@ export default async function handler(req, res) {
 
         if (!trainerId && !customerId) {
           console.warn('⚠️ Assinatura deletada sem trainerId e sem customerId.');
+          break;
+        }
+
+        // Buscar dados atuais do treinador para verificar se o cancelamento pertence à assinatura atualmente ativa
+        let fetchQuery = supabase
+          .from('trainers')
+          .select('id, subscription_id, subscription_status');
+        if (trainerId) {
+          fetchQuery = fetchQuery.eq('id', trainerId);
+        } else {
+          fetchQuery = fetchQuery.eq('stripe_customer_id', customerId);
+        }
+        const { data: trainersData } = await fetchQuery;
+        const existingTrainer = trainersData && trainersData[0];
+
+        // Se a assinatura cancelada for diferente da assinatura atualmente ativa do treinador, ignora o cancelamento
+        if (
+          existingTrainer &&
+          existingTrainer.subscription_id &&
+          existingTrainer.subscription_id !== subscription.id &&
+          existingTrainer.subscription_status === 'active'
+        ) {
+          console.log(`ℹ️ Ignorando cancelamento da assinatura antiga/abandonada ${subscription.id} pois o treinador já possui a assinatura ativa ${existingTrainer.subscription_id}.`);
           break;
         }
 
