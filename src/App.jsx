@@ -9389,6 +9389,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [loadingSession, setLoadingSession] = useState(true);
   const [activeTour, setActiveTour] = useState(null);
+  const isLoadingUserRef = useRef(false);
   
   const [trainer, setTrainer] = useState(function() {
     const saved = localStorage.getItem("avaliapro_trainer");
@@ -9590,6 +9591,8 @@ export default function App() {
   }, []);
 
   async function loadUserData(sessionUser) {
+    if (!sessionUser || isLoadingUserRef.current) return;
+    isLoadingUserRef.current = true;
     setLoadingSession(true);
     try {
       let { data: trainerData, error: trainerError } = await supabase
@@ -9648,7 +9651,7 @@ export default function App() {
 
         const { data: inserted, error: insertError } = await supabase
           .from('trainers')
-          .insert([newTrainer])
+          .upsert([newTrainer], { onConflict: 'id' })
           .select()
           .single();
 
@@ -9758,6 +9761,7 @@ export default function App() {
       alert("Erro ao sincronizar com Supabase: " + err.message);
     } finally {
       setLoadingSession(false);
+      isLoadingUserRef.current = false;
     }
   }
 
