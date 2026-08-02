@@ -4861,13 +4861,13 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
     if (init && init.fotos && init._fotosLoaded) {
       setAv(function(prev) {
         var curFotos = prev.fotos || { frente: null, lado: null, costas: null };
+        var loadedFotos = init.fotos || { frente: null, lado: null, costas: null };
         var updatedFotos = {
-          frente: curFotos.frente || init.fotos.frente || null,
-          lado: curFotos.lado || init.fotos.lado || null,
-          costas: curFotos.costas || init.fotos.costas || null
+          frente: curFotos.frente || loadedFotos.frente || null,
+          lado: curFotos.lado || loadedFotos.lado || null,
+          costas: curFotos.costas || loadedFotos.costas || null
         };
-        if (JSON.stringify(curFotos) === JSON.stringify(updatedFotos)) return prev;
-        return Object.assign({}, prev, { fotos: updatedFotos });
+        return Object.assign({}, prev, { fotos: updatedFotos, _fotosLoaded: true });
       });
     }
   }, [init && init._fotosLoaded, init && init.fotos]);
@@ -4876,6 +4876,10 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
     setAv(function(prev) {
       var keys = path.split(".");
       var n = Object.assign({}, prev);
+      if (path.startsWith("fotos.")) {
+        n._fotosModified = true;
+        n._fotosLoaded = true;
+      }
       if (keys.length === 1) {
         n[keys[0]] = val;
         return n;
@@ -9550,12 +9554,11 @@ export default function App() {
     // Fetch photos for this specific evaluation
     supabase
       .from('evaluations')
-      .select('fotos')
+      .select('id, fotos')
       .eq('id', cur.avalId)
-      .single()
       .then(function(result) {
-        if (result.error || !result.data) return;
-        var fetchedFotos = result.data.fotos || { frente: null, lado: null, costas: null };
+        if (result.error || !result.data || result.data.length === 0) return;
+        var fetchedFotos = result.data[0].fotos || { frente: null, lado: null, costas: null };
         setAlunos(function(prev) {
           return prev.map(function(a) {
             if (String(a.id) !== String(cur.alunoId)) return a;
@@ -9568,7 +9571,7 @@ export default function App() {
           });
         });
       });
-  }, [cur && cur.type === "avaliacao" && !cur.isNew ? cur.avalId : null, logged, user, alunos]);
+  }, [cur && cur.type === "avaliacao" && !cur.isNew ? cur.avalId : null, logged, user]);
 
   // Lazy-load photos for comparison evaluations
   useEffect(function() {
@@ -10235,12 +10238,15 @@ export default function App() {
         testes: av.testes || [],
         flexibilidade: av.flexibilidade || {},
         cardiovascular: av.cardiovascular || {},
-        fotos: av.fotos || { frente: null, lado: null, costas: null },
         observacao_fotos: av.observacaoFotos || "",
         tipo: av.tipo || "presencial",
         status: av.status || "finalizada",
         config: av.config || {}
       };
+
+      if (av._fotosLoaded || av._fotosModified || av.isNew) {
+        dbAval.fotos = av.fotos || { frente: null, lado: null, costas: null };
+      }
 
       const { error } = await supabase
         .from('evaluations')
