@@ -4856,30 +4856,10 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
   
   const [saveState, setSaveState] = useState("saved"); // 'saved', 'saving', 'unsaved', 'error'
 
-  // Sync loaded photos from init when lazy-loading finishes
-  useEffect(function() {
-    if (init && init.fotos && init._fotosLoaded) {
-      setAv(function(prev) {
-        var curFotos = prev.fotos || { frente: null, lado: null, costas: null };
-        var loadedFotos = init.fotos || { frente: null, lado: null, costas: null };
-        var updatedFotos = {
-          frente: curFotos.frente || loadedFotos.frente || null,
-          lado: curFotos.lado || loadedFotos.lado || null,
-          costas: curFotos.costas || loadedFotos.costas || null
-        };
-        return Object.assign({}, prev, { fotos: updatedFotos, _fotosLoaded: true });
-      });
-    }
-  }, [init && init._fotosLoaded, init && init.fotos]);
-
   const upd = useCallback(function(path, val) {
     setAv(function(prev) {
       var keys = path.split(".");
       var n = Object.assign({}, prev);
-      if (path.startsWith("fotos.")) {
-        n._fotosModified = true;
-        n._fotosLoaded = true;
-      }
       if (keys.length === 1) {
         n[keys[0]] = val;
         return n;
@@ -4898,14 +4878,7 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
 
   // Debounced auto-save effect
   useEffect(function() {
-    var cleanAv = Object.assign({}, av);
-    delete cleanAv._fotosLoaded;
-    var cleanInit = Object.assign({}, init);
-    delete cleanInit._fotosLoaded;
-    if (!cleanInit.fotos) cleanInit.fotos = { frente: null, lado: null, costas: null };
-    if (!cleanAv.fotos) cleanAv.fotos = { frente: null, lado: null, costas: null };
-
-    const hasChanges = JSON.stringify(cleanAv) !== JSON.stringify(cleanInit);
+    const hasChanges = JSON.stringify(av) !== JSON.stringify(init);
     if (!hasChanges || done) {
       setSaveState("saved");
       return;
@@ -9544,91 +9517,7 @@ export default function App() {
     };
   }, [stack, alunos]);
 
-  // Lazy-load photos when opening a specific evaluation
-  useEffect(function() {
-    if (!cur || cur.type !== "avaliacao" || cur.isNew || !logged || !user) return;
-    var alunoCheck = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
-    if (!alunoCheck) return;
-    var avCheck = (alunoCheck.avaliacoes || []).find(function(x) { return String(x.id) === String(cur.avalId); });
-    if (!avCheck || avCheck._fotosLoaded) return;
 
-    // Fetch photos via students relation query (guarantees Supabase RLS permission)
-    supabase
-      .from('students')
-      .select('id, evaluations(id, fotos)')
-      .eq('id', cur.alunoId)
-      .then(function(result) {
-        if (result.error || !result.data || result.data.length === 0) {
-          console.error("Erro ao carregar fotos da avaliação:", result.error);
-          return;
-        }
-        var evList = result.data[0].evaluations || [];
-        var targetEv = evList.find(function(e) { return String(e.id) === String(cur.avalId); });
-        var fetchedFotos = (targetEv && targetEv.fotos) || { frente: null, lado: null, costas: null };
-
-        setAlunos(function(prev) {
-          return prev.map(function(a) {
-            if (String(a.id) !== String(cur.alunoId)) return a;
-            return Object.assign({}, a, {
-              avaliacoes: (a.avaliacoes || []).map(function(ev) {
-                if (String(ev.id) !== String(cur.avalId)) return ev;
-                return Object.assign({}, ev, { fotos: fetchedFotos, _fotosLoaded: true });
-              })
-            });
-          });
-        });
-      });
-  }, [cur && cur.type === "avaliacao" && !cur.isNew ? (cur.alunoId + "_" + cur.avalId) : null, logged, user]);
-
-  // Lazy-load photos for comparison evaluations
-  useEffect(function() {
-    if (!cur || cur.type !== "comparar" || !logged || !user) return;
-    var alunoComp = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
-    if (!alunoComp) return;
-    var avs = alunoComp.avaliacoes || [];
-    var idsToLoad = [];
-    if (cur.av1) {
-      var av1Check = avs.find(function(x) { return String(x.id) === String(cur.av1); });
-      if (av1Check && !av1Check._fotosLoaded) idsToLoad.push(String(cur.av1));
-    }
-    if (cur.av2) {
-      var av2Check = avs.find(function(x) { return String(x.id) === String(cur.av2); });
-      if (av2Check && !av2Check._fotosLoaded) idsToLoad.push(String(cur.av2));
-    }
-    if (idsToLoad.length === 0) return;
-
-    supabase
-      .from('students')
-      .select('id, evaluations(id, fotos)')
-      .eq('id', cur.alunoId)
-      .then(function(result) {
-        if (result.error || !result.data || result.data.length === 0) {
-          console.error("Erro ao carregar fotos de comparação:", result.error);
-          return;
-        }
-        var evList = result.data[0].evaluations || [];
-        var fotosMap = {};
-        evList.forEach(function(row) {
-          if (idsToLoad.includes(String(row.id))) {
-            fotosMap[String(row.id)] = row.fotos || { frente: null, lado: null, costas: null };
-          }
-        });
-
-        setAlunos(function(prev) {
-          return prev.map(function(a) {
-            if (String(a.id) !== String(cur.alunoId)) return a;
-            return Object.assign({}, a, {
-              avaliacoes: (a.avaliacoes || []).map(function(ev) {
-                if (fotosMap[String(ev.id)] !== undefined) {
-                  return Object.assign({}, ev, { fotos: fotosMap[String(ev.id)], _fotosLoaded: true });
-                }
-                return ev;
-              })
-            });
-          });
-        });
-      });
-  }, [cur && cur.type === "comparar" ? (cur.alunoId + "_" + cur.av1 + "_" + cur.av2) : null, logged, user]);
 
   // Load session and onAuthStateChange
   useEffect(function() {
@@ -9834,7 +9723,7 @@ export default function App() {
 
       const { data: studentsData, error: studentsError } = await supabase
         .from('students')
-        .select('*, evaluations(id, student_id, data, idade, objetivo, anamnese, peso, altura, composicoes, perimetria, testes, flexibilidade, cardiovascular, observacao_fotos, tipo, status, config)')
+        .select('*, evaluations(*)')
         .eq('trainer_id', sessionUser.id)
         .order('nome');
 
@@ -9866,7 +9755,6 @@ export default function App() {
               flexibilidade: e.flexibilidade || {},
               cardiovascular: e.cardiovascular || {},
               fotos: e.fotos || { frente: null, lado: null, costas: null },
-              _fotosLoaded: false,
               observacaoFotos: e.observacao_fotos || "",
               tipo: e.tipo || "presencial",
               status: e.status || "finalizada",
@@ -10253,15 +10141,12 @@ export default function App() {
         testes: av.testes || [],
         flexibilidade: av.flexibilidade || {},
         cardiovascular: av.cardiovascular || {},
+        fotos: av.fotos || { frente: null, lado: null, costas: null },
         observacao_fotos: av.observacaoFotos || "",
         tipo: av.tipo || "presencial",
         status: av.status || "finalizada",
         config: av.config || {}
       };
-
-      if (av._fotosLoaded || av._fotosModified || av.isNew) {
-        dbAval.fotos = av.fotos || { frente: null, lado: null, costas: null };
-      }
 
       const { error } = await supabase
         .from('evaluations')
