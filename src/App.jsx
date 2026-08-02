@@ -9712,7 +9712,7 @@ export default function App() {
 
       const { data: studentsData, error: studentsError } = await supabase
         .from('students')
-        .select('*, evaluations(id, student_id, data, nome, sexo, idade, telefone, objetivo, anamnese, peso, altura, composicoes, perimetria, testes, flexibilidade, cardiovascular, observacao_fotos, tipo, status, config)')
+        .select('*, evaluations(id, student_id, data, idade, objetivo, anamnese, peso, altura, composicoes, perimetria, testes, flexibilidade, cardiovascular, observacao_fotos, tipo, status, config)')
         .eq('trainer_id', sessionUser.id)
         .order('nome');
 
