@@ -9508,6 +9508,78 @@ export default function App() {
     };
   }, [stack, alunos]);
 
+  // Lazy-load photos when opening a specific evaluation
+  useEffect(function() {
+    if (!cur || cur.type !== "avaliacao" || cur.isNew || !logged || !user) return;
+    var alunoCheck = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
+    if (!alunoCheck) return;
+    var avCheck = (alunoCheck.avaliacoes || []).find(function(x) { return String(x.id) === String(cur.avalId); });
+    if (!avCheck || avCheck._fotosLoaded) return;
+    // Fetch photos for this specific evaluation
+    supabase
+      .from('evaluations')
+      .select('fotos')
+      .eq('id', cur.avalId)
+      .single()
+      .then(function(result) {
+        if (result.error || !result.data) return;
+        var fetchedFotos = result.data.fotos || { frente: null, lado: null, costas: null };
+        setAlunos(function(prev) {
+          return prev.map(function(a) {
+            if (String(a.id) !== String(cur.alunoId)) return a;
+            return Object.assign({}, a, {
+              avaliacoes: (a.avaliacoes || []).map(function(ev) {
+                if (String(ev.id) !== String(cur.avalId)) return ev;
+                return Object.assign({}, ev, { fotos: fetchedFotos, _fotosLoaded: true });
+              })
+            });
+          });
+        });
+      });
+  }, [cur && cur.type === "avaliacao" && !cur.isNew ? cur.avalId : null, logged, user, alunos]);
+
+  // Lazy-load photos for comparison evaluations
+  useEffect(function() {
+    if (!cur || cur.type !== "comparar" || !logged || !user) return;
+    var alunoComp = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
+    if (!alunoComp) return;
+    var avs = alunoComp.avaliacoes || [];
+    var idsToLoad = [];
+    if (cur.av1) {
+      var av1Check = avs.find(function(x) { return String(x.id) === String(cur.av1); });
+      if (av1Check && !av1Check._fotosLoaded) idsToLoad.push(cur.av1);
+    }
+    if (cur.av2) {
+      var av2Check = avs.find(function(x) { return String(x.id) === String(cur.av2); });
+      if (av2Check && !av2Check._fotosLoaded) idsToLoad.push(cur.av2);
+    }
+    if (idsToLoad.length === 0) return;
+    supabase
+      .from('evaluations')
+      .select('id, fotos')
+      .in('id', idsToLoad)
+      .then(function(result) {
+        if (result.error || !result.data) return;
+        var fotosMap = {};
+        result.data.forEach(function(row) {
+          fotosMap[String(row.id)] = row.fotos || { frente: null, lado: null, costas: null };
+        });
+        setAlunos(function(prev) {
+          return prev.map(function(a) {
+            if (String(a.id) !== String(cur.alunoId)) return a;
+            return Object.assign({}, a, {
+              avaliacoes: (a.avaliacoes || []).map(function(ev) {
+                if (fotosMap[String(ev.id)] !== undefined) {
+                  return Object.assign({}, ev, { fotos: fotosMap[String(ev.id)], _fotosLoaded: true });
+                }
+                return ev;
+              })
+            });
+          });
+        });
+      });
+  }, [cur && cur.type === "comparar" ? (cur.av1 + "_" + cur.av2) : null, logged, user, alunos]);
+
   // Load session and onAuthStateChange
   useEffect(function() {
     const search = window.location.search;
@@ -10313,36 +10385,6 @@ export default function App() {
   }
 
   var content;
-  // Lazy-load photos when opening a specific evaluation
-  useEffect(function() {
-    if (!cur || cur.type !== "avaliacao" || cur.isNew || !logged || !user) return;
-    var alunoCheck = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
-    if (!alunoCheck) return;
-    var avCheck = (alunoCheck.avaliacoes || []).find(function(x) { return String(x.id) === String(cur.avalId); });
-    if (!avCheck || avCheck._fotosLoaded) return;
-    // Fetch photos for this specific evaluation
-    supabase
-      .from('evaluations')
-      .select('fotos')
-      .eq('id', cur.avalId)
-      .single()
-      .then(function(result) {
-        if (result.error || !result.data) return;
-        var fetchedFotos = result.data.fotos || { frente: null, lado: null, costas: null };
-        setAlunos(function(prev) {
-          return prev.map(function(a) {
-            if (String(a.id) !== String(cur.alunoId)) return a;
-            return Object.assign({}, a, {
-              avaliacoes: (a.avaliacoes || []).map(function(ev) {
-                if (String(ev.id) !== String(cur.avalId)) return ev;
-                return Object.assign({}, ev, { fotos: fetchedFotos, _fotosLoaded: true });
-              })
-            });
-          });
-        });
-      });
-  }, [cur && cur.type === "avaliacao" && !cur.isNew ? cur.avalId : null]);
-
   if (cur && cur.type === "avaliacao") {
     var alunoAv = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
     var age = "";
@@ -10545,47 +10587,6 @@ export default function App() {
       />
     );
   } else if (cur && cur.type === "comparar") {
-    // Lazy-load photos for comparison evaluations
-    useEffect(function() {
-      if (!cur || cur.type !== "comparar" || !logged || !user) return;
-      var alunoComp = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
-      if (!alunoComp) return;
-      var avs = alunoComp.avaliacoes || [];
-      var idsToLoad = [];
-      if (cur.av1) {
-        var av1Check = avs.find(function(x) { return String(x.id) === String(cur.av1); });
-        if (av1Check && !av1Check._fotosLoaded) idsToLoad.push(cur.av1);
-      }
-      if (cur.av2) {
-        var av2Check = avs.find(function(x) { return String(x.id) === String(cur.av2); });
-        if (av2Check && !av2Check._fotosLoaded) idsToLoad.push(cur.av2);
-      }
-      if (idsToLoad.length === 0) return;
-      supabase
-        .from('evaluations')
-        .select('id, fotos')
-        .in('id', idsToLoad)
-        .then(function(result) {
-          if (result.error || !result.data) return;
-          var fotosMap = {};
-          result.data.forEach(function(row) {
-            fotosMap[String(row.id)] = row.fotos || { frente: null, lado: null, costas: null };
-          });
-          setAlunos(function(prev) {
-            return prev.map(function(a) {
-              if (String(a.id) !== String(cur.alunoId)) return a;
-              return Object.assign({}, a, {
-                avaliacoes: (a.avaliacoes || []).map(function(ev) {
-                  if (fotosMap[String(ev.id)] !== undefined) {
-                    return Object.assign({}, ev, { fotos: fotosMap[String(ev.id)], _fotosLoaded: true });
-                  }
-                  return ev;
-                })
-              });
-            });
-          });
-        });
-    }, [cur && cur.type === "comparar" ? (cur.av1 + "_" + cur.av2) : null]);
     var alunoComp = alunos.find(function(a) { return String(a.id) === String(cur.alunoId); });
     content = <CompararScreen aluno={alunoComp} initAv1={cur.av1} initAv2={cur.av2} initSelected={cur.selectedIndices} onBack={pop} settings={settings} trainer={trainer}/>;
   } else {
