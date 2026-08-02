@@ -9551,14 +9551,21 @@ export default function App() {
     if (!alunoCheck) return;
     var avCheck = (alunoCheck.avaliacoes || []).find(function(x) { return String(x.id) === String(cur.avalId); });
     if (!avCheck || avCheck._fotosLoaded) return;
-    // Fetch photos for this specific evaluation
+
+    // Fetch photos via students relation query (guarantees Supabase RLS permission)
     supabase
-      .from('evaluations')
-      .select('id, fotos')
-      .eq('id', cur.avalId)
+      .from('students')
+      .select('id, evaluations(id, fotos)')
+      .eq('id', cur.alunoId)
       .then(function(result) {
-        if (result.error || !result.data || result.data.length === 0) return;
-        var fetchedFotos = result.data[0].fotos || { frente: null, lado: null, costas: null };
+        if (result.error || !result.data || result.data.length === 0) {
+          console.error("Erro ao carregar fotos da avaliação:", result.error);
+          return;
+        }
+        var evList = result.data[0].evaluations || [];
+        var targetEv = evList.find(function(e) { return String(e.id) === String(cur.avalId); });
+        var fetchedFotos = (targetEv && targetEv.fotos) || { frente: null, lado: null, costas: null };
+
         setAlunos(function(prev) {
           return prev.map(function(a) {
             if (String(a.id) !== String(cur.alunoId)) return a;
@@ -9571,7 +9578,7 @@ export default function App() {
           });
         });
       });
-  }, [cur && cur.type === "avaliacao" && !cur.isNew ? cur.avalId : null, logged, user]);
+  }, [cur && cur.type === "avaliacao" && !cur.isNew ? (cur.alunoId + "_" + cur.avalId) : null, logged, user]);
 
   // Lazy-load photos for comparison evaluations
   useEffect(function() {
@@ -9582,23 +9589,31 @@ export default function App() {
     var idsToLoad = [];
     if (cur.av1) {
       var av1Check = avs.find(function(x) { return String(x.id) === String(cur.av1); });
-      if (av1Check && !av1Check._fotosLoaded) idsToLoad.push(cur.av1);
+      if (av1Check && !av1Check._fotosLoaded) idsToLoad.push(String(cur.av1));
     }
     if (cur.av2) {
       var av2Check = avs.find(function(x) { return String(x.id) === String(cur.av2); });
-      if (av2Check && !av2Check._fotosLoaded) idsToLoad.push(cur.av2);
+      if (av2Check && !av2Check._fotosLoaded) idsToLoad.push(String(cur.av2));
     }
     if (idsToLoad.length === 0) return;
+
     supabase
-      .from('evaluations')
-      .select('id, fotos')
-      .in('id', idsToLoad)
+      .from('students')
+      .select('id, evaluations(id, fotos)')
+      .eq('id', cur.alunoId)
       .then(function(result) {
-        if (result.error || !result.data) return;
+        if (result.error || !result.data || result.data.length === 0) {
+          console.error("Erro ao carregar fotos de comparação:", result.error);
+          return;
+        }
+        var evList = result.data[0].evaluations || [];
         var fotosMap = {};
-        result.data.forEach(function(row) {
-          fotosMap[String(row.id)] = row.fotos || { frente: null, lado: null, costas: null };
+        evList.forEach(function(row) {
+          if (idsToLoad.includes(String(row.id))) {
+            fotosMap[String(row.id)] = row.fotos || { frente: null, lado: null, costas: null };
+          }
         });
+
         setAlunos(function(prev) {
           return prev.map(function(a) {
             if (String(a.id) !== String(cur.alunoId)) return a;
@@ -9613,7 +9628,7 @@ export default function App() {
           });
         });
       });
-  }, [cur && cur.type === "comparar" ? (cur.av1 + "_" + cur.av2) : null, logged, user, alunos]);
+  }, [cur && cur.type === "comparar" ? (cur.alunoId + "_" + cur.av1 + "_" + cur.av2) : null, logged, user]);
 
   // Load session and onAuthStateChange
   useEffect(function() {
