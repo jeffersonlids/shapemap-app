@@ -4856,20 +4856,52 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
   
   const [saveState, setSaveState] = useState("saved"); // 'saved', 'saving', 'unsaved', 'error'
 
+  // Sync loaded photos from init when lazy-loading finishes
+  useEffect(function() {
+    if (init && init.fotos && init._fotosLoaded) {
+      setAv(function(prev) {
+        var curFotos = prev.fotos || { frente: null, lado: null, costas: null };
+        var updatedFotos = {
+          frente: curFotos.frente || init.fotos.frente || null,
+          lado: curFotos.lado || init.fotos.lado || null,
+          costas: curFotos.costas || init.fotos.costas || null
+        };
+        if (JSON.stringify(curFotos) === JSON.stringify(updatedFotos)) return prev;
+        return Object.assign({}, prev, { fotos: updatedFotos });
+      });
+    }
+  }, [init && init._fotosLoaded, init && init.fotos]);
+
   const upd = useCallback(function(path, val) {
     setAv(function(prev) {
-      var n = JSON.parse(JSON.stringify(prev));
       var keys = path.split(".");
-      var cur = n;
-      for (var i = 0; i < keys.length - 1; i++) cur = cur[keys[i]];
-      cur[keys[keys.length - 1]] = val;
+      var n = Object.assign({}, prev);
+      if (keys.length === 1) {
+        n[keys[0]] = val;
+        return n;
+      }
+      if (keys.length === 2) {
+        var parentKey = keys[0];
+        var childKey = keys[1];
+        var parentObj = Object.assign({ frente: null, lado: null, costas: null }, n[parentKey] || {});
+        parentObj[childKey] = val;
+        n[parentKey] = parentObj;
+        return n;
+      }
       return n;
     });
   }, []);
 
   // Debounced auto-save effect
   useEffect(function() {
-    const hasChanges = JSON.stringify(av) !== JSON.stringify(init);
+    var cleanAv = Object.assign({}, av);
+    delete cleanAv._fotosLoaded;
+    var cleanInit = Object.assign({}, init);
+    delete cleanInit._fotosLoaded;
+    if (!cleanInit.fotos) cleanInit.fotos = { frente: null, lado: null, costas: null };
+    if (!cleanAv.fotos) cleanAv.fotos = { frente: null, lado: null, costas: null };
+
+    const hasChanges = JSON.stringify(cleanAv) !== JSON.stringify(cleanInit);
     if (!hasChanges || done) {
       setSaveState("saved");
       return;
@@ -9815,8 +9847,8 @@ export default function App() {
               testes: e.testes || [],
               flexibilidade: e.flexibilidade || {},
               cardiovascular: e.cardiovascular || {},
-              fotos: e.fotos || null,
-              _fotosLoaded: !!e.fotos,
+              fotos: e.fotos || { frente: null, lado: null, costas: null },
+              _fotosLoaded: false,
               observacaoFotos: e.observacao_fotos || "",
               tipo: e.tipo || "presencial",
               status: e.status || "finalizada",
