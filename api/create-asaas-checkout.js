@@ -35,8 +35,11 @@ export default async function handler(req, res) {
       'access_token': asaasApiKey
     };
 
+    const origin = req.headers.origin || 'https://shapemapapp.com';
+
     // Criar Link de Pagamento Recorrente via API do Asaas
-    // IMPORTANTE: No Asaas, o tipo de cobrança recorrente deve ser informado como "RECURRENT"
+    // 1. "dueDateLimitDays: 3" define o vencimento padrão do boleto gerado no link e corrige a validação da API.
+    // 2. "callback" define o redirecionamento automático do cliente para o aplicativo após o pagamento.
     const linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
       method: 'POST',
       headers,
@@ -46,8 +49,13 @@ export default async function handler(req, res) {
         value: 19.90,
         chargeType: 'RECURRENT',
         subscriptionCycle: 'MONTHLY',
-        billingType: 'UNDEFINED', // Exibe Pix, Cartão de Crédito e Boleto para o cliente escolher no checkout
-        externalReference: trainerId
+        billingType: 'UNDEFINED', // Exibe Pix, Cartão de Crédito e Boleto
+        dueDateLimitDays: 3, // Quantidade de dias úteis para vencimento da cobrança (obrigatório se Boleto/Pix ativo no link)
+        externalReference: trainerId,
+        callback: {
+          successUrl: `${origin}/?success=true&value=19.90&currency=BRL`,
+          autoRedirect: true // Redireciona o cliente de volta ao app automaticamente após pagar
+        }
       })
     });
 
