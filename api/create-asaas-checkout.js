@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { trainerId, email } = req.body;
+  const { trainerId, email, nome } = req.body;
 
   if (!trainerId || !email) {
     return res.status(400).json({ error: 'Dados insuficientes (trainerId ou email ausentes).' });
@@ -35,28 +35,31 @@ export default async function handler(req, res) {
       'access_token': asaasApiKey
     };
 
-    const origin = req.headers.origin || 'https://shapemapapp.com';
+    // Montar payload seguro para a API do Asaas
+    const payload = {
+      name: 'ShapeMap - Assinatura Mensal Pro',
+      description: 'Acesso Pro Ilimitado ao ShapeMap - Avaliação Física',
+      value: 19.90,
+      chargeType: 'RECURRENT',
+      subscriptionCycle: 'MONTHLY',
+      billingType: 'UNDEFINED', // Exibe Pix, Cartão de Crédito e Boleto
+      dueDateLimitDays: 3, // Validade padrão de dias úteis para o boleto gerado
+      externalReference: trainerId // Vincula o ID do treinador no Supabase à cobrança
+    };
+
+    // Pré-preencher Nome e E-mail automaticamente no checkout do Asaas
+    if (email) {
+      payload.customerData = {
+        name: nome && nome.trim() ? nome.trim() : email.split('@')[0],
+        email: email.trim()
+      };
+    }
 
     // Criar Link de Pagamento Recorrente via API do Asaas
-    // 1. "dueDateLimitDays: 3" define o vencimento padrão do boleto gerado no link e corrige a validação da API.
-    // 2. "callback" define o redirecionamento automático do cliente para o aplicativo após o pagamento.
     const linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
       method: 'POST',
       headers,
-      body: JSON.stringify({
-        name: 'ShapeMap - Assinatura Mensal Pro',
-        description: 'Acesso Pro Ilimitado ao ShapeMap - Avaliação Física',
-        value: 19.90,
-        chargeType: 'RECURRENT',
-        subscriptionCycle: 'MONTHLY',
-        billingType: 'UNDEFINED', // Exibe Pix, Cartão de Crédito e Boleto
-        dueDateLimitDays: 3, // Quantidade de dias úteis para vencimento da cobrança (obrigatório se Boleto/Pix ativo no link)
-        externalReference: trainerId,
-        callback: {
-          successUrl: `${origin}/?success=true&value=19.90&currency=BRL`,
-          autoRedirect: true // Redireciona o cliente de volta ao app automaticamente após pagar
-        }
-      })
+      body: JSON.stringify(payload)
     });
 
     const linkData = await linkRes.json();
