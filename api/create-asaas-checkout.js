@@ -24,6 +24,13 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Se houver um link de pagamento fixo configurado na Vercel, usar diretamente
+    if (process.env.ASAAS_PAYMENT_LINK_URL) {
+      const fixedUrl = process.env.ASAAS_PAYMENT_LINK_URL;
+      const separator = fixedUrl.includes('?') ? '&' : '?';
+      return res.status(200).json({ url: `${fixedUrl}${separator}externalReference=${encodeURIComponent(trainerId)}` });
+    }
+
     const asaasApiKey = process.env.ASAAS_API_KEY;
 
     if (!asaasApiKey) {
@@ -35,23 +42,43 @@ export default async function handler(req, res) {
       'access_token': asaasApiKey
     };
 
-    // Criar Link de Pagamento Recorrente no Asaas
-    // O próprio Asaas exibe Pix, Cartão e Boleto e solicita o CPF/CNPJ de forma segura no formulário dele
-    const linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
+    // 1. Tentar criar Link de Pagamento Recorrente via API do Asaas
+    let linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
       method: 'POST',
       headers,
       body: JSON.stringify({
         name: 'ShapeMap - Assinatura Mensal Pro',
         description: 'Acesso Pro Ilimitado ao ShapeMap - Avaliação Física',
         value: 19.90,
-        billingType: 'UNDEFINED', // Exibe Pix, Cartão de Crédito e Boleto
+        billingType: 'UNDEFINED',
         chargeType: 'RECURRING',
         subscriptionCycle: 'MONTHLY',
         externalReference: trainerId
       })
     });
 
-    const linkData = await linkRes.json();
+    let linkData = await linkRes.json();
+
+    if (linkData.url) {
+      return res.status(200).json({ url: linkData.url });
+    }
+
+    // 2. Se UNDEFINED der erro de validação, tentar especificando PIX
+    linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        name: 'ShapeMap - Assinatura Mensal Pro',
+        description: 'Acesso Pro Ilimitado ao ShapeMap - Avaliação Física',
+        value: 19.90,
+        billingType: 'PIX',
+        chargeType: 'RECURRING',
+        subscriptionCycle: 'MONTHLY',
+        externalReference: trainerId
+      })
+    });
+
+    linkData = await linkRes.json();
 
     if (linkData.url) {
       return res.status(200).json({ url: linkData.url });
