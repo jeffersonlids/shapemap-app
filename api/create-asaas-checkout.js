@@ -35,7 +35,52 @@ export default async function handler(req, res) {
       'access_token': asaasApiKey
     };
 
-    // Montar payload seguro para a API do Asaas
+    // 1. Localizar ou Criar o Cliente no Asaas para associar o E-mail e Nome
+    let customerId = null;
+    try {
+      // Buscar cliente existente por externalReference (ID do Supabase)
+      const searchRes = await fetch(`https://www.asaas.com/api/v3/customers?externalReference=${encodeURIComponent(trainerId)}`, {
+        headers
+      });
+      const searchData = await searchRes.json();
+      if (searchData.data && searchData.data.length > 0) {
+        customerId = searchData.data[0].id;
+      } else {
+        // Buscar por e-mail caso não tenha encontrado por externalReference
+        const emailSearchRes = await fetch(`https://www.asaas.com/api/v3/customers?email=${encodeURIComponent(email.trim())}`, {
+          headers
+        });
+        const emailSearchData = await emailSearchRes.json();
+        if (emailSearchData.data && emailSearchData.data.length > 0) {
+          customerId = emailSearchData.data[0].id;
+        }
+      }
+    } catch (e) {
+      console.warn('Aviso ao buscar cliente Asaas:', e);
+    }
+
+    // Se o cliente ainda não existir no Asaas, criar com Nome e E-mail
+    if (!customerId) {
+      try {
+        const createCustomerRes = await fetch('https://www.asaas.com/api/v3/customers', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            name: nome && nome.trim() ? nome.trim() : email.split('@')[0],
+            email: email.trim(),
+            externalReference: trainerId
+          })
+        });
+        const newCustomerData = await createCustomerRes.json();
+        if (newCustomerData.id) {
+          customerId = newCustomerData.id;
+        }
+      } catch (e) {
+        console.warn('Aviso ao criar cliente Asaas:', e);
+      }
+    }
+
+    // 2. Montar o payload do Link de Pagamento Recorrente com os dados pré-preenchidos
     const payload = {
       name: 'ShapeMap - Assinatura Mensal Pro',
       description: 'Acesso Pro Ilimitado ao ShapeMap - Avaliação Física',
@@ -43,26 +88,38 @@ export default async function handler(req, res) {
       chargeType: 'RECURRENT',
       subscriptionCycle: 'MONTHLY',
       billingType: 'UNDEFINED', // Exibe Pix, Cartão de Crédito e Boleto
-      dueDateLimitDays: 3, // Validade padrão de dias úteis para o boleto gerado
-      externalReference: trainerId // Vincula o ID do treinador no Supabase à cobrança
+      dueDateLimitDays: 3,
+      externalReference: trainerId,
+      callback: {
+        successUrl: `https://shapemapapp.com/?success=true&value=19.90&currency=BRL`,
+        autoRedirect: true
+      }
     };
 
-    // Pré-preencher Nome e E-mail automaticamente no checkout do Asaas
-    if (email) {
-      payload.customerData = {
-        name: nome && nome.trim() ? nome.trim() : email.split('@')[0],
-        email: email.trim()
-      };
+    // Vincular o customer ID para que o Asaas pré-preencha Nome e E-mail na tela de checkout!
+    if (customerId) {
+      payload.customer = customerId;
     }
 
-    // Criar Link de Pagamento Recorrente via API do Asaas
-    const linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
+    // 3. Gerar o Link de Pagamento no Asaas
+    let linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
       method: 'POST',
       headers,
       body: JSON.stringify(payload)
     });
 
-    const linkData = await linkRes.json();
+    let linkData = await linkRes.json();
+
+    // Se der erro por conta do domínio do callback não estar cadastrado na conta do Asaas, tentar novamente sem o callback de forma transparente
+    if (linkData.errors && linkData.errors.some(e => e.description && (e.description.includes('domínio') || e.description.includes('domain')))) {
+      delete payload.callback;
+      linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload)
+      });
+      linkData = await linkRes.json();
+    }
 
     if (linkData.url) {
       return res.status(200).json({ url: linkData.url });
