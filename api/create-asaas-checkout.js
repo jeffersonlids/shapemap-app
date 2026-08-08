@@ -24,11 +24,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Se houver um link de pagamento fixo configurado na Vercel, usar diretamente
+    // 1. Se houver um link de pagamento configurado na Vercel (ASAAS_PAYMENT_LINK_URL)
     if (process.env.ASAAS_PAYMENT_LINK_URL) {
-      const fixedUrl = process.env.ASAAS_PAYMENT_LINK_URL;
-      const separator = fixedUrl.includes('?') ? '&' : '?';
-      return res.status(200).json({ url: `${fixedUrl}${separator}externalReference=${encodeURIComponent(trainerId)}` });
+      const baseUrl = process.env.ASAAS_PAYMENT_LINK_URL.trim();
+      const separator = baseUrl.includes('?') ? '&' : '?';
+      const checkoutUrl = `${baseUrl}${separator}externalReference=${encodeURIComponent(trainerId)}&email=${encodeURIComponent(email)}`;
+      return res.status(200).json({ url: checkoutUrl });
     }
 
     const asaasApiKey = process.env.ASAAS_API_KEY;
@@ -42,53 +43,33 @@ export default async function handler(req, res) {
       'access_token': asaasApiKey
     };
 
-    // 1. Tentar criar Link de Pagamento Recorrente via API do Asaas
-    let linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
+    // 2. Tentar criar Link de Pagamento Recorrente via API do Asaas com parâmetros limpos
+    const linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
       method: 'POST',
       headers,
       body: JSON.stringify({
         name: 'ShapeMap - Assinatura Mensal Pro',
         description: 'Acesso Pro Ilimitado ao ShapeMap - Avaliação Física',
         value: 19.90,
+        chargeType: 'RECURRING',
+        subscriptionCycle: 'MONTHLY',
         billingType: 'UNDEFINED',
-        chargeType: 'RECURRING',
-        subscriptionCycle: 'MONTHLY',
         externalReference: trainerId
       })
     });
 
-    let linkData = await linkRes.json();
+    const linkData = await linkRes.json();
 
     if (linkData.url) {
       return res.status(200).json({ url: linkData.url });
     }
 
-    // 2. Se UNDEFINED der erro de validação, tentar especificando PIX
-    linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        name: 'ShapeMap - Assinatura Mensal Pro',
-        description: 'Acesso Pro Ilimitado ao ShapeMap - Avaliação Física',
-        value: 19.90,
-        billingType: 'PIX',
-        chargeType: 'RECURRING',
-        subscriptionCycle: 'MONTHLY',
-        externalReference: trainerId
-      })
-    });
-
-    linkData = await linkRes.json();
-
-    if (linkData.url) {
-      return res.status(200).json({ url: linkData.url });
-    }
-
-    if (linkData.errors) {
+    if (linkData.errors && linkData.errors.length > 0) {
+      console.error('Erro detalhado Asaas:', linkData.errors);
       throw new Error(linkData.errors[0]?.description || 'Erro ao gerar link de pagamento no Asaas.');
     }
 
-    return res.status(500).json({ error: 'Não foi possível gerar a página de pagamento.' });
+    return res.status(500).json({ error: 'Não foi possível gerar a página de pagamento no Asaas.' });
   } catch (error) {
     console.error('Erro Asaas Checkout:', error);
     return res.status(500).json({ error: error.message || 'Erro interno ao gerar checkout Asaas.' });
