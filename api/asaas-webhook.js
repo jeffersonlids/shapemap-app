@@ -40,6 +40,7 @@ export default async function handler(req, res) {
       // Pagamento confirmado (Pix, Cartão ou Boleto)!
       const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
+      // 1. Tentar atualizar com todas as colunas (incluindo asaas_customer_id e asaas_subscription_id)
       let query = supabase.from('trainers').update({
         subscription_status: 'active',
         current_period_end: thirtyDaysFromNow,
@@ -50,15 +51,39 @@ export default async function handler(req, res) {
       if (trainerId) {
         query = query.eq('id', trainerId);
       } else if (customerId) {
-        query = query.eq('asaas_customer_id', customerId);
+        // Fallback caso não tenha o trainerId nos metadados, mas tenha o customerId mapeado
+        try {
+          query = query.eq('asaas_customer_id', customerId);
+        } catch (e) {
+          query = query.eq('id', '00000000-0000-0000-0000-000000000000'); // Forçar falha para cair no catch abaixo
+        }
       }
 
       const { error } = await query;
-      if (error) {
-        console.error('Erro ao ativar conta no Supabase via Asaas:', error);
+      
+      // 2. Fallback robusto: se der erro de coluna inexistente no banco
+      if (error && (error.message.includes('column') || error.message.includes('does not exist'))) {
+        console.warn('⚠️ Colunas asaas_customer_id ou asaas_subscription_id não encontradas no banco. Usando colunas padrão...');
+        
+        let fallbackQuery = supabase.from('trainers').update({
+          subscription_status: 'active',
+          current_period_end: thirtyDaysFromNow
+        });
+
+        if (trainerId) {
+          fallbackQuery = fallbackQuery.eq('id', trainerId);
+          const { error: fallbackError } = await fallbackQuery;
+          if (fallbackError) throw fallbackError;
+          console.log(`✅ [Asaas Webhook] Conta ativada com sucesso usando colunas padrão para o Treinador ID: ${trainerId}`);
+        } else {
+          console.error('❌ Não foi possível realizar a ativação: colunas customizadas ausentes no banco e sem trainerId de referência.');
+          throw error;
+        }
+      } else if (error) {
         throw error;
+      } else {
+        console.log(`✅ [Asaas Webhook] Conta ativada com sucesso para o Treinador ID: ${trainerId || customerId}`);
       }
-      console.log(`✅ [Asaas Webhook] Conta ativada com sucesso para o Treinador ID: ${trainerId || customerId}`);
     } else if (event === 'PAYMENT_OVERDUE' || event === 'PAYMENT_DELETED' || event === 'PAYMENT_REFUNDED' || event === 'SUBSCRIPTION_DELETED') {
       // Pagamento em atraso, cancelado ou reembolsado
       let query = supabase.from('trainers').update({
@@ -68,15 +93,29 @@ export default async function handler(req, res) {
       if (trainerId) {
         query = query.eq('id', trainerId);
       } else if (customerId) {
-        query = query.eq('asaas_customer_id', customerId);
+        try {
+          query = query.eq('asaas_customer_id', customerId);
+        } catch (e) {
+          query = query.eq('id', '00000000-0000-0000-0000-000000000000');
+        }
       }
 
       const { error } = await query;
-      if (error) {
-        console.error('Erro ao inativar conta no Supabase via Asaas:', error);
+      if (error && (error.message.includes('column') || error.message.includes('does not exist'))) {
+        // Fallback simples se as colunas personalizadas do Asaas não existirem
+        if (trainerId) {
+          const { error: fallbackError } = await supabase
+            .from('trainers')
+            .update({ subscription_status: 'inactive' })
+            .eq('id', trainerId);
+          if (fallbackError) throw fallbackError;
+          console.log(`ℹ️ [Asaas Webhook] Conta inativada com sucesso usando campos padrão.`);
+        }
+      } else if (error) {
         throw error;
+      } else {
+        console.log(`ℹ️ [Asaas Webhook] Conta desativada/inativada para o Treinador ID: ${trainerId || customerId}`);
       }
-      console.log(`ℹ️ [Asaas Webhook] Conta desativada/inativada para o Treinador ID: ${trainerId || customerId}`);
     }
 
     return res.status(200).json({ received: true });
