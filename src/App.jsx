@@ -7453,14 +7453,16 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour }) {
                     window.fbq('track', 'InitiateCheckout');
                   }
                   try {
-                    const res = await fetch("/api/create-checkout-session", {
+                    const isUsd = (trainer && (trainer.lang === 'es' || trainer.lang === 'en'));
+                    const checkoutEndpoint = isUsd ? "/api/create-checkout-session" : "/api/create-asaas-checkout";
+                    const res = await fetch(checkoutEndpoint, {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ trainerId: trainer.id, email: trainer.email, nome: trainer.nome, lang: trainer.lang })
                     });
                     const data = await res.json();
                     if (!res.ok) {
-                      throw new Error(data.error || "Erro ao conectar com Stripe.");
+                      throw new Error(data.error || "Erro ao conectar com o serviço de pagamento.");
                     }
                     if (data.url) {
                       window.location.href = data.url;
@@ -7632,8 +7634,10 @@ function PaywallScreen({ trainer, onLogout }) {
         trainer.subscriptionStatus === "past_due" ||
         trainer.subscriptionStatus === "unpaid"
       );
-      const endpoint = shouldGoToPortal ? "/api/create-portal-session" : "/api/create-checkout-session";
-      if (endpoint === "/api/create-checkout-session") {
+      const isUsd = (trainer && (trainer.lang === 'es' || trainer.lang === 'en'));
+      const defaultCheckoutEndpoint = isUsd ? "/api/create-checkout-session" : "/api/create-asaas-checkout";
+      const endpoint = shouldGoToPortal ? "/api/create-portal-session" : defaultCheckoutEndpoint;
+      if (!shouldGoToPortal) {
         if (typeof window.fbq === 'function') {
           window.fbq('track', 'InitiateCheckout');
         }
@@ -7652,7 +7656,7 @@ function PaywallScreen({ trainer, onLogout }) {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Erro ao conectar com Stripe.");
+        throw new Error(data.error || "Erro ao conectar com o serviço de pagamento.");
       }
 
       if (data.url) {
