@@ -7455,15 +7455,6 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour }) {
                   try {
                     const isUsd = (trainer && (trainer.lang === 'es' || trainer.lang === 'en'));
                     const checkoutEndpoint = isUsd ? "/api/create-checkout-session" : "/api/create-asaas-checkout";
-                    
-                    let cpfCnpjVal = trainer && trainer.cpfCnpj;
-                    if (!isUsd && !cpfCnpjVal) {
-                      const inputCpf = window.prompt(lang === "pt" ? "Para gerar a cobrança via Pix no Brasil, digite seu CPF ou CNPJ (apenas números):" : "Enter CPF or CNPJ:");
-                      if (!inputCpf) {
-                        return;
-                      }
-                      cpfCnpjVal = inputCpf;
-                    }
 
                     const res = await fetch(checkoutEndpoint, {
                       method: "POST",
@@ -7472,8 +7463,7 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour }) {
                         trainerId: trainer.id, 
                         email: trainer.email, 
                         nome: trainer.nome, 
-                        lang: trainer.lang,
-                        cpfCnpj: cpfCnpjVal
+                        lang: trainer.lang
                       })
                     });
                     const data = await res.json();
@@ -7659,24 +7649,13 @@ function PaywallScreen({ trainer, onLogout }) {
         }
       }
 
-      let cpfCnpjVal = trainer && trainer.cpfCnpj;
-      if (!shouldGoToPortal && !isUsd && !cpfCnpjVal) {
-        const inputCpf = window.prompt(lang === "pt" ? "Para liberar sua cobrança via Pix no Brasil, informe seu CPF ou CNPJ (apenas números):" : "Enter CPF or CNPJ:");
-        if (!inputCpf) {
-          setLoading(false);
-          return;
-        }
-        cpfCnpjVal = inputCpf;
-      }
-
       const body = shouldGoToPortal 
         ? { customerId: trainer.stripeCustomerId }
         : { 
             trainerId: trainer.id, 
             email: trainer.email, 
             nome: trainer.nome, 
-            lang: trainer.lang,
-            cpfCnpj: cpfCnpjVal
+            lang: trainer.lang
           };
 
       const res = await fetch(endpoint, {
