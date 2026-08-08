@@ -24,14 +24,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. Se houver um link de pagamento configurado na Vercel (ASAAS_PAYMENT_LINK_URL)
-    if (process.env.ASAAS_PAYMENT_LINK_URL) {
-      const baseUrl = process.env.ASAAS_PAYMENT_LINK_URL.trim();
-      const separator = baseUrl.includes('?') ? '&' : '?';
-      const checkoutUrl = `${baseUrl}${separator}externalReference=${encodeURIComponent(trainerId)}&email=${encodeURIComponent(email)}`;
-      return res.status(200).json({ url: checkoutUrl });
-    }
-
     const asaasApiKey = process.env.ASAAS_API_KEY;
 
     if (!asaasApiKey) {
@@ -43,7 +35,8 @@ export default async function handler(req, res) {
       'access_token': asaasApiKey
     };
 
-    // 2. Tentar criar Link de Pagamento Recorrente via API do Asaas com parâmetros limpos
+    // Criar Link de Pagamento Recorrente via API do Asaas
+    // IMPORTANTE: No Asaas, o tipo de cobrança recorrente deve ser informado como "RECURRENT"
     const linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
       method: 'POST',
       headers,
@@ -51,9 +44,9 @@ export default async function handler(req, res) {
         name: 'ShapeMap - Assinatura Mensal Pro',
         description: 'Acesso Pro Ilimitado ao ShapeMap - Avaliação Física',
         value: 19.90,
-        chargeType: 'RECURRING',
+        chargeType: 'RECURRENT',
         subscriptionCycle: 'MONTHLY',
-        billingType: 'UNDEFINED',
+        billingType: 'UNDEFINED', // Exibe Pix, Cartão de Crédito e Boleto para o cliente escolher no checkout
         externalReference: trainerId
       })
     });
