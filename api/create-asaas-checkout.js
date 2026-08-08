@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { trainerId, email, nome } = req.body;
+  const { trainerId, email, nome, cpfCnpj } = req.body;
 
   if (!trainerId || !email) {
     return res.status(400).json({ error: 'Dados insuficientes (trainerId ou email ausentes).' });
@@ -35,7 +35,28 @@ export default async function handler(req, res) {
       'access_token': asaasApiKey
     };
 
-    // 1. Buscar se o cliente já existe no Asaas pelo e-mail
+    // 1. Tentar criar Link de Pagamento Recorrente (O checkout do Asaas solicita o CPF/CNPJ na própria tela)
+    const linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        name: 'ShapeMap - Assinatura Mensal Pro',
+        description: 'Acesso Pro ao ShapeMap - Avaliação Física',
+        value: 19.90,
+        billingType: 'UNDEFINED', // Permite o cliente escolher Pix, Cartão ou Boleto na tela do Asaas
+        chargeType: 'RECURRING',
+        subscriptionCycle: 'MONTHLY',
+        externalReference: trainerId
+      })
+    });
+
+    const linkData = await linkRes.json();
+
+    if (linkData.url) {
+      return res.status(200).json({ url: linkData.url });
+    }
+
+    // 2. Fallback: Se a API de links de pagamento falhar, buscar ou criar cliente direto
     const searchRes = await fetch(`https://www.asaas.com/api/v3/customers?email=${encodeURIComponent(email)}`, {
       method: 'GET',
       headers
@@ -46,13 +67,13 @@ export default async function handler(req, res) {
     if (searchData.data && searchData.data.length > 0) {
       customerId = searchData.data[0].id;
     } else {
-      // 2. Criar cliente no Asaas
       const createCustRes = await fetch('https://www.asaas.com/api/v3/customers', {
         method: 'POST',
         headers,
         body: JSON.stringify({
           name: nome || 'Treinador ShapeMap',
           email: email,
+          cpfCnpj: cpfCnpj || undefined,
           externalReference: trainerId
         })
       });
@@ -63,7 +84,6 @@ export default async function handler(req, res) {
       customerId = createCustData.id;
     }
 
-    // 3. Criar assinatura recorrente no Asaas (Pix, Cartão, Boleto)
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -75,7 +95,7 @@ export default async function handler(req, res) {
       headers,
       body: JSON.stringify({
         customer: customerId,
-        billingType: 'UNDEFINED', // Permite o cliente escolher Pix, Cartão ou Boleto no checkout
+        billingType: 'UNDEFINED',
         value: 19.90,
         nextDueDate: nextDueDate,
         cycle: 'MONTHLY',
@@ -89,19 +109,7 @@ export default async function handler(req, res) {
       throw new Error(subData.errors[0]?.description || 'Erro ao criar assinatura no Asaas.');
     }
 
-    // 4. Buscar a fatura/cobrança gerada para a primeira cobrança da assinatura
-    const paymentsRes = await fetch(`https://www.asaas.com/api/v3/subscriptions/${subData.id}/payments`, {
-      method: 'GET',
-      headers
-    });
-    const paymentsData = await paymentsRes.json();
-
-    let checkoutUrl = subData.invoiceUrl;
-    if (paymentsData.data && paymentsData.data.length > 0) {
-      checkoutUrl = paymentsData.data[0].invoiceUrl || paymentsData.data[0].bankSlipUrl || checkoutUrl;
-    }
-
-    return res.status(200).json({ url: checkoutUrl || `https://www.asaas.com/i/${subData.id}` });
+    return res.status(200).json({ url: subData.invoiceUrl || `https://www.asaas.com/i/${subData.id}` });
   } catch (error) {
     console.error('Erro Asaas Checkout:', error);
     return res.status(500).json({ error: error.message || 'Erro interno ao gerar checkout Asaas.' });
