@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { trainerId, email, nome } = req.body;
+  const { trainerId, email, nome, telefone } = req.body;
 
   if (!trainerId || !email) {
     return res.status(400).json({ error: 'Dados insuficientes (trainerId ou email ausentes).' });
@@ -35,7 +35,9 @@ export default async function handler(req, res) {
       'access_token': asaasApiKey
     };
 
-    // 1. Localizar ou Criar o Cliente no Asaas para associar o E-mail e Nome ao cadastro do pagador
+    const cleanPhone = telefone ? String(telefone).replace(/\D/g, '') : null;
+
+    // 1. Localizar ou Criar o Cliente no Asaas para associar E-mail, Nome e WhatsApp ao cadastro do pagador
     let customerId = null;
     try {
       const searchRes = await fetch(`https://www.asaas.com/api/v3/customers?externalReference=${encodeURIComponent(trainerId)}`, { headers });
@@ -55,14 +57,19 @@ export default async function handler(req, res) {
 
     if (!customerId) {
       try {
+        const customerBody = {
+          name: nome && nome.trim() ? nome.trim() : email.split('@')[0],
+          email: email.trim(),
+          externalReference: trainerId
+        };
+        if (cleanPhone) {
+          customerBody.mobilePhone = cleanPhone;
+          customerBody.phone = cleanPhone;
+        }
         const createCustomerRes = await fetch('https://www.asaas.com/api/v3/customers', {
           method: 'POST',
           headers,
-          body: JSON.stringify({
-            name: nome && nome.trim() ? nome.trim() : email.split('@')[0],
-            email: email.trim(),
-            externalReference: trainerId
-          })
+          body: JSON.stringify(customerBody)
         });
         const newCustomerData = await createCustomerRes.json();
         if (newCustomerData.id) {
@@ -70,6 +77,20 @@ export default async function handler(req, res) {
         }
       } catch (e) {
         console.warn('Aviso ao criar cliente Asaas:', e);
+      }
+    } else if (cleanPhone) {
+      // Se o cliente já existia, atualizar o número de WhatsApp no cadastro do Asaas
+      try {
+        await fetch(`https://www.asaas.com/api/v3/customers/${customerId}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            mobilePhone: cleanPhone,
+            phone: cleanPhone
+          })
+        });
+      } catch (e) {
+        console.warn('Aviso ao atualizar telefone do cliente Asaas:', e);
       }
     }
 
