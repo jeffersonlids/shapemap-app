@@ -7418,72 +7418,100 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour }) {
                 </div>
               )}
             </div>
-            {trainer.stripeCustomerId ? (
-              <Btn 
-                id="tour-profile-manage-btn"
-                small 
-                variant="outline" 
-                onClick={async function() {
-                  try {
-                    const res = await fetch("/api/create-portal-session", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ customerId: trainer.stripeCustomerId })
-                    });
-                    const data = await res.json();
-                    if (data.url) {
-                      window.location.href = data.url;
-                    } else {
-                      alert(lang === "pt" ? "Erro ao redirecionar para o portal da Stripe." : "Error redirecting to Stripe portal.");
-                    }
-                  } catch (err) {
-                    console.error(err);
-                    alert(lang === "pt" ? "Erro ao acessar gerenciamento." : "Error accessing subscription management.");
-                  }
-                }}
-              >
-                {lang === "pt" ? "Gerenciar" : "Manage"}
-              </Btn>
-            ) : (
-              <Btn 
-                id="tour-profile-manage-btn"
-                small 
-                onClick={async function() {
-                  if (typeof window.fbq === 'function') {
-                    window.fbq('track', 'InitiateCheckout');
-                  }
-                  try {
-                    const isUsd = (trainer && (trainer.lang === 'es' || trainer.lang === 'en'));
-                    const checkoutEndpoint = isUsd ? "/api/create-checkout-session" : "/api/create-asaas-checkout";
+            {(function() {
+              const isActive = trainer && (trainer.subscriptionStatus === "active" || trainer.subscriptionStatus === "trialing" || trainer.subscriptionStatus === "canceled");
+              const isAsaasUser = trainer && (
+                trainer.paymentGateway === 'asaas' || 
+                Boolean(trainer.asaasSubscriptionId) || 
+                Boolean(trainer.asaasCustomerId)
+              );
 
-                    const res = await fetch(checkoutEndpoint, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ 
-                        trainerId: trainer.id, 
-                        email: trainer.email, 
-                        nome: trainer.nome, 
-                        lang: trainer.lang
-                      })
-                    });
-                    const data = await res.json();
-                    if (!res.ok) {
-                      throw new Error(data.error || "Erro ao conectar com o serviço de pagamento.");
+              if (isActive) {
+                // Se a assinatura está ativa/cancelada, exibe GERENCIAR
+                if (isAsaasUser || !trainer.stripeCustomerId) {
+                  return (
+                    <Btn 
+                      id="tour-profile-manage-btn"
+                      small 
+                      variant="outline" 
+                      onClick={() => setShowAsaasManageModal(true)}
+                    >
+                      {lang === "pt" ? "Gerenciar" : "Manage"}
+                    </Btn>
+                  );
+                } else {
+                  return (
+                    <Btn 
+                      id="tour-profile-manage-btn"
+                      small 
+                      variant="outline" 
+                      onClick={async function() {
+                        try {
+                          const res = await fetch("/api/create-portal-session", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ customerId: trainer.stripeCustomerId })
+                          });
+                          const data = await res.json();
+                          if (data.url) {
+                            window.location.href = data.url;
+                          } else {
+                            alert(lang === "pt" ? "Erro ao redirecionar para o portal da Stripe." : "Error redirecting to Stripe portal.");
+                          }
+                        } catch (err) {
+                          console.error(err);
+                          alert(lang === "pt" ? "Erro ao acessar gerenciamento." : "Error accessing subscription management.");
+                        }
+                      }}
+                    >
+                      {lang === "pt" ? "Gerenciar" : "Manage"}
+                    </Btn>
+                  );
+                }
+              }
+
+              // Se a conta não tiver assinatura ativa, exibe ASSINAR
+              return (
+                <Btn 
+                  id="tour-profile-manage-btn"
+                  small 
+                  onClick={async function() {
+                    if (typeof window.fbq === 'function') {
+                      window.fbq('track', 'InitiateCheckout');
                     }
-                    if (data.url) {
-                      window.location.href = data.url;
-                    } else {
-                      throw new Error("URL não retornada.");
+                    try {
+                      const isUsd = (trainer && (trainer.lang === 'es' || trainer.lang === 'en'));
+                      const checkoutEndpoint = isUsd ? "/api/create-checkout-session" : "/api/create-asaas-checkout";
+
+                      const res = await fetch(checkoutEndpoint, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ 
+                          trainerId: trainer.id, 
+                          email: trainer.email, 
+                          nome: trainer.nome, 
+                          lang: trainer.lang
+                        })
+                      });
+                      const data = await res.json();
+                      if (!res.ok) {
+                        throw new Error(data.error || "Erro ao conectar com o serviço de pagamento.");
+                      }
+                      if (data.url) {
+                        window.location.href = data.url;
+                      } else {
+                        throw new Error("URL não retornada.");
+                      }
+                    } catch (err) {
+                      console.error(err);
+                      alert(err.message || (lang === "pt" ? "Erro ao iniciar assinatura." : "Error starting subscription."));
                     }
-                  } catch (err) {
-                    console.error(err);
-                    alert(err.message || (lang === "pt" ? "Erro ao iniciar assinatura." : "Error starting subscription."));
-                  }
-                }}
-              >
-                {lang === "pt" ? "Assinar" : "Subscribe"}
-              </Btn>
-            )}
+                  }}
+                >
+                  {lang === "pt" ? "Assinar" : "Subscribe"}
+                </Btn>
+              );
+            })()}
           </div>
         </div>
       </Card>
