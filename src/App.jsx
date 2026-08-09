@@ -7663,18 +7663,17 @@ function PaywallScreen({ trainer, onLogout }) {
     setLoading(true);
     setErrorMsg("");
     try {
-      const isAsaasActive = trainer && (
-        trainer.paymentGateway === 'asaas' || 
-        Boolean(trainer.asaasSubscriptionId) || 
-        (Boolean(trainer.asaasCustomerId) && !trainer.stripeCustomerId)
-      );
-      const shouldGoToPortal = !isAsaasActive && trainer.stripeCustomerId && (
+      const isUsd = (trainer && (trainer.lang === 'es' || trainer.lang === 'en'));
+      
+      // Para usuários internacionais (USD), abre o portal Stripe se houver assinatura pendente.
+      // Para usuários no Brasil (PT), direciona direto para o Asaas Checkout (Pix/Cartão/Boleto).
+      const shouldGoToPortal = isUsd && Boolean(trainer.stripeCustomerId) && (
         trainer.subscriptionStatus === "active" || 
         trainer.subscriptionStatus === "trialing" ||
         trainer.subscriptionStatus === "past_due" ||
         trainer.subscriptionStatus === "unpaid"
       );
-      const isUsd = (trainer && (trainer.lang === 'es' || trainer.lang === 'en'));
+      
       const defaultCheckoutEndpoint = isUsd ? "/api/create-checkout-session" : "/api/create-asaas-checkout";
       const endpoint = shouldGoToPortal ? "/api/create-portal-session" : defaultCheckoutEndpoint;
       if (!shouldGoToPortal) {
