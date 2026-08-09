@@ -156,6 +156,7 @@ export default async function handler(req, res) {
             subscription_status: subscription.status,
             subscription_id: subscriptionId,
             current_period_end: currentPeriodEndISO,
+            payment_gateway: 'stripe',
             telefone: buyerPhone,
           })
           .eq('id', trainerId);

@@ -40,10 +40,11 @@ export default async function handler(req, res) {
       // Pagamento confirmado (Pix, Cartão ou Boleto)!
       const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-      // 1. Tentar atualizar com todas as colunas (incluindo asaas_customer_id e asaas_subscription_id)
+      // 1. Tentar atualizar com todas as colunas (incluindo payment_gateway = 'asaas')
       let query = supabase.from('trainers').update({
         subscription_status: 'active',
         current_period_end: thirtyDaysFromNow,
+        payment_gateway: 'asaas',
         asaas_customer_id: customerId || null,
         asaas_subscription_id: subscriptionId || null
       });
@@ -63,7 +64,7 @@ export default async function handler(req, res) {
       
       // 2. Fallback robusto: se der erro de coluna inexistente no banco
       if (error && (error.message.includes('column') || error.message.includes('does not exist'))) {
-        console.warn('⚠️ Colunas asaas_customer_id ou asaas_subscription_id não encontradas no banco. Usando colunas padrão...');
+        console.warn('⚠️ Colunas personalizadas não encontradas no banco. Usando colunas padrão...');
         
         let fallbackQuery = supabase.from('trainers').update({
           subscription_status: 'active',

@@ -7634,7 +7634,12 @@ function PaywallScreen({ trainer, onLogout }) {
     setLoading(true);
     setErrorMsg("");
     try {
-      const shouldGoToPortal = trainer.stripeCustomerId && (
+      const isAsaasActive = trainer && (
+        trainer.paymentGateway === 'asaas' || 
+        Boolean(trainer.asaasSubscriptionId) || 
+        (Boolean(trainer.asaasCustomerId) && !trainer.stripeCustomerId)
+      );
+      const shouldGoToPortal = !isAsaasActive && trainer.stripeCustomerId && (
         trainer.subscriptionStatus === "active" || 
         trainer.subscriptionStatus === "trialing" ||
         trainer.subscriptionStatus === "past_due" ||
@@ -9487,6 +9492,8 @@ export default function App() {
   });
 
   const [stack, setStack] = useState([]);
+  const [showAsaasManageModal, setShowAsaasManageModal] = useState(false);
+  const [cancelingAsaasSub, setCancelingAsaasSub] = useState(false);
 
   // Sincronizar o idioma do documento (html lang) para evitar traduções incorretas do navegador
   useEffect(function() {
@@ -9696,6 +9703,9 @@ export default function App() {
         lang: trainerData.lang || "pt",
         unitSystem: (trainerData.settings && trainerData.settings.unitSystem) || "metric",
         stripeCustomerId: trainerData.stripe_customer_id || "",
+        asaasCustomerId: trainerData.asaas_customer_id || "",
+        asaasSubscriptionId: trainerData.asaas_subscription_id || "",
+        paymentGateway: trainerData.payment_gateway || (trainerData.asaas_subscription_id ? 'asaas' : (trainerData.stripe_customer_id ? 'stripe' : 'none')),
         subscriptionStatus: trainerData.subscription_status || "inactive",
         subscriptionId: trainerData.subscription_id || "",
         currentPeriodEnd: trainerData.current_period_end || null
@@ -10560,6 +10570,90 @@ export default function App() {
       {!cur && <BottomNav active={tab} onChange={function(t) { setTab(t); resetStack(); }} trainer={trainer}/>}
 
 
+
+      {showAsaasManageModal && (
+        <Modal 
+          title={lang === "pt" ? "Gerenciar Assinatura" : "Manage Subscription"} 
+          onClose={() => setShowAsaasManageModal(false)}
+        >
+          <div style={{ padding: 16, fontFamily: "'Outfit', sans-serif" }}>
+            <div style={{ background: T.cardBg, border: `1px solid ${T.border}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <span style={{ fontSize: 13, color: T.muted }}>{lang === "pt" ? "Plano Atual" : "Current Plan"}:</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: T.text }}>ShapeMap Pro (Asaas)</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <span style={{ fontSize: 13, color: T.muted }}>Status:</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: (trainer.subscriptionStatus === 'active' || trainer.subscriptionStatus === 'trialing') ? T.success : T.danger, textTransform: "uppercase" }}>
+                  {trainer.subscriptionStatus === 'active' ? (lang === "pt" ? "Ativa 🟢" : "Active 🟢") : (trainer.subscriptionStatus === 'canceled' ? (lang === "pt" ? "Cancelada (Acesso ativo)" : "Canceled") : trainer.subscriptionStatus)}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <span style={{ fontSize: 13, color: T.muted }}>{lang === "pt" ? "Valor" : "Price"}:</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: T.text }}>R$ 19,90 / {lang === "pt" ? "mês" : "month"}</span>
+              </div>
+              {trainer.currentPeriodEnd && (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 13, color: T.muted }}>{lang === "pt" ? "Vence em" : "Expires on"}:</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>
+                    {new Date(trainer.currentPeriodEnd).toLocaleDateString(lang === "pt" ? "pt-BR" : "en-US")}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {(trainer.subscriptionStatus === 'active' || trainer.subscriptionStatus === 'trialing') ? (
+              <Btn 
+                full 
+                variant="outline"
+                disabled={cancelingAsaasSub}
+                style={{ borderColor: "#FCA5A5", color: "#DC2626", background: "#FEF2F2" }}
+                onClick={async function() {
+                  const confirmCancel = window.confirm(
+                    lang === "pt"
+                      ? "Tem certeza de que deseja cancelar sua assinatura do ShapeMap Pro?\nVocê continuará com acesso até a data de término do período pago."
+                      : "Are you sure you want to cancel your ShapeMap Pro subscription?\nYou will retain access until the end of the current paid period."
+                  );
+                  if (!confirmCancel) return;
+
+                  setCancelingAsaasSub(true);
+                  try {
+                    const res = await fetch("/api/cancel-asaas-subscription", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ 
+                        subscriptionId: trainer.asaasSubscriptionId, 
+                        trainerId: trainer.id 
+                      })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                      alert(lang === "pt" ? "Assinatura cancelada com sucesso. Seu acesso continuará até a data de vencimento!" : "Subscription canceled successfully. Access remains until expiration!");
+                      setShowAsaasManageModal(false);
+                      setTrainer(prev => ({ ...prev, subscriptionStatus: 'canceled' }));
+                    } else {
+                      throw new Error(data.error || "Erro ao cancelar assinatura.");
+                    }
+                  } catch (err) {
+                    console.error(err);
+                    alert(err.message || (lang === "pt" ? "Erro ao cancelar assinatura." : "Error canceling subscription."));
+                  } finally {
+                    setCancelingAsaasSub(false);
+                  }
+                }}
+              >
+                {cancelingAsaasSub 
+                  ? (lang === "pt" ? "Cancelando..." : "Canceling...") 
+                  : (lang === "pt" ? "Cancelar Assinatura" : "Cancel Subscription")}
+              </Btn>
+            ) : (
+              <div style={{ textAlign: "center", fontSize: 13, color: T.muted }}>
+                {lang === "pt" ? "Sua assinatura não está ativa no momento." : "Your subscription is not active at the moment."}
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
 
       {activeTour && (
         <OnboardingTour
