@@ -7630,15 +7630,10 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour, onManageAsaa
   );
 }
 
-function PaywallScreen({ trainer, onLogout, onUpdate }) {
+function PaywallScreen({ trainer, onLogout }) {
   const lang = (trainer && trainer.lang) || "pt";
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-
-  // States para modal de captura obrigatória do WhatsApp antes de pagar
-  const [showPhoneModal, setShowPhoneModal] = useState(false);
-  const [phoneInput, setPhoneInput] = useState(trainer?.telefone || "");
-  const [savingPhone, setSavingPhone] = useState(false);
 
   const isExpired = trainer && trainer.stripeCustomerId && (
     trainer.subscriptionStatus === "past_due" || 
@@ -7664,45 +7659,7 @@ function PaywallScreen({ trainer, onLogout, onUpdate }) {
         ? (lang === "pt" ? "Regularizar Assinatura" : "Update Subscription & Pay") 
         : (lang === "pt" ? "Assinar Plano Profissional" : "Subscribe to Pro Plan"));
 
-  function startCheckout() {
-    const hasPhone = trainer && trainer.telefone && trainer.telefone.trim().length >= 8;
-    const isUsd = (trainer && (trainer.lang === 'es' || trainer.lang === 'en'));
-    
-    // Se for usuário no Brasil e não tiver o número de WhatsApp preenchido, solicita antes de ir pro pagamento
-    if (!isUsd && !hasPhone) {
-      setShowPhoneModal(true);
-      return;
-    }
-
-    executeCheckout(trainer?.telefone || "");
-  }
-
-  async function savePhoneAndCheckout() {
-    if (!phoneInput || phoneInput.trim().length < 8) return;
-    setSavingPhone(true);
-    const cleanNum = phoneInput.trim();
-
-    try {
-      if (trainer && trainer.id) {
-        await supabase
-          .from('trainers')
-          .update({ telefone: cleanNum })
-          .eq('id', trainer.id);
-      }
-      if (typeof onUpdate === 'function') {
-        onUpdate(Object.assign({}, trainer, { telefone: cleanNum }));
-      }
-      setShowPhoneModal(false);
-      executeCheckout(cleanNum);
-    } catch (e) {
-      console.error("Erro ao salvar telefone:", e);
-      executeCheckout(cleanNum);
-    } finally {
-      setSavingPhone(false);
-    }
-  }
-
-  async function executeCheckout(phoneToUse) {
+  async function handleCheckout() {
     setLoading(true);
     setErrorMsg("");
     try {
@@ -7729,7 +7686,7 @@ function PaywallScreen({ trainer, onLogout, onUpdate }) {
             trainerId: trainer.id, 
             email: trainer.email, 
             nome: trainer.nome, 
-            telefone: phoneToUse || trainer.telefone || "",
+            telefone: trainer.telefone || "",
             lang: trainer.lang
           };
 
@@ -7915,7 +7872,7 @@ function PaywallScreen({ trainer, onLogout, onUpdate }) {
           </div>
         )}
 
-        <Btn full onClick={startCheckout} disabled={loading} style={{ marginBottom: 16 }}>
+        <Btn full onClick={handleCheckout} disabled={loading} style={{ marginBottom: 16 }}>
           {buttonText}
         </Btn>
 
@@ -7957,37 +7914,6 @@ function PaywallScreen({ trainer, onLogout, onUpdate }) {
           {lang === "pt" ? "Sair da conta" : "Sign out"}
         </button>
       </div>
-
-      {showPhoneModal && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:500, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
-          <div style={{ background:T.surface, borderRadius:20, padding:"24px 20px", width:"100%", maxWidth:360, boxShadow:"0 20px 60px rgba(0,0,0,0.25)" }}>
-            <div style={{ fontSize:17, fontWeight:700, marginBottom:6, color:T.text }}>
-              {lang === "pt" ? "📱 Informe seu WhatsApp de Contato" : "📱 Enter your WhatsApp Number"}
-            </div>
-            <div style={{ fontSize:13, color:T.muted, marginBottom:16, lineHeight:1.4 }}>
-              {lang === "pt" 
-                ? "Precisamos do seu WhatsApp para enviar o comprovante da assinatura e liberar seu suporte prioritário." 
-                : "We need your WhatsApp number to send your subscription receipt and enable priority support."}
-            </div>
-            <FInput 
-              label={lang === "pt" ? "WhatsApp (com DDD)" : "WhatsApp Number"} 
-              value={phoneInput} 
-              onChange={setPhoneInput} 
-              placeholder="(11) 99999-9999"
-            />
-            <div style={{ display:"flex", gap:10, marginTop:20 }}>
-              <Btn full variant="ghost" onClick={() => setShowPhoneModal(false)}>
-                {lang === "pt" ? "Cancelar" : "Cancel"}
-              </Btn>
-              <Btn full onClick={savePhoneAndCheckout} disabled={savingPhone || !phoneInput || phoneInput.trim().length < 8}>
-                {savingPhone 
-                  ? (lang === "pt" ? "Salvando..." : "Saving...") 
-                  : (lang === "pt" ? "Ir para Pagamento" : "Proceed to Payment")}
-              </Btn>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
