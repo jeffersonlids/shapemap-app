@@ -10601,11 +10601,42 @@ export default function App() {
 
 
       {showAsaasManageModal && (
-        <Modal 
-          title={lang === "pt" ? "Gerenciar Assinatura" : "Manage Subscription"} 
-          onClose={() => setShowAsaasManageModal(false)}
+        <div 
+          style={{ 
+            position: "fixed", 
+            inset: 0, 
+            background: "rgba(0,0,0,0.5)", 
+            zIndex: 400, 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center", 
+            padding: 16 
+          }}
+          onClick={() => setShowAsaasManageModal(false)}
         >
-          <div style={{ padding: 16, fontFamily: "'Outfit', sans-serif" }}>
+          <div 
+            style={{ 
+              background: T.surface, 
+              borderRadius: 20, 
+              padding: "24px 20px", 
+              width: "100%", 
+              maxWidth: 380, 
+              boxShadow: "0 20px 60px rgba(0,0,0,0.25)" 
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <div style={{ fontSize: 17, fontWeight: 700, color: T.text }}>
+                {lang === "pt" ? "Gerenciar Assinatura" : "Manage Subscription"}
+              </div>
+              <button 
+                onClick={() => setShowAsaasManageModal(false)}
+                style={{ background: "none", border: "none", color: T.muted, fontSize: 20, cursor: "pointer", padding: 4 }}
+              >
+                ✕
+              </button>
+            </div>
+
             <div style={{ background: T.cardBg, border: `1px solid ${T.border}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <span style={{ fontSize: 13, color: T.muted }}>{lang === "pt" ? "Plano Atual" : "Current Plan"}:</span>
@@ -10681,7 +10712,7 @@ export default function App() {
               </div>
             )}
           </div>
-        </Modal>
+        </div>
       )}
 
       {activeTour && (
