@@ -7192,7 +7192,7 @@ function ImageCropperModal({ imageSrc, onCrop, onCancel }) {
 }
 
 // ── PERFIL ────────────────────────────────────────────────────────────────────
-function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour }) {
+function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour, onManageAsaas }) {
   const lang = trainer.lang || "pt";
   const [cropImageSrc, setCropImageSrc] = useState(null);
   const fileRef = useRef();
@@ -7423,7 +7423,8 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour }) {
               const isAsaasUser = trainer && (
                 trainer.paymentGateway === 'asaas' || 
                 Boolean(trainer.asaasSubscriptionId) || 
-                Boolean(trainer.asaasCustomerId)
+                Boolean(trainer.asaasCustomerId) ||
+                (trainer.lang === 'pt' && trainer.paymentGateway !== 'stripe')
               );
 
               if (isActive) {
@@ -7434,7 +7435,7 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour }) {
                       id="tour-profile-manage-btn"
                       small 
                       variant="outline" 
-                      onClick={() => setShowAsaasManageModal(true)}
+                      onClick={function() { if (onManageAsaas) onManageAsaas(); }}
                     >
                       {lang === "pt" ? "Gerenciar" : "Manage"}
                     </Btn>
@@ -10586,7 +10587,7 @@ export default function App() {
       <>
         {tab === "home"    && <HomeScreen alunos={alunos} trainer={trainer} onSelectAluno={function(id) { push({ type:"aluno", id: id }); }} onDeleteAluno={deleteAluno} onAddAluno={addAluno} onSelectPerfil={function() { setTab("perfil"); }}/>}
         {tab === "modelos" && <AjustesScreen settings={settings} onUpdateSettings={handleUpdateSettings} trainer={trainer} onUpdateTrainer={handleUpdateTrainer} />}
-        {tab === "perfil"  && <PerfilScreen trainer={trainer} onUpdate={handleUpdateTrainer} onLogout={handleLogout} onRestartTour={handleRestartTour}/>}
+        {tab === "perfil"  && <PerfilScreen trainer={trainer} onUpdate={handleUpdateTrainer} onLogout={handleLogout} onRestartTour={handleRestartTour} onManageAsaas={() => setShowAsaasManageModal(true)} />}
       </>
     );
   }
