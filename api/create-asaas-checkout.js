@@ -73,8 +73,18 @@ export default async function handler(req, res) {
 
     let checkoutData = await checkoutRes.json();
 
-    // Se der erro por conta do domínio do callback não estar cadastrado na conta do Asaas, tentar novamente sem o callback
-    if (checkoutData.errors && checkoutData.errors.some(e => e.description && (e.description.includes('domínio') || e.description.includes('domain')))) {
+    // Se der 404 ou erro no domínio do callback, tentar no endpoint api.asaas.com/v3/checkouts
+    if (!checkoutRes.ok && checkoutRes.status === 404) {
+      checkoutRes = await fetch('https://api.asaas.com/v3/checkouts', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload)
+      });
+      checkoutData = await checkoutRes.json();
+    }
+
+    // Se der erro por conta do domínio do callback não estar cadastrado no Asaas, tentar novamente sem o callback
+    if (checkoutData.errors && checkoutData.errors.some(e => e.description && (e.description.includes('domínio') || e.description.includes('domain') || e.description.includes('callback')))) {
       delete payload.callback;
       checkoutRes = await fetch('https://www.asaas.com/api/v3/checkouts', {
         method: 'POST',
@@ -84,54 +94,21 @@ export default async function handler(req, res) {
       checkoutData = await checkoutRes.json();
     }
 
-    // Se a API v3/checkouts retornar o link de pagamento
+    // Se a API v3/checkouts retornar o link de pagamento (link ou url)
     const checkoutUrl = checkoutData.link || checkoutData.url;
     if (checkoutUrl) {
       return res.status(200).json({ url: checkoutUrl });
     }
 
-    // Fallback: se por algum motivo /v3/checkouts falhar por restrição de conta, tentar o /v3/paymentLinks
-    console.warn('⚠️ /v3/checkouts não retornou link. Tentando fallback para /v3/paymentLinks...');
-    
-    // Tentar localizar customerId existente para vincular
-    let customerId = null;
-    try {
-      const searchRes = await fetch(`https://www.asaas.com/api/v3/customers?externalReference=${encodeURIComponent(trainerId)}`, { headers });
-      const searchData = await searchRes.json();
-      if (searchData.data && searchData.data.length > 0) {
-        customerId = searchData.data[0].id;
-      }
-    } catch (e) {}
-
-    const fallbackPayload = {
-      name: 'ShapeMap - Assinatura Mensal Pro',
-      description: 'Acesso Pro Ilimitado ao ShapeMap - Avaliação Física',
-      value: 19.90,
-      chargeType: 'RECURRENT',
-      subscriptionCycle: 'MONTHLY',
-      billingType: 'UNDEFINED',
-      dueDateLimitDays: 3,
-      externalReference: trainerId
-    };
-    if (customerId) fallbackPayload.customer = customerId;
-
-    const linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(fallbackPayload)
-    });
-    const linkData = await linkRes.json();
-
-    if (linkData.url) {
-      return res.status(200).json({ url: linkData.url });
-    }
-
+    // Se a API retornar erros, repassar a mensagem exata do Asaas
     if (checkoutData.errors && checkoutData.errors.length > 0) {
-      console.error('Erro detalhado Asaas Checkout:', checkoutData.errors);
-      throw new Error(checkoutData.errors[0]?.description || 'Erro ao gerar checkout no Asaas.');
+      const errorMsg = checkoutData.errors.map(e => e.description).join(' | ');
+      console.error('❌ Erro Asaas Checkout V3:', checkoutData.errors);
+      return res.status(400).json({ error: `Asaas Checkout V3: ${errorMsg}` });
     }
 
-    return res.status(500).json({ error: 'Não foi possível gerar a página de pagamento no Asaas.' });
+    console.error('❌ Resposta inesperada do Asaas Checkout:', checkoutData);
+    return res.status(500).json({ error: `Erro no Asaas Checkout: ${JSON.stringify(checkoutData)}` });
   } catch (error) {
     console.error('Erro Asaas Checkout:', error);
     return res.status(500).json({ error: error.message || 'Erro interno ao gerar checkout Asaas.' });
