@@ -40,13 +40,16 @@ export default async function handler(req, res) {
       // Pagamento confirmado (Pix, Cartão ou Boleto)!
       const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-      // Montar objeto de atualização com colunas oficiais existentes na tabela trainers
+      // Montar objeto de atualização com colunas oficiais do Asaas
       const updateData = {
         subscription_status: 'active',
         current_period_end: thirtyDaysFromNow
       };
       if (customerId) {
         updateData.asaas_customer_id = customerId;
+      }
+      if (subscriptionId) {
+        updateData.asaas_subscription_id = subscriptionId;
       }
 
       let query = supabase.from('trainers').update(updateData);
@@ -59,20 +62,27 @@ export default async function handler(req, res) {
 
       const { error } = await query;
       
-      // Fallback simples se asaas_customer_id falhar por qualquer motivo de coluna
+      // Fallback gracioso: se asaas_subscription_id não existir na tabela, salva asaas_customer_id e dados de ativação
       if (error && (error.message.includes('column') || error.message.includes('does not exist'))) {
-        console.warn('⚠️ Coluna asaas_customer_id ausente no banco. Atualizando colunas principais...');
+        console.warn('⚠️ Coluna opcional ausente no banco. Executando salvamento com colunas padrão e Customer ID...');
+        const fallbackData = {
+          subscription_status: 'active',
+          current_period_end: thirtyDaysFromNow
+        };
+        if (customerId) fallbackData.asaas_customer_id = customerId;
+
         if (trainerId) {
           const { error: fallbackErr } = await supabase
             .from('trainers')
-            .update({ subscription_status: 'active', current_period_end: thirtyDaysFromNow })
+            .update(fallbackData)
             .eq('id', trainerId);
           if (fallbackErr) throw fallbackErr;
+          console.log(`✅ [Asaas Webhook] Conta e Asaas Customer ID (${customerId}) ativados com sucesso para o Treinador ID: ${trainerId}`);
         }
       } else if (error) {
         throw error;
       } else {
-        console.log(`✅ [Asaas Webhook] Conta e Asaas Customer ID (${customerId}) atualizados com sucesso para o Treinador ID: ${trainerId || customerId}`);
+        console.log(`✅ [Asaas Webhook] Conta, Asaas Customer ID (${customerId}) e Subscription ID (${subscriptionId}) atualizados com sucesso para o Treinador ID: ${trainerId || customerId}`);
       }
     } else if (event === 'PAYMENT_OVERDUE' || event === 'PAYMENT_DELETED' || event === 'PAYMENT_REFUNDED' || event === 'SUBSCRIPTION_DELETED') {
       // Pagamento em atraso, cancelado ou reembolsado
