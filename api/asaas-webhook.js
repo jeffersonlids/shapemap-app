@@ -40,50 +40,39 @@ export default async function handler(req, res) {
       // Pagamento confirmado (Pix, Cartão ou Boleto)!
       const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-      // 1. Tentar atualizar com todas as colunas (incluindo payment_gateway = 'asaas')
-      let query = supabase.from('trainers').update({
+      // Montar objeto de atualização com colunas oficiais existentes na tabela trainers
+      const updateData = {
         subscription_status: 'active',
-        current_period_end: thirtyDaysFromNow,
-        payment_gateway: 'asaas',
-        asaas_customer_id: customerId || null,
-        asaas_subscription_id: subscriptionId || null
-      });
+        current_period_end: thirtyDaysFromNow
+      };
+      if (customerId) {
+        updateData.asaas_customer_id = customerId;
+      }
+
+      let query = supabase.from('trainers').update(updateData);
 
       if (trainerId) {
         query = query.eq('id', trainerId);
       } else if (customerId) {
-        // Fallback caso não tenha o trainerId nos metadados, mas tenha o customerId mapeado
-        try {
-          query = query.eq('asaas_customer_id', customerId);
-        } catch (e) {
-          query = query.eq('id', '00000000-0000-0000-0000-000000000000'); // Forçar falha para cair no catch abaixo
-        }
+        query = query.eq('asaas_customer_id', customerId);
       }
 
       const { error } = await query;
       
-      // 2. Fallback robusto: se der erro de coluna inexistente no banco
+      // Fallback simples se asaas_customer_id falhar por qualquer motivo de coluna
       if (error && (error.message.includes('column') || error.message.includes('does not exist'))) {
-        console.warn('⚠️ Colunas personalizadas não encontradas no banco. Usando colunas padrão...');
-        
-        let fallbackQuery = supabase.from('trainers').update({
-          subscription_status: 'active',
-          current_period_end: thirtyDaysFromNow
-        });
-
+        console.warn('⚠️ Coluna asaas_customer_id ausente no banco. Atualizando colunas principais...');
         if (trainerId) {
-          fallbackQuery = fallbackQuery.eq('id', trainerId);
-          const { error: fallbackError } = await fallbackQuery;
-          if (fallbackError) throw fallbackError;
-          console.log(`✅ [Asaas Webhook] Conta ativada com sucesso usando colunas padrão para o Treinador ID: ${trainerId}`);
-        } else {
-          console.error('❌ Não foi possível realizar a ativação: colunas customizadas ausentes no banco e sem trainerId de referência.');
-          throw error;
+          const { error: fallbackErr } = await supabase
+            .from('trainers')
+            .update({ subscription_status: 'active', current_period_end: thirtyDaysFromNow })
+            .eq('id', trainerId);
+          if (fallbackErr) throw fallbackErr;
         }
       } else if (error) {
         throw error;
       } else {
-        console.log(`✅ [Asaas Webhook] Conta ativada com sucesso para o Treinador ID: ${trainerId || customerId}`);
+        console.log(`✅ [Asaas Webhook] Conta e Asaas Customer ID (${customerId}) atualizados com sucesso para o Treinador ID: ${trainerId || customerId}`);
       }
     } else if (event === 'PAYMENT_OVERDUE' || event === 'PAYMENT_DELETED' || event === 'PAYMENT_REFUNDED' || event === 'SUBSCRIPTION_DELETED') {
       // Pagamento em atraso, cancelado ou reembolsado
