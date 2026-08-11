@@ -87,6 +87,23 @@ export default async function handler(req, res) {
       }
     } else if (event === 'PAYMENT_OVERDUE' || event === 'PAYMENT_DELETED' || event === 'PAYMENT_REFUNDED' || event === 'SUBSCRIPTION_DELETED') {
       // Pagamento em atraso, cancelado ou reembolsado
+      
+      // Se for pagamento vencido e tiver ID de assinatura, inativar/cancelar a assinatura no Asaas automaticamente para não gerar cobranças futuras
+      if (event === 'PAYMENT_OVERDUE' && subscriptionId && process.env.ASAAS_API_KEY) {
+        try {
+          await fetch(`https://www.asaas.com/api/v3/subscriptions/${subscriptionId}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'access_token': process.env.ASAAS_API_KEY
+            }
+          });
+          console.log(`🗑️ [Asaas Webhook] Assinatura ${subscriptionId} inativada/cancelada automaticamente no Asaas por inadimplência.`);
+        } catch (subErr) {
+          console.warn(`⚠️ [Asaas Webhook] Erro ao inativar assinatura no Asaas:`, subErr);
+        }
+      }
+
       let query = supabase.from('trainers').update({
         subscription_status: 'inactive'
       });
