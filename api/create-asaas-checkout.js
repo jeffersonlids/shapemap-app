@@ -96,14 +96,14 @@ export default async function handler(req, res) {
 
     const isAnnual = planType === 'annual';
 
-    // 2. Montar o payload do Link de Pagamento no Asaas
+    // 2. Montar o payload do Link de Pagamento no Asaas (Anual em até 12x exclusivamente no Cartão)
     const payload = isAnnual ? {
       name: 'ShapeMap - Plano Anual',
       description: 'Acesso Pro Ilimitado ao ShapeMap - Plano Anual (12 Meses)',
       value: 179.00,
       chargeType: 'INSTALLMENT',
       maxInstallmentCount: 12,
-      billingType: 'UNDEFINED',
+      billingType: 'CREDIT_CARD', // Exibe exclusivamente Cartão de Crédito em até 12x (bloqueia boleto/pix parcelado)
       dueDateLimitDays: 3,
       externalReference: trainerId,
       callback: {
