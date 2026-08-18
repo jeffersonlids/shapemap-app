@@ -100,8 +100,10 @@ O ShapeMap está equipado com **rastreamento híbrido de conversões da Meta (Pi
    - **`Purchase`**: Disparado quando o cliente retorna do checkout para a aplicação com os parâmetros `?success=true&value=...&currency=...` ([src/App.jsx](file:///c:/Users/jeffe/Desktop/Avalia%C3%A7%C3%A3o%20F%C3%ADsica/App/src/App.jsx#L9844)). O evento envia o valor exato, moeda (`BRL` ou `USD`) e o `sessionId` para desduplicação.
 
 2. **Server-Side (Meta Conversions API - CAPI)**:
-   - Implementado no webhook do servidor ([`api/stripe-webhook.js`](file:///c:/Users/jeffe/Desktop/Avalia%C3%A7%C3%A3o%20F%C3%ADsica/App/api/stripe-webhook.js#L57)) enviando requisições diretas via Graph API da Meta (`https://graph.facebook.com/v19.0/{pixelId}/events`).
-   - Garante que 100% das vendas sejam atribuídas nas campanhas do Facebook Ads mesmo se o cliente utilizar bloqueadores de anúncios (AdBlock) ou navegadores com restrições de privacidade (iOS Safari).
+   - Implementado diretamente nos webhooks dos dois gateways de pagamento:
+     - **Asaas Webhook ([`api/asaas-webhook.js`](file:///c:/Users/jeffe/Desktop/Avalia%C3%A7%C3%A3o%20F%C3%ADsica/App/api/asaas-webhook.js))**: Ao confirmar qualquer pagamento (Pix, Cartão 12x ou Boleto), o servidor dispara instantaneamente o evento `Purchase` para a Graph API v19.0 da Meta com o valor da compra, e-mail, telefone e nome criptografados em SHA-256 (`em`, `ph`, `fn`, `ln`).
+     - **Stripe Webhook ([`api/stripe-webhook.js`](file:///c:/Users/jeffe/Desktop/Avalia%C3%A7%C3%A3o%20F%C3%ADsica/App/api/stripe-webhook.js#L57))**: Dispara a Conversions API para compras internacionais.
+   - **Vantagem Vital**: Garante 100% de marcação de vendas nas campanhas do Meta Ads (Facebook/Instagram), mesmo quando o cliente compra por **Pix no Asaas** e fecha a aba do navegador sem clicar em voltar para o site, ou utiliza bloqueadores de anúncios (AdBlock) e navegador Safari (iOS) com restrições de privacidade.
 
 ---
 

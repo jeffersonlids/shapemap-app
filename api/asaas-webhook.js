@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
@@ -6,6 +7,77 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || proce
 const supabase = (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) 
   ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
   : null;
+
+function sha256(text) {
+  if (!text) return null;
+  return crypto.createHash('sha256').update(text.trim().toLowerCase()).digest('hex');
+}
+
+async function sendMetaCapiEvent(email, amount, currency = 'BRL', eventName = 'Purchase', eventId = null, phone = null, name = null) {
+  const pixelId = process.env.META_PIXEL_ID || '1230329092413734';
+  const accessToken = process.env.META_ACCESS_TOKEN;
+
+  if (!pixelId || !accessToken) {
+    console.warn('⚠️ Meta Pixel ID ou Access Token não configurados no servidor. Pulando Conversions API.');
+    return;
+  }
+
+  try {
+    const hashedEmail = sha256(email);
+    const hashedPhone = phone ? sha256(phone.replace(/\D/g, '')) : null;
+    
+    let hashedFirstName = null;
+    let hashedLastName = null;
+    if (name) {
+      const parts = name.trim().split(/\s+/);
+      if (parts.length > 0) hashedFirstName = sha256(parts[0]);
+      if (parts.length > 1) hashedLastName = sha256(parts[parts.length - 1]);
+    }
+
+    const userData = {
+      em: hashedEmail ? [hashedEmail] : []
+    };
+    if (hashedPhone) userData.ph = [hashedPhone];
+    if (hashedFirstName) userData.fn = [hashedFirstName];
+    if (hashedLastName) userData.ln = [hashedLastName];
+
+    const eventObj = {
+      event_name: eventName,
+      event_time: Math.floor(Date.now() / 1000),
+      action_source: 'website',
+      user_data: userData,
+      custom_data: {
+        value: Number(amount || 0),
+        currency: currency ? currency.toUpperCase() : 'BRL'
+      }
+    };
+
+    if (eventId) {
+      eventObj.event_id = String(eventId);
+    }
+
+    const payload = {
+      data: [eventObj]
+    };
+
+    const response = await fetch(`https://graph.facebook.com/v19.0/${pixelId}/events?access_token=${accessToken}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const resData = await response.json();
+    if (!response.ok) {
+      console.error('❌ Erro Meta Conversions API (Asaas):', resData);
+    } else {
+      console.log(`✅ [Asaas Webhook] Evento Meta CAPI '${eventName}' enviado com sucesso (Event ID: ${eventId}). Response:`, resData);
+    }
+  } catch (error) {
+    console.error('❌ Falha ao enviar evento Meta CAPI (Asaas):', error);
+  }
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -100,6 +172,29 @@ export default async function handler(req, res) {
         throw error;
       } else {
         console.log(`✅ [Asaas Webhook] Conta, Asaas Customer ID (${customerId}) e Subscription ID (${subscriptionId}) atualizados com sucesso para o Treinador ID: ${trainerId || customerId}`);
+      }
+
+      // Disparar evento de Purchase server-side no Meta Conversions API (CAPI)
+      try {
+        let queryTrainer = supabase.from('trainers').select('email, nome, telefone');
+        if (trainerId) queryTrainer = queryTrainer.eq('id', trainerId);
+        else if (customerId) queryTrainer = queryTrainer.eq('asaas_customer_id', customerId);
+
+        const { data: trainerObj } = await queryTrainer.maybeSingle();
+        if (trainerObj) {
+          const finalValue = paymentValue > 0 ? paymentValue : (isAnnualPayment ? 179.00 : 19.90);
+          await sendMetaCapiEvent(
+            trainerObj.email,
+            finalValue,
+            'BRL',
+            'Purchase',
+            paymentObj?.id,
+            trainerObj.telefone,
+            trainerObj.nome
+          );
+        }
+      } catch (capiErr) {
+        console.warn('⚠️ Falha ao buscar dados do treinador para Meta CAPI (Asaas):', capiErr);
       }
     } else if (event === 'PAYMENT_OVERDUE' || event === 'PAYMENT_DELETED' || event === 'PAYMENT_REFUNDED' || event === 'SUBSCRIPTION_DELETED') {
       // Pagamento em atraso, cancelado ou reembolsado
