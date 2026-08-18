@@ -7937,12 +7937,12 @@ function PaywallScreen({ trainer, onLogout }) {
                         <span>💳</span> Cartão de Crédito
                       </div>
                       <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>
-                        Em até 12x de R$ 14,91 sem juros
+                        Em até 12x sem juros
                       </div>
                     </div>
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: ac() }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: T.text }}>
                       12x R$ 14,91
                     </div>
                   </div>
@@ -7973,10 +7973,10 @@ function PaywallScreen({ trainer, onLogout }) {
                     }} />
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 700, color: T.text, display: "flex", alignItems: "center", gap: 6 }}>
-                        <span>⚡</span> Pix ou Boleto à Vista
+                        <span>⚡</span> Pix ou Boleto
                       </div>
                       <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>
-                        Pagamento único de R$ 179,00
+                        Pagamento único
                       </div>
                     </div>
                   </div>
@@ -7995,7 +7995,7 @@ function PaywallScreen({ trainer, onLogout }) {
               disabled={loading} 
               style={{ marginBottom: 16 }}
             >
-              {loading ? "Processando..." : (annualPaymentMethod === "card" ? "Assinar no Cartão (12x R$ 14,91)" : "Assinar no Pix à Vista (R$ 179,00)")}
+              {loading ? "Processando..." : (annualPaymentMethod === "card" ? "Assinar no Cartão" : "Assinar no Pix")}
             </Btn>
           </div>
         ) : (
