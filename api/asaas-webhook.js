@@ -40,7 +40,15 @@ export default async function handler(req, res) {
       // Pagamento confirmado (Pix, Cartão ou Boleto)!
       const paymentValue = Number(paymentObj?.value || paymentObj?.netValue || 0);
       const paymentDesc = String(paymentObj?.description || '').toLowerCase();
-      const isAnnualPayment = paymentValue >= 100 || Boolean(paymentObj?.installmentNumber) || paymentDesc.includes('anual');
+      const paymentName = String(paymentObj?.name || '').toLowerCase();
+      const isAnnualPayment = (
+        paymentValue >= 100 || 
+        Boolean(paymentObj?.installmentNumber) || 
+        Boolean(paymentObj?.installment) || 
+        Boolean(paymentObj?.installmentCount) || 
+        paymentDesc.includes('anual') ||
+        paymentName.includes('anual')
+      );
 
       const periodEnd = isAnnualPayment
         ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
