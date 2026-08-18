@@ -7734,7 +7734,7 @@ function PaywallScreen({ trainer, onLogout }) {
   useEffect(function() {
     if (isAutoRedirecting) {
       sessionStorage.removeItem("just_signed_up");
-      handleCheckout();
+      handleCheckout("monthly");
     }
   }, [isAutoRedirecting]);
 
