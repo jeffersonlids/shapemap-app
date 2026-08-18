@@ -7943,7 +7943,7 @@ function PaywallScreen({ trainer, onLogout }) {
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
                     <div style={{ fontSize: 13, fontWeight: 800, color: T.text }}>
-                      12x R$ 14,91
+                      12x R$ 14,92
                     </div>
                   </div>
                 </div>
@@ -8067,7 +8067,7 @@ function PaywallScreen({ trainer, onLogout }) {
                     </div>
                     <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
                       <div style={{ fontSize: 15, fontWeight: 800, color: ac() }}>
-                        R$ 14,91<span style={{ fontSize: 11, fontWeight: 500, color: T.muted }}>/mês</span>
+                        R$ 14,92<span style={{ fontSize: 11, fontWeight: 500, color: T.muted }}>/mês</span>
                       </div>
                     </div>
                   </div>
