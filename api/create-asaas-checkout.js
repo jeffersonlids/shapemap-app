@@ -17,15 +17,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { trainerId, email, nome, telefone } = req.body;
+  const { trainerId, email, nome, telefone, planType } = req.body || {};
 
   if (!trainerId || !email) {
     return res.status(400).json({ error: 'Dados insuficientes (trainerId ou email ausentes).' });
   }
 
   try {
-    const defaultKey = Buffer.from('JGFhY3RfcHJvZF8wMDBNemt3T0RBMk1XWTJPRE14WkRFdE1UQXdNMk0zTXpKbFptWmhaR1k2T2pCaVpETTFaVFl5TFRFd0l6TXRORE1qT1MwNU1XUmxMV0pqWWpBME1USm1aaUpqT2pKSlFHRmphRjN6TVdFMDR6V2lMVFkwT0dGa0xUQTVNREF0TnpreU0ySGlZakZpTjdaaQ==', 'base64').toString('ascii');
-    const asaasApiKey = process.env.ASAAS_API_KEY || defaultKey;
+    const asaasApiKey = process.env.ASAAS_API_KEY;
 
     if (!asaasApiKey) {
       return res.status(500).json({ error: 'Chave de ambiente ASAAS_API_KEY não configurada na Vercel!' });
@@ -97,107 +96,66 @@ export default async function handler(req, res) {
 
     const isAnnual = planType === 'annual';
 
-    // 2. Montar lista de payloads candidatos para garantir compatibilidade perfeita com a API do Asaas
-    const payloadsToTry = isAnnual ? [
-      {
-        name: 'ShapeMap - Plano Anual',
-        description: 'Acesso Pro Ilimitado ao ShapeMap - Plano Anual (12 Meses)',
-        value: 179.00,
-        chargeType: 'INSTALLMENT',
-        maxInstallmentCount: 12,
-        billingType: 'UNDEFINED',
-        dueDateLimitDays: 3,
-        externalReference: trainerId
-      },
-      {
-        name: 'ShapeMap - Plano Anual',
-        description: 'Acesso Pro Ilimitado ao ShapeMap - Plano Anual (12 Meses)',
-        value: 179.00,
-        chargeType: 'INSTALLMENT',
-        installmentCount: 12,
-        billingType: 'UNDEFINED',
-        dueDateLimitDays: 3,
-        externalReference: trainerId
-      },
-      {
-        name: 'ShapeMap - Plano Anual',
-        description: 'Acesso Pro Ilimitado ao ShapeMap - Plano Anual (12 Meses)',
-        value: 179.00,
-        chargeType: 'RECURRENT',
-        subscriptionCycle: 'YEARLY',
-        billingType: 'UNDEFINED',
-        dueDateLimitDays: 3,
-        externalReference: trainerId
-      },
-      {
-        name: 'ShapeMap - Plano Anual',
-        description: 'Acesso Pro Ilimitado ao ShapeMap - Plano Anual (12 Meses)',
-        value: 179.00,
-        chargeType: 'DETACHED',
-        billingType: 'UNDEFINED',
-        dueDateLimitDays: 3,
-        externalReference: trainerId
-      }
-    ] : [
-      {
-        name: 'ShapeMap - Assinatura Mensal Pro',
-        description: 'Acesso Pro Ilimitado ao ShapeMap - Avaliação Física',
-        value: 19.90,
-        chargeType: 'RECURRENT',
-        subscriptionCycle: 'MONTHLY',
-        billingType: 'UNDEFINED',
-        dueDateLimitDays: 3,
-        externalReference: trainerId
-      }
-    ];
-
-    let lastError = null;
-
-    for (const p of payloadsToTry) {
-      if (customerId) {
-        p.customer = customerId;
-      }
-      p.callback = {
-        successUrl: `https://shapemapapp.com/?success=true&value=${isAnnual ? '179.00' : '19.90'}&currency=BRL`,
+    // 2. Montar o payload do Link de Pagamento no Asaas
+    const payload = isAnnual ? {
+      name: 'ShapeMap - Plano Anual',
+      description: 'Acesso Pro Ilimitado ao ShapeMap - Plano Anual (12 Meses)',
+      value: 179.00,
+      chargeType: 'DETACHED',
+      billingType: 'UNDEFINED',
+      dueDateLimitDays: 3,
+      externalReference: trainerId,
+      callback: {
+        successUrl: `https://shapemapapp.com/?success=true&value=179.00&currency=BRL`,
         autoRedirect: true
-      };
-
-      try {
-        let linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(p)
-        });
-        let linkData = await linkRes.json();
-
-        // Se falhar por causa do domínio de callback, tentar sem o callback
-        if (linkData.errors && linkData.errors.some(e => e.description && (e.description.includes('domínio') || e.description.includes('domain')))) {
-          delete p.callback;
-          linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
-            method: 'POST',
-            headers,
-            body: JSON.stringify(p)
-          });
-          linkData = await linkRes.json();
-        }
-
-        if (linkData.url) {
-          console.log(`✅ Link de pagamento Asaas gerado com sucesso (${p.chargeType}):`, linkData.url);
-          return res.status(200).json({ url: linkData.url });
-        }
-
-        if (linkData.errors && linkData.errors.length > 0) {
-          console.warn(`⚠️ Tentativa de link Asaas falhou para chargeType ${p.chargeType}:`, linkData.errors[0]?.description);
-          lastError = linkData.errors[0]?.description;
-        }
-      } catch (err) {
-        console.warn('Erro ao tentar criar link Asaas:', err);
-        lastError = err.message;
       }
+    } : {
+      name: 'ShapeMap - Assinatura Mensal Pro',
+      description: 'Acesso Pro Ilimitado ao ShapeMap - Avaliação Física',
+      value: 19.90,
+      chargeType: 'RECURRENT',
+      subscriptionCycle: 'MONTHLY',
+      billingType: 'UNDEFINED',
+      dueDateLimitDays: 3,
+      externalReference: trainerId,
+      callback: {
+        successUrl: `https://shapemapapp.com/?success=true&value=19.90&currency=BRL`,
+        autoRedirect: true
+      }
+    };
+
+    if (customerId) {
+      payload.customer = customerId;
     }
 
-    if (lastError) {
-      throw new Error(lastError);
+    // 3. Gerar o Link de Pagamento no Asaas
+    let linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    });
+
+    let linkData = await linkRes.json();
+
+    // Se falhar por conta do domínio de callback, tentar sem o callback
+    if (linkData.errors && linkData.errors.some(e => e.description && (e.description.includes('domínio') || e.description.includes('domain')))) {
+      delete payload.callback;
+      linkRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload)
+      });
+      linkData = await linkRes.json();
+    }
+
+    if (linkData.url) {
+      console.log(`✅ Link Asaas gerado com sucesso:`, linkData.url);
+      return res.status(200).json({ url: linkData.url });
+    }
+
+    if (linkData.errors && linkData.errors.length > 0) {
+      console.error('Erro detalhado Asaas:', linkData.errors);
+      throw new Error(linkData.errors[0]?.description || 'Erro ao gerar link de pagamento no Asaas.');
     }
 
     return res.status(500).json({ error: 'Não foi possível gerar a página de pagamento no Asaas.' });
