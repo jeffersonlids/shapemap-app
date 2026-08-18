@@ -32,7 +32,9 @@ export default async function handler(req, res) {
 
   try {
     const paymentObj = payment || (event && event.startsWith('SUBSCRIPTION') ? subscription : null);
-    const trainerId = paymentObj?.externalReference;
+    const rawRef = String(paymentObj?.externalReference || '');
+    const trainerId = rawRef.includes(':') ? rawRef.split(':')[0] : rawRef;
+    const planTag = rawRef.includes(':') ? rawRef.split(':')[1] : '';
     const customerId = paymentObj?.customer;
     const subscriptionId = paymentObj?.subscription || subscription?.id;
 
@@ -42,6 +44,7 @@ export default async function handler(req, res) {
       const paymentDesc = String(paymentObj?.description || '').toLowerCase();
       const paymentName = String(paymentObj?.name || '').toLowerCase();
       const isAnnualPayment = (
+        planTag.includes('annual') ||
         paymentValue >= 100 || 
         Boolean(paymentObj?.installmentNumber) || 
         Boolean(paymentObj?.installment) || 

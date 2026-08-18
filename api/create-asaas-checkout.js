@@ -104,12 +104,13 @@ export default async function handler(req, res) {
       // Plano Anual Parcelado em até 12x EXCLUSIVAMENTE no Cartão de Crédito
       payload = {
         name: 'ShapeMap - Plano Anual',
+        description: 'ShapeMap - Plano Anual',
         value: 179.00,
         chargeType: 'INSTALLMENT',
         maxInstallmentCount: 12,
         billingType: 'CREDIT_CARD', // Exibe exclusivamente Cartão de Crédito em até 12x
         dueDateLimitDays: 3,
-        externalReference: trainerId,
+        externalReference: `${trainerId}:annual_card`,
         callback: {
           successUrl: `https://shapemapapp.com/?success=true&value=179.00&currency=BRL`,
           autoRedirect: true
@@ -119,11 +120,12 @@ export default async function handler(req, res) {
       // Plano Anual À VISTA (R$ 179,00) EXCLUSIVAMENTE no Boleto Bancário / Pix
       payload = {
         name: 'ShapeMap - Plano Anual',
+        description: 'ShapeMap - Plano Anual',
         value: 179.00,
         chargeType: 'DETACHED', // Cobrança avulsa à vista sem parcelas
         billingType: 'BOLETO', // Exibe exclusivamente Boleto Bancário / Pix
         dueDateLimitDays: 3,
-        externalReference: trainerId,
+        externalReference: `${trainerId}:annual_pix`,
         callback: {
           successUrl: `https://shapemapapp.com/?success=true&value=179.00&currency=BRL`,
           autoRedirect: true
@@ -133,12 +135,13 @@ export default async function handler(req, res) {
       // Plano Mensal Recorrente (R$ 19,90/mês)
       payload = {
         name: 'ShapeMap - Assinatura Mensal Pro',
+        description: 'ShapeMap - Plano Mensal',
         value: 19.90,
         chargeType: 'RECURRENT',
         subscriptionCycle: 'MONTHLY',
         billingType: 'UNDEFINED',
         dueDateLimitDays: 3,
-        externalReference: trainerId,
+        externalReference: `${trainerId}:monthly`,
         callback: {
           successUrl: `https://shapemapapp.com/?success=true&value=19.90&currency=BRL`,
           autoRedirect: true
