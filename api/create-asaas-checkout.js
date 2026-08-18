@@ -94,8 +94,23 @@ export default async function handler(req, res) {
       }
     }
 
-    // 2. Montar o payload do Link de Pagamento Recorrente (que aceita PIX, Cartão e Boleto para Assinaturas!)
-    const payload = {
+    const isAnnual = planType === 'annual';
+
+    // 2. Montar o payload do Link de Pagamento no Asaas (Anual Parcelado 12x ou Mensal Recorrente)
+    const payload = isAnnual ? {
+      name: 'ShapeMap - Plano Anual',
+      description: 'Acesso Pro Ilimitado ao ShapeMap - Plano Anual (12 Meses)',
+      value: 179.00,
+      chargeType: 'INSTALLMENT',
+      maxInstallmentCount: 12,
+      billingType: 'UNDEFINED', // Exibe Pix/Boleto à vista e Cartão de Crédito em até 12x
+      dueDateLimitDays: 3,
+      externalReference: trainerId,
+      callback: {
+        successUrl: `https://shapemapapp.com/?success=true&value=179.00&currency=BRL`,
+        autoRedirect: true
+      }
+    } : {
       name: 'ShapeMap - Assinatura Mensal Pro',
       description: 'Acesso Pro Ilimitado ao ShapeMap - Avaliação Física',
       value: 19.90,

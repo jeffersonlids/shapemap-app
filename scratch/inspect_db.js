@@ -20,18 +20,25 @@ lines.forEach(line => {
 const supabase = createClient(url, anonKey);
 
 async function run() {
-  console.log('Testing update with unit_system...');
-  const { error } = await supabase
-    .from('trainers')
-    .update({
-      unit_system: 'imperial'
-    })
-    .eq('id', '00000000-0000-0000-0000-000000000000'); // dummy ID
+  console.log('--- TESTING STUDENTS ---');
+  const colsStudents = ['trainer_id', 'user_id', 'created_at', 'id'];
+  for (const c of colsStudents) {
+    const { error } = await supabase.from('students').update({ [c]: 'test' }).eq('id', 'dummy');
+    console.log(`students.${c}:`, error ? error.message : 'OK (column exists)');
+  }
 
-  if (error) {
-    console.log('Update result error:', error);
-  } else {
-    console.log('Update query parsed successfully (no schema error).');
+  console.log('\n--- TESTING EVALUATIONS ---');
+  const colsEvals = ['student_id', 'trainer_id', 'created_at', 'id'];
+  for (const c of colsEvals) {
+    const { error } = await supabase.from('evaluations').update({ [c]: 'test' }).eq('id', 'dummy');
+    console.log(`evaluations.${c}:`, error ? error.message : 'OK (column exists)');
+  }
+
+  console.log('\n--- TESTING TRAINERS ---');
+  const colsTrainers = ['email', 'asaas_customer_id', 'stripe_customer_id', 'subscription_status', 'id'];
+  for (const c of colsTrainers) {
+    const { error } = await supabase.from('trainers').update({ [c]: 'test' }).eq('id', 'dummy');
+    console.log(`trainers.${c}:`, error ? error.message : 'OK (column exists)');
   }
 }
 

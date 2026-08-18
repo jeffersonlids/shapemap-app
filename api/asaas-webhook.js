@@ -38,12 +38,18 @@ export default async function handler(req, res) {
 
     if (event === 'PAYMENT_RECEIVED' || event === 'PAYMENT_CONFIRMED' || event === 'PAYMENT_DUNNING_RECEIVED') {
       // Pagamento confirmado (Pix, Cartão ou Boleto)!
-      const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      const paymentValue = Number(paymentObj?.value || paymentObj?.netValue || 0);
+      const paymentDesc = String(paymentObj?.description || '').toLowerCase();
+      const isAnnualPayment = paymentValue >= 100 || Boolean(paymentObj?.installmentNumber) || paymentDesc.includes('anual');
+
+      const periodEnd = isAnnualPayment
+        ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
       // Montar objeto de atualização com colunas oficiais do Asaas
       const updateData = {
         subscription_status: 'active',
-        current_period_end: thirtyDaysFromNow
+        current_period_end: periodEnd
       };
       if (customerId) {
         updateData.asaas_customer_id = customerId;

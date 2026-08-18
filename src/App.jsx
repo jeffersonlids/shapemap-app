@@ -7641,6 +7641,8 @@ function PaywallScreen({ trainer, onLogout }) {
     trainer.subscriptionStatus === "canceled"
   );
 
+  const [selectedPlan, setSelectedPlan] = useState("annual");
+
   const titleText = isExpired 
     ? (lang === "pt" ? "Assinatura Expirada ou Pendente" : "Subscription Expired or Pending")
     : (lang === "pt" ? "Ativação Necessária" : "Activation Required");
@@ -7657,7 +7659,9 @@ function PaywallScreen({ trainer, onLogout }) {
     ? (lang === "pt" ? "Processando..." : "Processing...")
     : (isExpired 
         ? (lang === "pt" ? "Regularizar Assinatura" : "Update Subscription & Pay") 
-        : (lang === "pt" ? "Assinar Plano Profissional" : "Subscribe to Pro Plan"));
+        : (lang === "pt" 
+            ? (selectedPlan === "annual" ? "Assinar Plano Anual (12x R$ 14,91)" : "Assinar Plano Mensal (R$ 19,90)") 
+            : "Subscribe to Pro Plan"));
 
   async function handleCheckout() {
     setLoading(true);
@@ -7687,7 +7691,8 @@ function PaywallScreen({ trainer, onLogout }) {
             email: trainer.email, 
             nome: trainer.nome, 
             telefone: trainer.telefone || "",
-            lang: trainer.lang
+            lang: trainer.lang,
+            planType: (lang === "pt" ? selectedPlan : "monthly")
           };
 
       const res = await fetch(endpoint, {
@@ -7866,9 +7871,107 @@ function PaywallScreen({ trainer, onLogout }) {
           {descText}
         </p>
 
-        {errorMsg && (
-          <div style={{ background:"#FEE2E2", color:"#991B1B", padding:12, borderRadius:8, fontSize:13, marginBottom:16, textAlign:"center" }}>
-            {errorMsg}
+        {lang === "pt" && !isExpired && (
+          <div style={{ marginBottom: 20, textAlign: "left" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, color: T.muted, marginBottom: 10 }}>
+              Escolha a opção de plano:
+            </div>
+
+            {/* PLANO ANUAL (RECOMENDADO) */}
+            <div 
+              onClick={function() { setSelectedPlan("annual"); }}
+              style={{
+                padding: 14,
+                borderRadius: 14,
+                border: selectedPlan === "annual" ? "2px solid " + ac() : "1.5px solid " + T.border,
+                backgroundColor: selectedPlan === "annual" ? ac() + "0D" : T.bg,
+                cursor: "pointer",
+                marginBottom: 10,
+                position: "relative",
+                transition: "all 0.2s ease"
+              }}
+            >
+              <div style={{
+                position: "absolute",
+                top: -10,
+                right: 12,
+                backgroundColor: ac(),
+                color: "#FFF",
+                fontSize: 10,
+                fontWeight: 800,
+                padding: "2px 8px",
+                borderRadius: 10,
+                textTransform: "uppercase",
+                letterSpacing: 0.5
+              }}>
+                Economize 25%
+              </div>
+              
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: "50%",
+                    border: selectedPlan === "annual" ? "6px solid " + ac() : "2px solid " + T.muted,
+                    backgroundColor: "#FFF",
+                    flexShrink: 0
+                  }} />
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>
+                      Plano Anual
+                    </div>
+                    <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>
+                      R$ 179,00 à vista no Pix ou em 12x no cartão
+                    </div>
+                  </div>
+                </div>
+                <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: ac() }}>
+                    R$ 14,91<span style={{ fontSize: 11, fontWeight: 500, color: T.muted }}>/mês</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* PLANO MENSAL */}
+            <div 
+              onClick={function() { setSelectedPlan("monthly"); }}
+              style={{
+                padding: 14,
+                borderRadius: 14,
+                border: selectedPlan === "monthly" ? "2px solid " + ac() : "1.5px solid " + T.border,
+                backgroundColor: selectedPlan === "monthly" ? ac() + "0D" : T.bg,
+                cursor: "pointer",
+                transition: "all 0.2s ease"
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: "50%",
+                    border: selectedPlan === "monthly" ? "6px solid " + ac() : "2px solid " + T.muted,
+                    backgroundColor: "#FFF",
+                    flexShrink: 0
+                  }} />
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>
+                      Plano Mensal
+                    </div>
+                    <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>
+                      Cobrança mensal no Pix ou Cartão
+                    </div>
+                  </div>
+                </div>
+                <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: T.text }}>
+                    R$ 19,90<span style={{ fontSize: 11, fontWeight: 500, color: T.muted }}>/mês</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
