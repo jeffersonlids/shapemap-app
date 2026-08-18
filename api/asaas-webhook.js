@@ -73,7 +73,7 @@ export default async function handler(req, res) {
         console.warn('⚠️ Coluna opcional ausente no banco. Executando salvamento com colunas padrão e Customer ID...');
         const fallbackData = {
           subscription_status: 'active',
-          current_period_end: thirtyDaysFromNow
+          current_period_end: periodEnd
         };
         if (customerId) fallbackData.asaas_customer_id = customerId;
 
