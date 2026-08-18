@@ -134,8 +134,7 @@ export default async function handler(req, res) {
     } else {
       // Plano Mensal Recorrente (R$ 19,90/mês)
       payload = {
-        name: 'ShapeMap - Assinatura Mensal Pro',
-        description: 'ShapeMap - Plano Mensal',
+        name: 'ShapeMap - Plano Mensal',
         value: 19.90,
         chargeType: 'RECURRENT',
         subscriptionCycle: 'MONTHLY',
