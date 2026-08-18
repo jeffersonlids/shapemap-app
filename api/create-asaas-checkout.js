@@ -102,6 +102,7 @@ export default async function handler(req, res) {
       description: 'Acesso Pro Ilimitado ao ShapeMap - Plano Anual (12 Meses)',
       value: 179.00,
       chargeType: 'DETACHED',
+      maxInstallmentCount: 12,
       billingType: 'UNDEFINED',
       dueDateLimitDays: 3,
       externalReference: trainerId,
