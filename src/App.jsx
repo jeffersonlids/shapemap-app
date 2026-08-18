@@ -7661,7 +7661,7 @@ function PaywallScreen({ trainer, onLogout }) {
     : (isExpired 
         ? (lang === "pt" ? "Regularizar Assinatura" : "Update Subscription & Pay") 
         : (lang === "pt" 
-            ? (selectedPlan === "annual" ? "Continuar para Pagamento do Anual →" : "Assinar Plano Mensal (R$ 19,90)") 
+            ? (selectedPlan === "annual" ? "Assinar Plano Anual" : "Assinar Plano Mensal") 
             : "Subscribe to Pro Plan"));
 
   async function handleCheckout(overridePlanType) {
@@ -7834,14 +7834,17 @@ function PaywallScreen({ trainer, onLogout }) {
   }
 
   return (
-    <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px", fontFamily:"'Outfit', sans-serif" }}>
+    <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, fontFamily:"'Outfit', sans-serif" }}>
       <GlobalStyle />
       
-      <div style={{ marginBottom:24 }}>
-        <LogoShapeMap size={140} color={ac()} showText={true} />
+      <div style={{ width:"100%", maxWidth:420, textAlign:"center", marginBottom:24, display:"flex", flexDirection:"column", alignItems:"center" }}>
+        <LogoShapeMap size={140} color={ac()} showText={true} style={{ marginBottom: 12, marginLeft: "auto", marginRight: "auto" }} />
+        <div style={{ fontSize: 13, color: T.muted }}>{t("plataforma_av", lang)}</div>
       </div>
 
-      <Card style={{ width:"100%", maxWidth:420, padding:24 }}>
+      <Card sx={{ width:"100%", maxWidth:420, padding:28, border:"1.5px solid " + (isExpired ? "#FCCACA" : T.border), position:"relative", overflow:"hidden" }}>
+        <div style={{ position:"absolute", top:-40, right:-40, width:120, height:120, borderRadius:"50%", background:isExpired ? "rgba(239, 68, 68, 0.08)" : ac() + "12", filter:"blur(20px)" }} />
+
         {errorMsg && (
           <div style={{ background:"#FEE2E2", color:"#991B1B", padding:12, borderRadius:10, fontSize:13, marginBottom:16, textAlign:"center", border:"1px solid #FCA5A5" }}>
             {errorMsg}
@@ -7992,7 +7995,7 @@ function PaywallScreen({ trainer, onLogout }) {
               disabled={loading} 
               style={{ marginBottom: 16 }}
             >
-              {loading ? "Processando..." : (annualPaymentMethod === "card" ? "Ir para Checkout no Cartão (12x R$ 14,91)" : "Ir para Checkout no Pix à Vista (R$ 179,00)")}
+              {loading ? "Processando..." : (annualPaymentMethod === "card" ? "Assinar no Cartão (12x R$ 14,91)" : "Assinar no Pix à Vista (R$ 179,00)")}
             </Btn>
           </div>
         ) : (
@@ -8058,7 +8061,7 @@ function PaywallScreen({ trainer, onLogout }) {
                           Plano Anual
                         </div>
                         <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>
-                          R$ 179,00 no Pix ou em 12x no cartão
+                          R$ 179,00 à vista no Pix ou em 12x no cartão
                         </div>
                       </div>
                     </div>
