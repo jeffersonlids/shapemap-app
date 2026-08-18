@@ -7634,14 +7634,15 @@ function PaywallScreen({ trainer, onLogout }) {
   const lang = (trainer && trainer.lang) || "pt";
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState("annual");
+  const [paywallStep, setPaywallStep] = useState("select_plan"); // 'select_plan' | 'annual_method'
+  const [annualPaymentMethod, setAnnualPaymentMethod] = useState("card"); // 'card' | 'pix'
 
   const isExpired = trainer && trainer.stripeCustomerId && (
     trainer.subscriptionStatus === "past_due" || 
     trainer.subscriptionStatus === "unpaid" || 
     trainer.subscriptionStatus === "canceled"
   );
-
-  const [selectedPlan, setSelectedPlan] = useState("annual");
 
   const titleText = isExpired 
     ? (lang === "pt" ? "Assinatura Expirada ou Pendente" : "Subscription Expired or Pending")
@@ -7652,7 +7653,7 @@ function PaywallScreen({ trainer, onLogout }) {
         ? "Identificamos um problema no processamento do pagamento da sua última mensalidade. Regularize sua assinatura para continuar acessando seus alunos e avaliações." 
         : "We detected an issue processing your latest payment. Please update your payment details to continue accessing your dashboard.")
     : (lang === "pt" 
-        ? "Para liberar o acesso total ao painel e criar novas avaliações, ative a sua assinatura profissional." 
+        ? "" 
         : "To unlock full dashboard access and create new physical evaluations, activate your professional subscription.");
 
   const buttonText = loading
@@ -7660,10 +7661,10 @@ function PaywallScreen({ trainer, onLogout }) {
     : (isExpired 
         ? (lang === "pt" ? "Regularizar Assinatura" : "Update Subscription & Pay") 
         : (lang === "pt" 
-            ? (selectedPlan === "annual" ? "Assinar Plano Anual (12x R$ 14,91)" : "Assinar Plano Mensal (R$ 19,90)") 
+            ? (selectedPlan === "annual" ? "Continuar para Pagamento do Anual →" : "Assinar Plano Mensal (R$ 19,90)") 
             : "Subscribe to Pro Plan"));
 
-  async function handleCheckout() {
+  async function handleCheckout(overridePlanType) {
     setLoading(true);
     setErrorMsg("");
     try {
@@ -7684,6 +7685,12 @@ function PaywallScreen({ trainer, onLogout }) {
         }
       }
 
+      const activePlanType = overridePlanType || (
+        lang === "pt" 
+          ? (selectedPlan === "annual" ? (annualPaymentMethod === "card" ? "annual_card" : "annual_pix") : "monthly") 
+          : "monthly"
+      );
+
       const body = shouldGoToPortal 
         ? { customerId: trainer.stripeCustomerId }
         : { 
@@ -7692,7 +7699,7 @@ function PaywallScreen({ trainer, onLogout }) {
             nome: trainer.nome, 
             telefone: trainer.telefone || "",
             lang: trainer.lang,
-            planType: (lang === "pt" ? selectedPlan : "monthly")
+            planType: activePlanType
           };
 
       const res = await fetch(endpoint, {
@@ -7743,7 +7750,7 @@ function PaywallScreen({ trainer, onLogout }) {
               <div style={{ background:"#FEE2E2", color:"#991B1B", padding:16, borderRadius:12, fontSize:14, marginBottom:16, textAlign:"center", border: "1px solid #FCA5A5" }}>
                 {errorMsg}
               </div>
-              <Btn full onClick={handleCheckout} disabled={loading}>
+              <Btn full onClick={function() { handleCheckout(); }} disabled={loading}>
                 {lang === "pt" ? "Tentar Novamente" : "Try Again"}
               </Btn>
               <button 
@@ -7790,7 +7797,7 @@ function PaywallScreen({ trainer, onLogout }) {
                   bottom: 0,
                   left: 0,
                   right: 0,
-                  height: "0%",
+                  height: 80,
                   overflow: "hidden",
                   animation: "logoFill 2.5s ease-in-out infinite"
                 }}>
@@ -7799,8 +7806,8 @@ function PaywallScreen({ trainer, onLogout }) {
                       position: "absolute", 
                       bottom: 0, 
                       left: 0, 
-                      width: 80, 
-                      height: 80, 
+                      right: 0, 
+                      height: 80,
                       backgroundColor: ac(), 
                       WebkitMaskImage: "url(/logo_transparent.png)",
                       maskImage: "url(/logo_transparent.png)",
@@ -7813,11 +7820,11 @@ function PaywallScreen({ trainer, onLogout }) {
                   />
                 </div>
               </div>
-              <div style={{ fontSize: 15, color: T.text, fontWeight: 600 }}>
-                {lang === "pt" ? "Redirecionando para o pagamento seguro..." : "Redirecting to secure checkout..."}
+              <div style={{ fontSize:16, fontWeight:700, color:T.text, marginBottom:6 }}>
+                {lang === "pt" ? "Gerando seu acesso Pro..." : "Generating your Pro access..."}
               </div>
-              <div style={{ fontSize: 13, color: T.muted, marginTop: 6 }}>
-                {lang === "pt" ? "Conectando com a Stripe..." : "Connecting to Stripe..."}
+              <div style={{ fontSize:13, color:T.muted }}>
+                {lang === "pt" ? "Você será redirecionado para o checkout em instantes" : "You will be redirected to checkout shortly"}
               </div>
             </>
           )}
@@ -7827,15 +7834,20 @@ function PaywallScreen({ trainer, onLogout }) {
   }
 
   return (
-    <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, fontFamily:"'Outfit', sans-serif" }}>
-      <div style={{ width:"100%", maxWidth:420, textAlign:"center", marginBottom:24, display:"flex", flexDirection:"column", alignItems:"center" }}>
-        <LogoShapeMap size={140} color={ac()} showText={true} style={{ marginBottom: 12, marginLeft: "auto", marginRight: "auto" }} />
-        <div style={{ fontSize: 13, color: T.muted }}>{t("plataforma_av", lang)}</div>
+    <div style={{ minHeight:"100vh", background:T.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px", fontFamily:"'Outfit', sans-serif" }}>
+      <GlobalStyle />
+      
+      <div style={{ marginBottom:24 }}>
+        <LogoShapeMap size={140} color={ac()} showText={true} />
       </div>
 
-      <Card sx={{ width:"100%", maxWidth:420, padding:28, border:"1.5px solid " + (isExpired ? "#FCCACA" : T.border), position:"relative", overflow:"hidden" }}>
-        <div style={{ position:"absolute", top:-40, right:-40, width:120, height:120, borderRadius:"50%", background:isExpired ? "rgba(239, 68, 68, 0.08)" : ac() + "12", filter:"blur(20px)" }} />
-        
+      <Card style={{ width:"100%", maxWidth:420, padding:24 }}>
+        {errorMsg && (
+          <div style={{ background:"#FEE2E2", color:"#991B1B", padding:12, borderRadius:10, fontSize:13, marginBottom:16, textAlign:"center", border:"1px solid #FCA5A5" }}>
+            {errorMsg}
+          </div>
+        )}
+
         <div style={{ display:"flex", justifyContent:"center", marginBottom:16 }}>
           <div style={{ 
             width: 56, 
@@ -7863,121 +7875,258 @@ function PaywallScreen({ trainer, onLogout }) {
           </div>
         </div>
 
-        <div style={{ fontSize:18, fontWeight:700, textAlign:"center", marginBottom:8, color:isExpired ? "#B91C1C" : T.text }}>
-          {titleText}
-        </div>
-        
-        <p style={{ fontSize:14, color:T.muted, textAlign:"center", marginBottom:16, lineHeight:1.5 }}>
-          {descText}
-        </p>
-
-        {lang === "pt" && !isExpired && (
-          <div style={{ marginBottom: 20, textAlign: "left" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, color: T.muted, marginBottom: 10 }}>
-              Escolha a opção de plano:
+        {paywallStep === "annual_method" ? (
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+              <button 
+                onClick={function() { setPaywallStep("select_plan"); }}
+                style={{ 
+                  background: "none", 
+                  border: "1px solid " + T.border, 
+                  borderRadius: 8, 
+                  padding: "4px 8px", 
+                  cursor: "pointer", 
+                  fontSize: 12, 
+                  color: T.muted,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4
+                }}
+              >
+                ← Voltar
+              </button>
             </div>
 
-            {/* PLANO ANUAL (RECOMENDADO) */}
-            <div 
-              onClick={function() { setSelectedPlan("annual"); }}
-              style={{
-                padding: 14,
-                borderRadius: 14,
-                border: selectedPlan === "annual" ? "2px solid " + ac() : "1.5px solid " + T.border,
-                backgroundColor: selectedPlan === "annual" ? ac() + "0D" : T.bg,
-                cursor: "pointer",
-                marginBottom: 10,
-                position: "relative",
-                transition: "all 0.2s ease"
-              }}
+            <div style={{ fontSize:18, fontWeight:700, textAlign:"center", marginBottom:4, color:T.text }}>
+              Forma de Pagamento
+            </div>
+            
+            <div style={{ fontSize:13, color:T.muted, textAlign:"center", marginBottom:16 }}>
+              Escolha como prefere pagar o Plano Anual (R$ 179,00):
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              {/* OPÇÃO CARTÃO DE CRÉDITO 12X */}
+              <div 
+                onClick={function() { setAnnualPaymentMethod("card"); }}
+                style={{
+                  padding: 14,
+                  borderRadius: 14,
+                  border: annualPaymentMethod === "card" ? "2px solid " + ac() : "1.5px solid " + T.border,
+                  backgroundColor: annualPaymentMethod === "card" ? ac() + "0D" : T.bg,
+                  cursor: "pointer",
+                  marginBottom: 10,
+                  transition: "all 0.2s ease"
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      border: annualPaymentMethod === "card" ? "6px solid " + ac() : "2px solid " + T.muted,
+                      backgroundColor: "#FFF",
+                      flexShrink: 0
+                    }} />
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: T.text, display: "flex", alignItems: "center", gap: 6 }}>
+                        <span>💳</span> Cartão de Crédito
+                      </div>
+                      <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>
+                        Em até 12x de R$ 14,91 sem juros
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: ac() }}>
+                      12x R$ 14,91
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* OPÇÃO PIX OU BOLETO À VISTA */}
+              <div 
+                onClick={function() { setAnnualPaymentMethod("pix"); }}
+                style={{
+                  padding: 14,
+                  borderRadius: 14,
+                  border: annualPaymentMethod === "pix" ? "2px solid " + ac() : "1.5px solid " + T.border,
+                  backgroundColor: annualPaymentMethod === "pix" ? ac() + "0D" : T.bg,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease"
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      border: annualPaymentMethod === "pix" ? "6px solid " + ac() : "2px solid " + T.muted,
+                      backgroundColor: "#FFF",
+                      flexShrink: 0
+                    }} />
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: T.text, display: "flex", alignItems: "center", gap: 6 }}>
+                        <span>⚡</span> Pix ou Boleto à Vista
+                      </div>
+                      <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>
+                        Pagamento único de R$ 179,00
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: T.text }}>
+                      R$ 179,00
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Btn 
+              full 
+              onClick={function() { handleCheckout(annualPaymentMethod === "card" ? "annual_card" : "annual_pix"); }} 
+              disabled={loading} 
+              style={{ marginBottom: 16 }}
             >
-              <div style={{
-                position: "absolute",
-                top: -10,
-                right: 12,
-                backgroundColor: ac(),
-                color: "#FFF",
-                fontSize: 10,
-                fontWeight: 800,
-                padding: "2px 8px",
-                borderRadius: 10,
-                textTransform: "uppercase",
-                letterSpacing: 0.5
-              }}>
-                Economize 25%
-              </div>
-              
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: "50%",
-                    border: selectedPlan === "annual" ? "6px solid " + ac() : "2px solid " + T.muted,
-                    backgroundColor: "#FFF",
-                    flexShrink: 0
-                  }} />
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>
-                      Plano Anual
-                    </div>
-                    <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>
-                      R$ 179,00 à vista no Pix ou em 12x no cartão
-                    </div>
-                  </div>
-                </div>
-                <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: ac() }}>
-                    R$ 14,91<span style={{ fontSize: 11, fontWeight: 500, color: T.muted }}>/mês</span>
-                  </div>
-                </div>
-              </div>
+              {loading ? "Processando..." : (annualPaymentMethod === "card" ? "Ir para Checkout no Cartão (12x R$ 14,91)" : "Ir para Checkout no Pix à Vista (R$ 179,00)")}
+            </Btn>
+          </div>
+        ) : (
+          <div>
+            <div style={{ fontSize:18, fontWeight:700, textAlign:"center", marginBottom:8, color:isExpired ? "#B91C1C" : T.text }}>
+              {titleText}
             </div>
+            
+            {descText ? (
+              <p style={{ fontSize:14, color:T.muted, textAlign:"center", marginBottom:16, lineHeight:1.5 }}>
+                {descText}
+              </p>
+            ) : null}
 
-            {/* PLANO MENSAL */}
-            <div 
-              onClick={function() { setSelectedPlan("monthly"); }}
-              style={{
-                padding: 14,
-                borderRadius: 14,
-                border: selectedPlan === "monthly" ? "2px solid " + ac() : "1.5px solid " + T.border,
-                backgroundColor: selectedPlan === "monthly" ? ac() + "0D" : T.bg,
-                cursor: "pointer",
-                transition: "all 0.2s ease"
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {lang === "pt" && !isExpired && (
+              <div style={{ marginBottom: 20, textAlign: "left" }}>
+                <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, color: T.muted, marginBottom: 10 }}>
+                  Escolha a opção de plano:
+                </div>
+
+                {/* PLANO ANUAL (RECOMENDADO) */}
+                <div 
+                  onClick={function() { setSelectedPlan("annual"); }}
+                  style={{
+                    padding: 14,
+                    borderRadius: 14,
+                    border: selectedPlan === "annual" ? "2px solid " + ac() : "1.5px solid " + T.border,
+                    backgroundColor: selectedPlan === "annual" ? ac() + "0D" : T.bg,
+                    cursor: "pointer",
+                    marginBottom: 10,
+                    position: "relative",
+                    transition: "all 0.2s ease"
+                  }}
+                >
                   <div style={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: "50%",
-                    border: selectedPlan === "monthly" ? "6px solid " + ac() : "2px solid " + T.muted,
-                    backgroundColor: "#FFF",
-                    flexShrink: 0
-                  }} />
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>
-                      Plano Mensal
+                    position: "absolute",
+                    top: -10,
+                    right: 12,
+                    backgroundColor: ac(),
+                    color: "#FFF",
+                    fontSize: 10,
+                    fontWeight: 800,
+                    padding: "2px 8px",
+                    borderRadius: 10,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5
+                  }}>
+                    Economize 25%
+                  </div>
+                  
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: "50%",
+                        border: selectedPlan === "annual" ? "6px solid " + ac() : "2px solid " + T.muted,
+                        backgroundColor: "#FFF",
+                        flexShrink: 0
+                      }} />
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>
+                          Plano Anual
+                        </div>
+                        <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>
+                          R$ 179,00 no Pix ou em 12x no cartão
+                        </div>
+                      </div>
                     </div>
-                    <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>
-                      Cobrança mensal no Pix ou Cartão
+                    <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: ac() }}>
+                        R$ 14,91<span style={{ fontSize: 11, fontWeight: 500, color: T.muted }}>/mês</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: T.text }}>
-                    R$ 19,90<span style={{ fontSize: 11, fontWeight: 500, color: T.muted }}>/mês</span>
+
+                {/* PLANO MENSAL */}
+                <div 
+                  onClick={function() { setSelectedPlan("monthly"); }}
+                  style={{
+                    padding: 14,
+                    borderRadius: 14,
+                    border: selectedPlan === "monthly" ? "2px solid " + ac() : "1.5px solid " + T.border,
+                    backgroundColor: selectedPlan === "monthly" ? ac() + "0D" : T.bg,
+                    cursor: "pointer",
+                    transition: "all 0.2s ease"
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: "50%",
+                        border: selectedPlan === "monthly" ? "6px solid " + ac() : "2px solid " + T.muted,
+                        backgroundColor: "#FFF",
+                        flexShrink: 0
+                      }} />
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>
+                          Plano Mensal
+                        </div>
+                        <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>
+                          Cobrança mensal no Pix ou Cartão
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: T.text }}>
+                        R$ 19,90<span style={{ fontSize: 11, fontWeight: 500, color: T.muted }}>/mês</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            <Btn 
+              full 
+              onClick={function() { 
+                if (selectedPlan === "annual") {
+                  setPaywallStep("annual_method");
+                } else {
+                  handleCheckout("monthly");
+                }
+              }} 
+              disabled={loading} 
+              style={{ marginBottom: 16 }}
+            >
+              {buttonText}
+            </Btn>
           </div>
         )}
-
-        <Btn full onClick={handleCheckout} disabled={loading} style={{ marginBottom: 16 }}>
-          {buttonText}
-        </Btn>
 
         <div style={{ background:T.bg, borderRadius:12, padding:16, border:"1px solid " + (isExpired ? "#FEE2E2" : T.borderLight) }}>
           <div style={{ fontSize:12, fontWeight:700, textTransform:"uppercase", letterSpacing:0.5, color:T.muted, marginBottom:12 }}>

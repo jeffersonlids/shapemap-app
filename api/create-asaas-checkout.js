@@ -94,36 +94,60 @@ export default async function handler(req, res) {
       }
     }
 
-    const isAnnual = planType === 'annual';
+    const isAnnualCard = planType === 'annual_card' || planType === 'annual_credit_card';
+    const isAnnualPix = planType === 'annual_pix' || planType === 'annual_single';
+    const isAnnualGeneral = planType === 'annual';
 
-    // 2. Montar o payload do Link de Pagamento no Asaas (Anual em até 12x exclusivamente no Cartão)
-    const payload = isAnnual ? {
-      name: 'ShapeMap - Plano Anual',
-      description: 'Acesso Pro Ilimitado ao ShapeMap - Plano Anual (12 Meses)',
-      value: 179.00,
-      chargeType: 'INSTALLMENT',
-      maxInstallmentCount: 12,
-      billingType: 'CREDIT_CARD', // Exibe exclusivamente Cartão de Crédito em até 12x (bloqueia boleto/pix parcelado)
-      dueDateLimitDays: 3,
-      externalReference: trainerId,
-      callback: {
-        successUrl: `https://shapemapapp.com/?success=true&value=179.00&currency=BRL`,
-        autoRedirect: true
-      }
-    } : {
-      name: 'ShapeMap - Assinatura Mensal Pro',
-      description: 'Acesso Pro Ilimitado ao ShapeMap - Avaliação Física',
-      value: 19.90,
-      chargeType: 'RECURRENT',
-      subscriptionCycle: 'MONTHLY',
-      billingType: 'UNDEFINED',
-      dueDateLimitDays: 3,
-      externalReference: trainerId,
-      callback: {
-        successUrl: `https://shapemapapp.com/?success=true&value=19.90&currency=BRL`,
-        autoRedirect: true
-      }
-    };
+    let payload;
+
+    if (isAnnualCard) {
+      // Plano Anual Parcelado em até 12x EXCLUSIVAMENTE no Cartão de Crédito
+      payload = {
+        name: 'ShapeMap - Plano Anual',
+        description: 'Acesso Pro Ilimitado ao ShapeMap - Plano Anual (12 Meses)',
+        value: 179.00,
+        chargeType: 'INSTALLMENT',
+        maxInstallmentCount: 12,
+        billingType: 'CREDIT_CARD', // Exibe exclusivamente Cartão de Crédito em até 12x
+        dueDateLimitDays: 3,
+        externalReference: trainerId,
+        callback: {
+          successUrl: `https://shapemapapp.com/?success=true&value=179.00&currency=BRL`,
+          autoRedirect: true
+        }
+      };
+    } else if (isAnnualPix || isAnnualGeneral) {
+      // Plano Anual À VISTA (R$ 179,00) no Pix ou Boleto sem parcelamento
+      payload = {
+        name: 'ShapeMap - Plano Anual (À Vista)',
+        description: 'Acesso Pro Ilimitado ao ShapeMap - Plano Anual (12 Meses)',
+        value: 179.00,
+        chargeType: 'DETACHED', // Cobrança avulsa à vista sem parcelas
+        billingType: 'UNDEFINED', // Exibe Pix e Boleto à vista
+        dueDateLimitDays: 3,
+        externalReference: trainerId,
+        callback: {
+          successUrl: `https://shapemapapp.com/?success=true&value=179.00&currency=BRL`,
+          autoRedirect: true
+        }
+      };
+    } else {
+      // Plano Mensal Recorrente (R$ 19,90/mês)
+      payload = {
+        name: 'ShapeMap - Assinatura Mensal Pro',
+        description: 'Acesso Pro Ilimitado ao ShapeMap - Avaliação Física',
+        value: 19.90,
+        chargeType: 'RECURRENT',
+        subscriptionCycle: 'MONTHLY',
+        billingType: 'UNDEFINED',
+        dueDateLimitDays: 3,
+        externalReference: trainerId,
+        callback: {
+          successUrl: `https://shapemapapp.com/?success=true&value=19.90&currency=BRL`,
+          autoRedirect: true
+        }
+      };
+    }
 
     if (customerId) {
       payload.customer = customerId;
