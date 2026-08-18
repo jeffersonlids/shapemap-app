@@ -10000,7 +10000,14 @@ export default function App() {
       
       let access = false;
       if (status === "active") {
-        access = true;
+        if (periodEndStr) {
+          const periodEnd = new Date(periodEndStr);
+          if (periodEnd > new Date()) {
+            access = true;
+          }
+        } else {
+          access = true;
+        }
       }
       if (status === "trialing" && periodEndStr) {
         const periodEnd = new Date(periodEndStr);
