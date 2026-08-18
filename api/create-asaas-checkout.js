@@ -96,12 +96,12 @@ export default async function handler(req, res) {
 
     const isAnnual = planType === 'annual';
 
-    // 2. Montar o payload do Link de Pagamento no Asaas (Anual Parcelado 12x ou Mensal Recorrente)
+    // 2. Montar o payload do Link de Pagamento no Asaas (Anual Parcelado em 12x ou Mensal Recorrente)
     const payload = isAnnual ? {
       name: 'ShapeMap - Plano Anual',
       description: 'Acesso Pro Ilimitado ao ShapeMap - Plano Anual (12 Meses)',
       value: 179.00,
-      chargeType: 'INSTALLMENT',
+      chargeType: 'DETACHED',
       maxInstallmentCount: 12,
       billingType: 'UNDEFINED', // Exibe Pix/Boleto à vista e Cartão de Crédito em até 12x
       dueDateLimitDays: 3,
@@ -151,6 +151,35 @@ export default async function handler(req, res) {
 
     if (linkData.url) {
       return res.status(200).json({ url: linkData.url });
+    }
+
+    // Se o plano for Anual e o primeiro formato falhar, tentar formato alternativo de Assinatura Anual Recorrente
+    if (isAnnual) {
+      const fallbackPayload = {
+        name: 'ShapeMap - Plano Anual',
+        description: 'Acesso Pro Ilimitado ao ShapeMap - Plano Anual (12 Meses)',
+        value: 179.00,
+        chargeType: 'RECURRENT',
+        subscriptionCycle: 'YEARLY',
+        billingType: 'UNDEFINED',
+        dueDateLimitDays: 3,
+        externalReference: trainerId
+      };
+      if (customerId) fallbackPayload.customer = customerId;
+
+      try {
+        const retryRes = await fetch('https://www.asaas.com/api/v3/paymentLinks', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(fallbackPayload)
+        });
+        const retryData = await retryRes.json();
+        if (retryData.url) {
+          return res.status(200).json({ url: retryData.url });
+        }
+      } catch (retryErr) {
+        console.warn('Aviso no fallback de link Anual:', retryErr);
+      }
     }
 
     if (linkData.errors && linkData.errors.length > 0) {
