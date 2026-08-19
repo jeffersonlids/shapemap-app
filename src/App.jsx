@@ -7658,11 +7658,9 @@ function PaywallScreen({ trainer, onLogout }) {
 
   const buttonText = loading
     ? (lang === "pt" ? "Processando..." : "Processing...")
-    : (isExpired 
-        ? (lang === "pt" ? "Regularizar Assinatura" : "Update Subscription & Pay") 
-        : (lang === "pt" 
-            ? (selectedPlan === "annual" ? "Assinar Plano Anual" : "Assinar Plano Mensal") 
-            : "Subscribe to Pro Plan"));
+    : (lang === "pt" 
+        ? (selectedPlan === "annual" ? "Assinar Plano Anual" : "Assinar Plano Mensal") 
+        : "Subscribe to Pro Plan");
 
   async function handleCheckout(overridePlanType) {
     setLoading(true);
@@ -8010,7 +8008,7 @@ function PaywallScreen({ trainer, onLogout }) {
               </p>
             ) : null}
 
-            {lang === "pt" && !isExpired && (
+            {lang === "pt" && (
               <div style={{ marginBottom: 20, textAlign: "left" }}>
                 <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, color: T.muted, marginBottom: 10 }}>
                   Escolha a opção de plano:
