@@ -2699,22 +2699,23 @@ function compressImage(file, callback) {
 
 function ImageCropModal({ imageSrc, label, onConfirm, onCancel, lang }) {
   const [zoom, setZoom] = useState(1);
-  const [rotation, setRotation] = useState(0);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [imgDims, setImgDims] = useState(null);
+  const imageRef = useRef();
 
-  const containerWidth = 240;
-  const containerHeight = 320; // 3:4 aspect ratio
+  const W_vp = 225;
+  const H_vp = 300; // 3:4 ratio for evaluation photos
 
   function handleStart(clientX, clientY) {
     setIsDragging(true);
-    setDragStart({ x: clientX - offset.x, y: clientY - offset.y });
+    setDragStart({ x: clientX - position.x, y: clientY - position.y });
   }
 
   function handleMove(clientX, clientY) {
     if (!isDragging) return;
-    setOffset({
+    setPosition({
       x: clientX - dragStart.x,
       y: clientY - dragStart.y
     });
@@ -2724,92 +2725,76 @@ function ImageCropModal({ imageSrc, label, onConfirm, onCancel, lang }) {
     setIsDragging(false);
   }
 
-  function handleRotate() {
-    setRotation(function(prev) { return (prev + 90) % 360; });
-  }
-
-  function handleReset() {
-    setZoom(1);
-    setRotation(0);
-    setOffset({ x: 0, y: 0 });
-  }
-
   function handleSave() {
-    const img = new Image();
-    img.onload = function() {
-      const canvas = document.createElement('canvas');
-      const targetWidth = 600;
-      const targetHeight = 800; // 3:4 ratio
-      canvas.width = targetWidth;
-      canvas.height = targetHeight;
-      const ctx = canvas.getContext('2d');
+    if (!imgDims) return;
+    const img = imageRef.current;
+    if (!img) return;
 
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, targetWidth, targetHeight);
+    const canvas = document.createElement("canvas");
+    const W_canvas = 600;
+    const H_canvas = 800; // 3:4 high resolution canvas
+    canvas.width = W_canvas;
+    canvas.height = H_canvas;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-      ctx.save();
-      ctx.translate(targetWidth / 2, targetHeight / 2);
-      
-      const scaleFactor = targetWidth / containerWidth;
-      ctx.translate(offset.x * scaleFactor, offset.y * scaleFactor);
-      ctx.rotate((rotation * Math.PI) / 180);
-      
-      const drawWidth = containerWidth * zoom * scaleFactor;
-      const drawHeight = (containerWidth * (img.height / img.width)) * zoom * scaleFactor;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, W_canvas, H_canvas);
 
-      ctx.drawImage(
-        img,
-        -drawWidth / 2,
-        -drawHeight / 2,
-        drawWidth,
-        drawHeight
-      );
+    const scale = W_canvas / W_vp;
+    const imgRatio = imgDims.w / imgDims.h;
+    const vpRatio = W_vp / H_vp;
 
-      ctx.restore();
+    let fitW, fitH;
+    if (imgRatio > vpRatio) {
+      fitH = H_vp;
+      fitW = H_vp * imgRatio;
+    } else {
+      fitW = W_vp;
+      fitH = W_vp / imgRatio;
+    }
 
-      const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
-      onConfirm(croppedDataUrl);
-    };
-    img.src = imageSrc;
+    const renderW = fitW * zoom;
+    const renderH = fitH * zoom;
+
+    const imgX_vp = (W_vp / 2) - (renderW / 2) + position.x;
+    const imgY_vp = (H_vp / 2) - (renderH / 2) + position.y;
+
+    const destX = imgX_vp * scale;
+    const destY = imgY_vp * scale;
+    const destW = renderW * scale;
+    const destH = renderH * scale;
+
+    ctx.drawImage(img, destX, destY, destW, destH);
+
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+    onConfirm(dataUrl);
+  }
+
+  let fitW = W_vp;
+  let fitH = H_vp;
+  if (imgDims) {
+    const imgRatio = imgDims.w / imgDims.h;
+    const vpRatio = W_vp / H_vp;
+    if (imgRatio > vpRatio) {
+      fitH = H_vp;
+      fitW = H_vp * imgRatio;
+    } else {
+      fitW = W_vp;
+      fitH = W_vp / imgRatio;
+    }
   }
 
   if (!imageSrc) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: 9999,
-      backgroundColor: 'rgba(0, 0, 0, 0.85)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 16,
-      backdropFilter: 'blur(4px)',
-      fontFamily: "'Outfit', sans-serif"
-    }}>
-      <div style={{
-        backgroundColor: '#FFFFFF',
-        borderRadius: 20,
-        width: '100%',
-        maxWidth: 360,
-        padding: 20,
-        boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 14
-      }}>
-        <div style={{ textAlign: 'center', width: '100%' }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: '#1E293B' }}>
-            {lang === 'es' ? 'Ajustar Foto' : lang === 'en' ? 'Adjust Photo' : 'Ajustar Foto'} - {label}
-          </div>
-          <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>
-            {lang === 'es' ? 'Arrastre y ajuste para encuadrar el cuerpo' : lang === 'en' ? 'Drag and zoom to align the body' : 'Arraste e dê zoom para enquadrar o corpo'}
-          </div>
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:500, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
+      <div style={{ background:T.surface, borderRadius:20, padding:24, width:"100%", maxWidth:360, boxShadow:T.shadowMd, display:"flex", flexDirection:"column", alignItems:"center" }}>
+        <div style={{ fontSize:17, fontWeight:700, marginBottom:6, color:T.text }}>
+          {lang === 'es' ? 'Ajustar Foto' : lang === 'en' ? 'Adjust Photo' : 'Ajustar Foto'} - {label}
+        </div>
+        <div style={{ fontSize:13, color:T.muted, marginBottom:20, textAlign:"center", lineHeight:1.4 }}>
+          {lang === 'es' ? 'Arrastre la foto y use el control de zoom para encuadrar perfectamente.' : lang === 'en' ? 'Drag the photo and use zoom to align perfectly.' : 'Arraste a foto e use o controle de zoom para enquadrar perfeitamente.'}
         </div>
 
         <div
@@ -2817,162 +2802,75 @@ function ImageCropModal({ imageSrc, label, onConfirm, onCancel, lang }) {
           onMouseMove={function(e) { handleMove(e.clientX, e.clientY); }}
           onMouseUp={handleEnd}
           onMouseLeave={handleEnd}
-          onTouchStart={function(e) {
-            if (e.touches.length === 1) {
-              handleStart(e.touches[0].clientX, e.touches[0].clientY);
-            }
-          }}
-          onTouchMove={function(e) {
-            if (e.touches.length === 1) {
-              handleMove(e.touches[0].clientX, e.touches[0].clientY);
-            }
-          }}
+          onTouchStart={function(e) { if(e.touches[0]) handleStart(e.touches[0].clientX, e.touches[0].clientY); }}
+          onTouchMove={function(e) { if(e.touches[0]) handleMove(e.touches[0].clientX, e.touches[0].clientY); }}
           onTouchEnd={handleEnd}
           style={{
-            width: containerWidth,
-            height: containerHeight,
-            borderRadius: 14,
-            overflow: 'hidden',
-            position: 'relative',
-            backgroundColor: '#0F172A',
-            cursor: isDragging ? 'grabbing' : 'grab',
-            border: '2px solid ' + ac(),
-            userSelect: 'none',
-            touchAction: 'none',
-            boxShadow: 'inset 0 0 10px rgba(0,0,0,0.5)'
+            width: W_vp,
+            height: H_vp,
+            borderRadius: 16,
+            overflow: "hidden",
+            position: "relative",
+            background: "#eee",
+            cursor: isDragging ? "grabbing" : "grab",
+            border: "3px solid " + ac(),
+            boxShadow: "0 0 0 10px rgba(255,255,255,0.15)",
+            userSelect: "none",
+            touchAction: "none"
           }}
         >
-          <div style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transform: 'translate(' + offset.x + 'px, ' + offset.y + 'px) scale(' + zoom + ') rotate(' + rotation + 'deg)',
-            transition: isDragging ? 'none' : 'transform 0.1s ease-out',
-            transformOrigin: 'center center'
-          }}>
-            <img
-              src={imageSrc}
-              alt="Preview"
-              draggable={false}
-              style={{
-                maxWidth: '100%',
-                maxHeight: '100%',
-                objectFit: 'contain',
-                pointerEvents: 'none'
-              }}
-            />
-          </div>
-
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            pointerEvents: 'none',
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr',
-            gridTemplateRows: '1fr 1fr 1fr'
-          }}>
-            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(function(i) {
-              return <div key={i} style={{ border: '0.5px dashed rgba(255,255,255,0.25)' }} />;
-            })}
-          </div>
+          <img
+            ref={imageRef}
+            src={imageSrc}
+            alt="Original"
+            style={{
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              width: fitW,
+              height: fitH,
+              maxWidth: "none",
+              maxHeight: "none",
+              transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${zoom})`,
+              transformOrigin: "center",
+              pointerEvents: "none",
+              userSelect: "none"
+            }}
+            onLoad={function(e) {
+              setImgDims({
+                w: e.target.naturalWidth,
+                h: e.target.naturalHeight
+              });
+            }}
+          />
         </div>
 
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 13, color: '#64748B' }}>🔍 -</span>
-            <input
-              type="range"
-              min="1"
-              max="3"
-              step="0.05"
-              value={zoom}
-              onChange={function(e) { setZoom(parseFloat(e.target.value)); }}
-              style={{ flex: 1, accentColor: ac(), cursor: 'pointer' }}
-            />
-            <span style={{ fontSize: 13, color: '#64748B' }}>+</span>
+        <div style={{ width:"100%", marginTop:24, display:"flex", flexDirection:"column", gap:8 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, fontWeight:600, color:T.sub }}>
+            <span>Zoom</span>
+            <span>{Math.round(zoom * 100)}%</span>
           </div>
-
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
-            <button
-              onClick={handleRotate}
-              style={{
-                background: '#F1F5F9',
-                border: '1px solid #E2E8F0',
-                borderRadius: 8,
-                padding: '6px 12px',
-                fontSize: 12,
-                fontWeight: 600,
-                color: '#334155',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6
-              }}
-            >
-              🔄 {lang === 'es' ? 'Girar 90°' : lang === 'en' ? 'Rotate 90°' : 'Girar 90°'}
-            </button>
-
-            <button
-              onClick={handleReset}
-              style={{
-                background: '#F1F5F9',
-                border: '1px solid #E2E8F0',
-                borderRadius: 8,
-                padding: '6px 12px',
-                fontSize: 12,
-                fontWeight: 600,
-                color: '#334155',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6
-              }}
-            >
-              🎯 {lang === 'es' ? 'Centralizar' : lang === 'en' ? 'Reset' : 'Centralizar'}
-            </button>
-          </div>
+          <input
+            type="range"
+            min="1"
+            max="3"
+            step="0.05"
+            value={zoom}
+            onChange={function(e) { setZoom(parseFloat(e.target.value)); }}
+            style={{
+              width: "100%",
+              accentColor: ac(),
+              cursor: "pointer",
+              height: 6,
+              borderRadius: 3,
+              background: T.border
+            }}
+          />
         </div>
 
-        <div style={{ display: 'flex', gap: 10, width: '100%', marginTop: 4 }}>
-          <button
-            onClick={onCancel}
-            style={{
-              flex: 1,
-              padding: '10px 14px',
-              borderRadius: 10,
-              border: '1px solid #CBD5E1',
-              background: '#FFFFFF',
-              color: '#64748B',
-              fontSize: 13,
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            {lang === 'es' ? 'Cancelar' : lang === 'en' ? 'Cancel' : 'Cancelar'}
-          </button>
-
-          <button
-            onClick={handleSave}
-            style={{
-              flex: 1.2,
-              padding: '10px 14px',
-              borderRadius: 10,
-              border: 'none',
-              background: ac(),
-              color: '#FFFFFF',
-              fontSize: 13,
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px ' + ac() + '40'
-            }}
-          >
-            {lang === 'es' ? 'Confirmar Foto' : lang === 'en' ? 'Confirm Photo' : 'Confirmar Foto'}
-          </button>
+        <div style={{ display:"flex", gap:10, width:"100%", marginTop:24 }}>
+          <Btn full variant="ghost" onClick={onCancel}>Cancelar</Btn>
+          <Btn full onClick={handleSave}>Confirmar</Btn>
         </div>
       </div>
     </div>
