@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -2787,8 +2788,8 @@ function ImageCropModal({ imageSrc, label, onConfirm, onCancel, lang }) {
 
   if (!imageSrc) return null;
 
-  return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:500, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
+  return createPortal(
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:999999, display:"flex", alignItems:"center", justifyContent:"center", padding:16, backdropFilter:"blur(4px)" }}>
       <div style={{ background:T.surface, borderRadius:20, padding:24, width:"100%", maxWidth:360, boxShadow:T.shadowMd, display:"flex", flexDirection:"column", alignItems:"center" }}>
         <div style={{ fontSize:17, fontWeight:700, marginBottom:6, color:T.text }}>
           {lang === 'es' ? 'Ajustar Foto' : lang === 'en' ? 'Adjust Photo' : 'Ajustar Foto'} - {label}
@@ -2811,7 +2812,7 @@ function ImageCropModal({ imageSrc, label, onConfirm, onCancel, lang }) {
             borderRadius: 16,
             overflow: "hidden",
             position: "relative",
-            background: "#eee",
+            background: "#fff",
             cursor: isDragging ? "grabbing" : "grab",
             border: "3px solid " + ac(),
             boxShadow: "0 0 0 10px rgba(255,255,255,0.15)",
@@ -2852,9 +2853,9 @@ function ImageCropModal({ imageSrc, label, onConfirm, onCancel, lang }) {
           </div>
           <input
             type="range"
-            min="1"
+            min="0.4"
             max="3"
-            step="0.05"
+            step="0.02"
             value={zoom}
             onChange={function(e) { setZoom(parseFloat(e.target.value)); }}
             style={{
@@ -2873,7 +2874,8 @@ function ImageCropModal({ imageSrc, label, onConfirm, onCancel, lang }) {
           <Btn full onClick={handleSave}>Confirmar</Btn>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -2898,9 +2900,9 @@ function FotoSlot({ label, foto, onSet, lang }) {
                   setRawImageSrc(foto);
                 }}
                 title={lang === "es" ? "Ajustar foto" : lang === "en" ? "Adjust photo" : "Ajustar foto"}
-                style={{ background:"rgba(0,0,0,0.65)", border:"none", borderRadius:"50%", width:26, height:26, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:12 }}
+                style={{ background:"rgba(0,0,0,0.65)", border:"none", borderRadius:"50%", width:26, height:26, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff" }}
               >
-                ✏️
+                <IcEdit c="#fff" s={13} />
               </button>
               <button
                 onClick={function(e) { e.stopPropagation(); onSet(null); }}
@@ -7316,8 +7318,8 @@ function ImageCropperModal({ imageSrc, onCrop, onCancel }) {
     }
   }
 
-  return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:500, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
+  return createPortal(
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:999999, display:"flex", alignItems:"center", justifyContent:"center", padding:16, backdropFilter:"blur(4px)" }}>
       <div style={{ background:T.surface, borderRadius:20, padding:24, width:"100%", maxWidth:360, boxShadow:T.shadowMd, display:"flex", flexDirection:"column", alignItems:"center" }}>
         <div style={{ fontSize:17, fontWeight:700, marginBottom:6, color:T.text }}>Ajustar Foto de Perfil</div>
         <div style={{ fontSize:13, color:T.muted, marginBottom:20, textAlign:"center", lineHeight:1.4 }}>
@@ -7400,7 +7402,8 @@ function ImageCropperModal({ imageSrc, onCrop, onCancel }) {
           <Btn full onClick={handleSave}>Confirmar</Btn>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
