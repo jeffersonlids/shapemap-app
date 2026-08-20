@@ -2697,8 +2697,292 @@ function compressImage(file, callback) {
   reader.readAsDataURL(file);
 }
 
-function FotoSlot({ label, foto, onSet }) {
+function ImageCropModal({ imageSrc, label, onConfirm, onCancel, lang }) {
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  const containerWidth = 240;
+  const containerHeight = 320; // 3:4 aspect ratio
+
+  function handleStart(clientX, clientY) {
+    setIsDragging(true);
+    setDragStart({ x: clientX - offset.x, y: clientY - offset.y });
+  }
+
+  function handleMove(clientX, clientY) {
+    if (!isDragging) return;
+    setOffset({
+      x: clientX - dragStart.x,
+      y: clientY - dragStart.y
+    });
+  }
+
+  function handleEnd() {
+    setIsDragging(false);
+  }
+
+  function handleRotate() {
+    setRotation(function(prev) { return (prev + 90) % 360; });
+  }
+
+  function handleReset() {
+    setZoom(1);
+    setRotation(0);
+    setOffset({ x: 0, y: 0 });
+  }
+
+  function handleSave() {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const targetWidth = 600;
+      const targetHeight = 800; // 3:4 ratio
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, targetWidth, targetHeight);
+
+      ctx.save();
+      ctx.translate(targetWidth / 2, targetHeight / 2);
+      
+      const scaleFactor = targetWidth / containerWidth;
+      ctx.translate(offset.x * scaleFactor, offset.y * scaleFactor);
+      ctx.rotate((rotation * Math.PI) / 180);
+      
+      const drawWidth = containerWidth * zoom * scaleFactor;
+      const drawHeight = (containerWidth * (img.height / img.width)) * zoom * scaleFactor;
+
+      ctx.drawImage(
+        img,
+        -drawWidth / 2,
+        -drawHeight / 2,
+        drawWidth,
+        drawHeight
+      );
+
+      ctx.restore();
+
+      const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      onConfirm(croppedDataUrl);
+    };
+    img.src = imageSrc;
+  }
+
+  if (!imageSrc) return null;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 9999,
+      backgroundColor: 'rgba(0, 0, 0, 0.85)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 16,
+      backdropFilter: 'blur(4px)',
+      fontFamily: "'Outfit', sans-serif"
+    }}>
+      <div style={{
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+        width: '100%',
+        maxWidth: 360,
+        padding: 20,
+        boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 14
+      }}>
+        <div style={{ textAlign: 'center', width: '100%' }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: '#1E293B' }}>
+            {lang === 'es' ? 'Ajustar Foto' : lang === 'en' ? 'Adjust Photo' : 'Ajustar Foto'} - {label}
+          </div>
+          <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>
+            {lang === 'es' ? 'Arrastre y ajuste para encuadrar el cuerpo' : lang === 'en' ? 'Drag and zoom to align the body' : 'Arraste e dê zoom para enquadrar o corpo'}
+          </div>
+        </div>
+
+        <div
+          onMouseDown={function(e) { handleStart(e.clientX, e.clientY); }}
+          onMouseMove={function(e) { handleMove(e.clientX, e.clientY); }}
+          onMouseUp={handleEnd}
+          onMouseLeave={handleEnd}
+          onTouchStart={function(e) {
+            if (e.touches.length === 1) {
+              handleStart(e.touches[0].clientX, e.touches[0].clientY);
+            }
+          }}
+          onTouchMove={function(e) {
+            if (e.touches.length === 1) {
+              handleMove(e.touches[0].clientX, e.touches[0].clientY);
+            }
+          }}
+          onTouchEnd={handleEnd}
+          style={{
+            width: containerWidth,
+            height: containerHeight,
+            borderRadius: 14,
+            overflow: 'hidden',
+            position: 'relative',
+            backgroundColor: '#0F172A',
+            cursor: isDragging ? 'grabbing' : 'grab',
+            border: '2px solid ' + ac(),
+            userSelect: 'none',
+            touchAction: 'none',
+            boxShadow: 'inset 0 0 10px rgba(0,0,0,0.5)'
+          }}
+        >
+          <div style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transform: 'translate(' + offset.x + 'px, ' + offset.y + 'px) scale(' + zoom + ') rotate(' + rotation + 'deg)',
+            transition: isDragging ? 'none' : 'transform 0.1s ease-out',
+            transformOrigin: 'center center'
+          }}>
+            <img
+              src={imageSrc}
+              alt="Preview"
+              draggable={false}
+              style={{
+                maxWidth: '100%',
+                maxHeight: '100%',
+                objectFit: 'contain',
+                pointerEvents: 'none'
+              }}
+            />
+          </div>
+
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            pointerEvents: 'none',
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 1fr',
+            gridTemplateRows: '1fr 1fr 1fr'
+          }}>
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(function(i) {
+              return <div key={i} style={{ border: '0.5px dashed rgba(255,255,255,0.25)' }} />;
+            })}
+          </div>
+        </div>
+
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 13, color: '#64748B' }}>🔍 -</span>
+            <input
+              type="range"
+              min="1"
+              max="3"
+              step="0.05"
+              value={zoom}
+              onChange={function(e) { setZoom(parseFloat(e.target.value)); }}
+              style={{ flex: 1, accentColor: ac(), cursor: 'pointer' }}
+            />
+            <span style={{ fontSize: 13, color: '#64748B' }}>+</span>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 10 }}>
+            <button
+              onClick={handleRotate}
+              style={{
+                background: '#F1F5F9',
+                border: '1px solid #E2E8F0',
+                borderRadius: 8,
+                padding: '6px 12px',
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#334155',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+            >
+              🔄 {lang === 'es' ? 'Girar 90°' : lang === 'en' ? 'Rotate 90°' : 'Girar 90°'}
+            </button>
+
+            <button
+              onClick={handleReset}
+              style={{
+                background: '#F1F5F9',
+                border: '1px solid #E2E8F0',
+                borderRadius: 8,
+                padding: '6px 12px',
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#334155',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+            >
+              🎯 {lang === 'es' ? 'Centralizar' : lang === 'en' ? 'Reset' : 'Centralizar'}
+            </button>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, width: '100%', marginTop: 4 }}>
+          <button
+            onClick={onCancel}
+            style={{
+              flex: 1,
+              padding: '10px 14px',
+              borderRadius: 10,
+              border: '1px solid #CBD5E1',
+              background: '#FFFFFF',
+              color: '#64748B',
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+          >
+            {lang === 'es' ? 'Cancelar' : lang === 'en' ? 'Cancel' : 'Cancelar'}
+          </button>
+
+          <button
+            onClick={handleSave}
+            style={{
+              flex: 1.2,
+              padding: '10px 14px',
+              borderRadius: 10,
+              border: 'none',
+              background: ac(),
+              color: '#FFFFFF',
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px ' + ac() + '40'
+            }}
+          >
+            {lang === 'es' ? 'Confirmar Foto' : lang === 'en' ? 'Confirm Photo' : 'Confirmar Foto'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FotoSlot({ label, foto, onSet, lang }) {
   const ref = useRef();
+  const [rawImageSrc, setRawImageSrc] = useState(null);
+
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
       <div style={{ fontSize:10, fontWeight:700, color:T.sub, textTransform:"uppercase", letterSpacing:0.4, textAlign:"center" }}>{label}</div>
@@ -2709,10 +2993,25 @@ function FotoSlot({ label, foto, onSet }) {
         {foto ? (
           <>
             <img src={foto} alt={label} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-            <button
-              onClick={function(e) { e.stopPropagation(); onSet(null); }}
-              style={{ position:"absolute", top:5, right:5, background:"rgba(0,0,0,0.55)", border:"none", borderRadius:"50%", width:24, height:24, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:14 }}
-            >x</button>
+            <div style={{ position: "absolute", top: 5, right: 5, display: "flex", gap: 4 }}>
+              <button
+                onClick={function(e) { 
+                  e.stopPropagation(); 
+                  setRawImageSrc(foto);
+                }}
+                title={lang === "es" ? "Ajustar foto" : lang === "en" ? "Adjust photo" : "Ajustar foto"}
+                style={{ background:"rgba(0,0,0,0.65)", border:"none", borderRadius:"50%", width:26, height:26, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:12 }}
+              >
+                ✏️
+              </button>
+              <button
+                onClick={function(e) { e.stopPropagation(); onSet(null); }}
+                title={lang === "es" ? "Eliminar" : lang === "en" ? "Remove" : "Remover"}
+                style={{ background:"rgba(0,0,0,0.65)", border:"none", borderRadius:"50%", width:26, height:26, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:13 }}
+              >
+                ✕
+              </button>
+            </div>
           </>
         ) : (
           <>
@@ -2729,11 +3028,27 @@ function FotoSlot({ label, foto, onSet }) {
         onChange={function(e) {
           var f = e.target.files[0];
           if (!f) return;
-          compressImage(f, function(compressedUrl) {
-            onSet(compressedUrl);
-          });
+          var reader = new FileReader();
+          reader.onload = function(evt) {
+            setRawImageSrc(evt.target.result);
+          };
+          reader.readAsDataURL(f);
+          e.target.value = "";
         }}
       />
+
+      {rawImageSrc && (
+        <ImageCropModal
+          imageSrc={rawImageSrc}
+          label={label}
+          lang={lang}
+          onCancel={function() { setRawImageSrc(null); }}
+          onConfirm={function(croppedUrl) {
+            onSet(croppedUrl);
+            setRawImageSrc(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -5682,7 +5997,7 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
               <div style={{ fontSize:11, fontWeight:700, color:T.sub, letterSpacing:0.5, textTransform:"uppercase", marginBottom:12 }}>{t("posicoes", lang)}</div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
                 {[["frente",t("frente", lang)],["lado",t("lado", lang)],["costas",t("costas", lang)]].map(function(pair) {
-                  return <FotoSlot key={pair[0]} label={pair[1]} foto={(av.fotos && av.fotos[pair[0]]) || null} onSet={function(v) { upd("fotos."+pair[0], v); }}/>;
+                  return <FotoSlot key={pair[0]} label={pair[1]} foto={(av.fotos && av.fotos[pair[0]]) || null} onSet={function(v) { upd("fotos."+pair[0], v); }} lang={lang}/>;
                 })}
               </div>
             </div>
