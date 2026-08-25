@@ -10138,6 +10138,12 @@ export default function App() {
           setUser(session.user);
           setLogged(true);
         }
+      } else if (event === "SIGNED_IN") {
+        sessionStorage.setItem("avaliapro_session_active", "true");
+        setUser(session.user);
+        setLogged(true);
+        const justSignedUp = sessionStorage.getItem("just_signed_up") === "true";
+        loadUserData(session.user, !justSignedUp);
       } else if (session) {
         sessionStorage.setItem("avaliapro_session_active", "true");
         setUser(session.user);
@@ -10879,7 +10885,7 @@ export default function App() {
     );
   }
 
-  if (!logged) return <><GlobalStyle/><LoginScreen onLogin={function() { setLogged(true); }} trainer={trainer} onUpdateTrainer={handleUpdateTrainer}/></>;
+  if (!logged) return <><GlobalStyle/><LoginScreen onLogin={function() { setLoadingSession(true); setLogged(true); }} trainer={trainer} onUpdateTrainer={handleUpdateTrainer}/></>;
 
   if (!hasAccess || sessionStorage.getItem("just_signed_up") === "true") {
     return (
