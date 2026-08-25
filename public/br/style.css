@@ -1273,26 +1273,15 @@ img {
     color: #ffffff !important;
     font-weight: 700;
     text-align: center;
-}
-
-.pricing-footer .btn.btn-outline-primary {
-    background: rgba(13, 148, 136, 0.15) !important;
-    border: 1.5px solid rgba(13, 148, 136, 0.6) !important;
-    color: #ffffff !important;
-    box-shadow: none !important;
-}
-
-.pricing-footer .btn.btn-outline-primary:hover {
-    background: rgba(13, 148, 136, 0.35) !important;
-    border-color: #2dd4bf !important;
-    color: #ffffff !important;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(13, 148, 136, 0.3) !important;
+    border: none;
+    display: block;
+    text-decoration: none;
 }
 
 .pricing-footer .btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(13, 148, 136, 0.4);
+    color: #ffffff !important;
 }
 
 .guarantee-simple {
