@@ -160,7 +160,7 @@
 
             <!-- CTA Button below video -->
             <div class="hero-cta-wrapper">
-                <a href="#plano-mensal" class="btn btn-gradient btn-large scroll-trigger btn-pulse">
+                <a href="#preco" class="btn btn-gradient btn-large scroll-trigger btn-pulse">
                     <i class="fa-solid fa-rocket"></i> QUERO COMEÇAR AGORA!
                 </a>
                 <span class="cta-micro-proof">
@@ -369,7 +369,7 @@
                 </div>
             </div>
             <div class="roi-cta-wrapper" style="margin-top: 30px; width: 100%; display: flex; justify-content: center;">
-                <a href="#plano-mensal" class="btn btn-gradient scroll-trigger btn-pulse" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; padding: 14px 32px; font-size: 1rem; font-weight: 700; border-radius: 12px; min-width: 220px; box-shadow: 0 4px 15px rgba(13, 148, 136, 0.2);">
+                <a href="#preco" class="btn btn-gradient scroll-trigger btn-pulse" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; padding: 14px 32px; font-size: 1rem; font-weight: 700; border-radius: 12px; min-width: 220px; box-shadow: 0 4px 15px rgba(13, 148, 136, 0.2);">
                     <i class="fa-solid fa-rocket"></i> QUERO COMEÇAR AGORA!
                 </a>
             </div>
@@ -603,65 +603,93 @@
         <div class="container">
 
 
-            <!-- Pricing Card -->
-            <div class="pricing-card-container" id="plano-mensal">
-                <div class="pricing-card popular-plan">
-                    <div class="pricing-badge">Plano Completo</div>
+            <!-- Pricing Cards -->
+            <div class="pricing-card-container">
+                
+                <!-- 1. Plano Mensal -->
+                <div class="pricing-card" id="plano-mensal">
+                    <div class="pricing-badge" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: none;">Plano Mensal</div>
                     
-                    <div class="pricing-header" style="display: flex; flex-direction: column; align-items: center; padding-top: 25px; padding-bottom: 25px;">
-                        <!-- Preço Original Cortado -->
-                        <div class="price-original-line" style="font-size: 1.05rem; color: #94a3b8; font-weight: 500; margin-bottom: 6px; letter-spacing: 0.5px;">
-                            De <span class="original-amount" style="text-decoration: line-through; color: #ef4444; font-weight: 700; font-size: 1.25rem;">R$ 19,90</span> por apenas
-                        </div>
-                        <!-- Novo Preço -->
-                        <div class="price-wrapper" style="margin-top: 2px;">
+                    <div class="pricing-header" style="display: flex; flex-direction: column; align-items: center; padding-top: 32px; padding-bottom: 25px;">
+                        <h3 style="font-size: 1.4rem; margin-bottom: 6px; color: #ffffff;">Assinatura Mensal</h3>
+                        <div class="price-wrapper" style="margin-top: 4px;">
                             <span class="currency">R$</span>
-                            <span class="amount">9</span>
+                            <span class="amount">19</span>
                             <span class="cents">,90</span>
+                            <span class="period" style="font-size: 1rem; color: #94a3b8; align-self: flex-end; margin-bottom: 8px;">/mês</span>
                         </div>
-                        <!-- Texto do Período -->
-                        <div class="price-period-note" style="font-size: 0.95rem; color: #2dd4bf; font-weight: 700; margin-top: 6px; letter-spacing: 0.5px; text-transform: uppercase;">
-                            no primeiro mês usando o cupom 👇
-                        </div>
-
-                        <!-- Caixinha do Cupom de Desconto -->
-                        <div class="coupon-box" style="margin: 14px auto 0 auto; width: 100%; max-width: 290px; background: rgba(13, 148, 136, 0.05); border: 1px dashed rgba(13, 148, 136, 0.3); border-radius: 12px; padding: 12px 16px; box-sizing: border-box; text-align: center;">
-                            <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-                                <span id="promo-code" style="font-family: 'Outfit', sans-serif; font-size: 1.35rem; font-weight: 900; color: #ffffff; letter-spacing: 1.5px; background: rgba(255, 255, 255, 0.05); padding: 6px 14px; border-radius: 8px;">BEMVINDO</span>
-                                <button class="btn-copy-coupon" onclick="copyCouponCode()" style="background: rgba(13, 148, 136, 0.2); border: 1px solid rgba(13, 148, 136, 0.4); color: #2dd4bf; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; font-family: inherit;">
-                                    <i class="fa-regular fa-copy"></i> Copiar
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Informação do preço recorrente -->
-                        <div style="font-size: 0.8rem; color: #64748b; margin-top: 10px;">
-                            (Depois apenas R$ 19,90/mês)
+                        <div class="price-period-note" style="font-size: 0.85rem; color: #94a3b8; font-weight: 500; margin-top: 8px;">
+                            Cancele quando quiser, sem fidelidade
                         </div>
                     </div>
 
                     <div class="pricing-body">
                         <ul class="pricing-features">
-                            <li><i class="fa-solid fa-circle-check"></i> Avaliações ilimitadas</li>
-                            <li><i class="fa-solid fa-circle-check"></i> Relatórios em PDF com seu logo e cores personalizadas</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Avaliações físicas ilimitadas</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Relatórios em PDF com seu logo e cores</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Gráficos comparativos de histórico</li>
                             <li><i class="fa-solid fa-circle-check"></i> Suporte via WhatsApp</li>
-                            <li><i class="fa-solid fa-circle-check"></i> Sem fidelidade, cancele quando quiser</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Acesso em todos os seus dispositivos</li>
                         </ul>
                     </div>
 
                     <div class="pricing-footer">
-                        <a href="https://shapemapapp.com/?register=true" class="btn btn-primary btn-full-width btn-pulse">
-                            Assinar Plano Agora
+                        <a href="https://shapemapapp.com/?register=true" class="btn btn-outline-primary btn-full-width">
+                            Assinar Plano Mensal
                         </a>
                         <div class="guarantee-simple">
                             <i class="fa-solid fa-shield-halved guarantee-icon-simple"></i>
                             <div class="guarantee-text-simple">
-                                <strong>Garantia Incondicional de 7 dias:</strong>
+                                <strong>Garantia de 7 dias:</strong>
                                 <span>Se não gostar, devolvemos 100% do seu dinheiro.</span>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- 2. Plano Anual (Destaque) -->
+                <div class="pricing-card popular-plan featured-plan" id="plano-anual">
+                    <div class="pricing-badge">Mais Vantajoso • Economize 25%</div>
+                    
+                    <div class="pricing-header" style="display: flex; flex-direction: column; align-items: center; padding-top: 32px; padding-bottom: 25px;">
+                        <h3 style="font-size: 1.4rem; margin-bottom: 4px; color: #ffffff;">Assinatura Anual</h3>
+                        <div style="font-size: 0.95rem; color: #94a3b8; margin-bottom: 2px;">12x de apenas</div>
+                        <div class="price-wrapper" style="margin-top: 2px;">
+                            <span class="currency">R$</span>
+                            <span class="amount">14</span>
+                            <span class="cents">,92</span>
+                            <span class="period" style="font-size: 1rem; color: #2dd4bf; align-self: flex-end; margin-bottom: 8px;">/mês</span>
+                        </div>
+                        <div class="price-period-note" style="font-size: 0.95rem; color: #2dd4bf; font-weight: 700; margin-top: 6px; letter-spacing: 0.3px;">
+                            ou R$ 179,00 à vista no Pix / Boleto
+                        </div>
+                    </div>
+
+                    <div class="pricing-body">
+                        <ul class="pricing-features">
+                            <li><i class="fa-solid fa-circle-check"></i> <strong>Equivalente a 3 meses grátis</strong></li>
+                            <li><i class="fa-solid fa-circle-check"></i> Avaliações físicas ilimitadas</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Relatórios em PDF com seu logo e cores</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Gráficos comparativos de histórico</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Suporte prioritário via WhatsApp</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Acesso garantido por 1 ano</li>
+                        </ul>
+                    </div>
+
+                    <div class="pricing-footer">
+                        <a href="https://shapemapapp.com/?register=true&plan=anual" class="btn btn-primary btn-full-width btn-pulse">
+                            Assinar Plano Anual
+                        </a>
+                        <div class="guarantee-simple">
+                            <i class="fa-solid fa-shield-halved guarantee-icon-simple"></i>
+                            <div class="guarantee-text-simple">
+                                <strong>Garantia de 7 dias:</strong>
+                                <span>Se não gostar, devolvemos 100% do seu dinheiro.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </section>
