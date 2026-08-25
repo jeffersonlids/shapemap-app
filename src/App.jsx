@@ -10562,7 +10562,8 @@ export default function App() {
     } catch(e) {
       console.warn("Erro ao salvar trainer no localStorage:", e);
     }
-    if (logged && user) {
+    const trainerId = (user && user.id) || (newTrainer && newTrainer.id) || (trainer && trainer.id);
+    if (trainerId) {
       const nextSettings = Object.assign({}, settings, { unitSystem: newTrainer.unitSystem });
       setSettings(nextSettings);
 
@@ -10576,7 +10577,7 @@ export default function App() {
           lang: newTrainer.lang,
           settings: nextSettings
         })
-        .eq('id', user.id);
+        .eq('id', trainerId);
       if (error) {
         console.error("Erro ao salvar perfil no Supabase:", error);
       }
