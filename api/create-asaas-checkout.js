@@ -96,7 +96,7 @@ export default async function handler(req, res) {
 
     const isAnnualCard = planType === 'annual_card' || planType === 'annual_credit_card';
     const isAnnualPix = planType === 'annual_pix' || planType === 'annual_single';
-    const isAnnualGeneral = planType === 'annual';
+    const isAnnualGeneral = planType === 'annual' || planType === 'anual';
 
     let payload;
 
@@ -116,7 +116,7 @@ export default async function handler(req, res) {
           autoRedirect: true
         }
       };
-    } else if (isAnnualPix || isAnnualGeneral) {
+    } else if (isAnnualPix) {
       // Plano Anual À VISTA (R$ 179,00) EXCLUSIVAMENTE no Boleto Bancário / Pix
       payload = {
         name: 'ShapeMap - Plano Anual',
@@ -126,6 +126,22 @@ export default async function handler(req, res) {
         billingType: 'BOLETO', // Exibe exclusivamente Boleto Bancário / Pix
         dueDateLimitDays: 3,
         externalReference: `${trainerId}:annual_pix`,
+        callback: {
+          successUrl: `https://shapemapapp.com/?success=true&value=179.00&currency=BRL`,
+          autoRedirect: true
+        }
+      };
+    } else if (isAnnualGeneral) {
+      // Plano Anual Geral (R$ 179,00) com opção de Cartão em até 12x ou Pix / Boleto à vista
+      payload = {
+        name: 'ShapeMap - Plano Anual',
+        description: 'ShapeMap - Plano Anual',
+        value: 179.00,
+        chargeType: 'INSTALLMENT',
+        maxInstallmentCount: 12,
+        billingType: 'UNDEFINED',
+        dueDateLimitDays: 3,
+        externalReference: `${trainerId}:annual`,
         callback: {
           successUrl: `https://shapemapapp.com/?success=true&value=179.00&currency=BRL`,
           autoRedirect: true

@@ -3219,9 +3219,14 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
           window.fbq('track', 'CompleteRegistration');
         }
         if (data.session) {
+          const searchParams = new URLSearchParams(window.location.search);
+          const planParam = searchParams.get("plan") || searchParams.get("plano");
+          const isAnnual = planParam === "anual" || planParam === "annual" || planParam === "annual_card" || planParam === "annual_pix";
+
           localStorage.setItem("avaliapro_remember_me", rememberMe ? "true" : "false");
           sessionStorage.setItem("avaliapro_session_active", "true");
           sessionStorage.setItem("just_signed_up", "true");
+          sessionStorage.setItem("signup_selected_plan", isAnnual ? planParam : "monthly");
           if (onUpdateTrainer) {
             onUpdateTrainer({
               id: data.session.user.id,
@@ -7979,7 +7984,9 @@ function PaywallScreen({ trainer, onLogout }) {
   useEffect(function() {
     if (isAutoRedirecting && trainer && trainer.id) {
       sessionStorage.removeItem("just_signed_up");
-      handleCheckout("monthly");
+      const targetPlan = sessionStorage.getItem("signup_selected_plan") || "monthly";
+      sessionStorage.removeItem("signup_selected_plan");
+      handleCheckout(targetPlan);
     }
   }, [isAutoRedirecting, trainer && trainer.id]);
 
@@ -7995,7 +8002,10 @@ function PaywallScreen({ trainer, onLogout }) {
               <div style={{ background:"#FEE2E2", color:"#991B1B", padding:16, borderRadius:12, fontSize:14, marginBottom:16, textAlign:"center", border: "1px solid #FCA5A5" }}>
                 {errorMsg}
               </div>
-              <Btn full onClick={function() { handleCheckout("monthly"); }} disabled={loading}>
+              <Btn full onClick={function() { 
+                const targetPlan = sessionStorage.getItem("signup_selected_plan") || (selectedPlan === "annual" ? "annual" : "monthly");
+                handleCheckout(targetPlan); 
+              }} disabled={loading}>
                 {lang === "pt" ? "Tentar Novamente" : "Try Again"}
               </Btn>
               <button 
