@@ -9930,7 +9930,9 @@ export default function App() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [showInstallModal, setShowInstallModal] = useState(false);
   const [tab, setTab] = useState("home");
-  const [hasAccess, setHasAccess] = useState(true);
+  const [hasAccess, setHasAccess] = useState(function() {
+    return sessionStorage.getItem("just_signed_up") !== "true";
+  });
   const [user, setUser] = useState(null);
   const [loadingSession, setLoadingSession] = useState(true);
   const [activeTour, setActiveTour] = useState(null);
@@ -10867,7 +10869,7 @@ export default function App() {
 
   if (!logged) return <><GlobalStyle/><LoginScreen onLogin={function() { setLogged(true); }} trainer={trainer} onUpdateTrainer={handleUpdateTrainer}/></>;
 
-  if (!hasAccess) {
+  if (!hasAccess || sessionStorage.getItem("just_signed_up") === "true") {
     return (
       <>
         <GlobalStyle />
