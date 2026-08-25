@@ -10105,7 +10105,7 @@ export default function App() {
           sessionStorage.setItem("avaliapro_session_active", "true");
           setUser(session.user);
           setLogged(true);
-          loadUserData(session.user);
+          loadUserData(session.user, true);
         } else {
           setLoadingSession(false);
         }
@@ -10119,11 +10119,16 @@ export default function App() {
           setUser(session.user);
           setLogged(true);
         }
+      } else if (event === "TOKEN_REFRESHED") {
+        if (session) {
+          setUser(session.user);
+          setLogged(true);
+        }
       } else if (session) {
         sessionStorage.setItem("avaliapro_session_active", "true");
         setUser(session.user);
         setLogged(true);
-        loadUserData(session.user);
+        loadUserData(session.user, false);
       } else {
         setUser(null);
         setLogged(false);
@@ -10140,10 +10145,12 @@ export default function App() {
     };
   }, []);
 
-  async function loadUserData(sessionUser) {
+  async function loadUserData(sessionUser, isInitial = false) {
     if (!sessionUser || isLoadingUserRef.current) return;
     isLoadingUserRef.current = true;
-    setLoadingSession(true);
+    if (isInitial) {
+      setLoadingSession(true);
+    }
     try {
       let { data: trainerData, error: trainerError } = await supabase
         .from('trainers')
