@@ -10142,6 +10142,7 @@ export default function App() {
         sessionStorage.setItem("avaliapro_session_active", "true");
         setUser(session.user);
         setLogged(true);
+        setTab("home");
         const justSignedUp = sessionStorage.getItem("just_signed_up") === "true";
         loadUserData(session.user, !justSignedUp);
       } else if (session) {
@@ -10153,6 +10154,7 @@ export default function App() {
         setUser(null);
         setLogged(false);
         setLoadingSession(false);
+        setTab("home");
         setTrainer(function(prev) {
           return { nome:"Prof. Jefferson", email:"", foto:"", telefone:"", corPrimaria:"#1A1A2E", lang: prev?.lang || "pt" };
         });
@@ -10610,6 +10612,7 @@ export default function App() {
     sessionStorage.removeItem("avaliapro_session_active");
     setLogged(false);
     setHasAccess(true);
+    setTab("home");
     resetStack();
   }
 
@@ -10885,7 +10888,7 @@ export default function App() {
     );
   }
 
-  if (!logged) return <><GlobalStyle/><LoginScreen onLogin={function() { setLoadingSession(true); setLogged(true); }} trainer={trainer} onUpdateTrainer={handleUpdateTrainer}/></>;
+  if (!logged) return <><GlobalStyle/><LoginScreen onLogin={function() { setTab("home"); setLoadingSession(true); setLogged(true); }} trainer={trainer} onUpdateTrainer={handleUpdateTrainer}/></>;
 
   if (!hasAccess || sessionStorage.getItem("just_signed_up") === "true") {
     return (
