@@ -9949,6 +9949,7 @@ export default function App() {
   const [loadingSession, setLoadingSession] = useState(true);
   const [activeTour, setActiveTour] = useState(null);
   const isLoadingUserRef = useRef(false);
+  const loadedUserIdRef = useRef(null);
   
   const [trainer, setTrainer] = useState(function() {
     const saved = localStorage.getItem("avaliapro_trainer");
@@ -10133,24 +10134,21 @@ export default function App() {
           setUser(session.user);
           setLogged(true);
         }
-      } else if (event === "TOKEN_REFRESHED") {
-        if (session) {
-          setUser(session.user);
-          setLogged(true);
-        }
-      } else if (event === "SIGNED_IN") {
-        sessionStorage.setItem("avaliapro_session_active", "true");
-        setUser(session.user);
-        setLogged(true);
-        setTab("home");
-        const justSignedUp = sessionStorage.getItem("just_signed_up") === "true";
-        loadUserData(session.user, !justSignedUp);
       } else if (session) {
         sessionStorage.setItem("avaliapro_session_active", "true");
         setUser(session.user);
         setLogged(true);
-        loadUserData(session.user, false);
+
+        // Se os dados do usuário já foram carregados na memória (ex: troca de abas ou renovação de token),
+        // NÃO dispara a tela de carregamento nem recarrega dados novamente!
+        const alreadyLoaded = Boolean(loadedUserIdRef.current && loadedUserIdRef.current === session.user.id);
+        if (!alreadyLoaded) {
+          loadedUserIdRef.current = session.user.id;
+          const justSignedUp = sessionStorage.getItem("just_signed_up") === "true";
+          loadUserData(session.user, !justSignedUp);
+        }
       } else {
+        loadedUserIdRef.current = null;
         setUser(null);
         setLogged(false);
         setLoadingSession(false);
@@ -10170,6 +10168,7 @@ export default function App() {
   async function loadUserData(sessionUser, isInitial = false) {
     if (!sessionUser || isLoadingUserRef.current) return;
     isLoadingUserRef.current = true;
+    loadedUserIdRef.current = sessionUser.id;
     if (isInitial) {
       setLoadingSession(true);
     }
@@ -10607,6 +10606,7 @@ export default function App() {
   }
 
   async function handleLogout() {
+    loadedUserIdRef.current = null;
     await supabase.auth.signOut();
     localStorage.removeItem("avaliapro_remember_me");
     sessionStorage.removeItem("avaliapro_session_active");
