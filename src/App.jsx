@@ -10160,19 +10160,6 @@ export default function App() {
 
       if (trainerError) throw trainerError;
 
-      // Sincronizar o idioma do banco com o idioma local/URL da tela de cadastro
-      if (trainerData && trainerData.lang === 'pt' && (trainer.lang === 'es' || trainer.lang === 'en')) {
-        const { data: updated, error: updateError } = await supabase
-          .from('trainers')
-          .update({ lang: trainer.lang })
-          .eq('id', sessionUser.id)
-          .select()
-          .single();
-        if (!updateError && updated) {
-          trainerData = updated;
-        }
-      }
-
       if (!trainerData) {
         const defaultSettings = {
           defaultMetodo: "pollock7",
@@ -10235,6 +10222,11 @@ export default function App() {
       };
 
       setTrainer(mappedTrainer);
+      try {
+        localStorage.setItem("avaliapro_trainer", JSON.stringify(mappedTrainer));
+      } catch(e) {
+        console.warn("Erro ao salvar trainer no localStorage:", e);
+      }
 
       const status = trainerData.subscription_status || "inactive";
       const periodEndStr = trainerData.current_period_end;
@@ -10565,6 +10557,11 @@ export default function App() {
   async function handleUpdateTrainer(newTrainer) {
     setTrainer(newTrainer);
     _ACC = newTrainer.corPrimaria;
+    try {
+      localStorage.setItem("avaliapro_trainer", JSON.stringify(newTrainer));
+    } catch(e) {
+      console.warn("Erro ao salvar trainer no localStorage:", e);
+    }
     if (logged && user) {
       const nextSettings = Object.assign({}, settings, { unitSystem: newTrainer.unitSystem });
       setSettings(nextSettings);
