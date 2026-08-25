@@ -3222,6 +3222,18 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
           localStorage.setItem("avaliapro_remember_me", rememberMe ? "true" : "false");
           sessionStorage.setItem("avaliapro_session_active", "true");
           sessionStorage.setItem("just_signed_up", "true");
+          if (onUpdateTrainer) {
+            onUpdateTrainer({
+              id: data.session.user.id,
+              nome: nome,
+              email: trimmedEmail,
+              telefone: "",
+              foto: "",
+              corPrimaria: "#1A1A2E",
+              lang: lang,
+              subscriptionStatus: "inactive"
+            });
+          }
           onLogin();
         } else {
           alert(lang === "pt" 
@@ -7965,11 +7977,11 @@ function PaywallScreen({ trainer, onLogout }) {
   });
 
   useEffect(function() {
-    if (isAutoRedirecting) {
+    if (isAutoRedirecting && trainer && trainer.id) {
       sessionStorage.removeItem("just_signed_up");
       handleCheckout("monthly");
     }
-  }, [isAutoRedirecting]);
+  }, [isAutoRedirecting, trainer && trainer.id]);
 
   if (isAutoRedirecting) {
     return (
@@ -7983,7 +7995,7 @@ function PaywallScreen({ trainer, onLogout }) {
               <div style={{ background:"#FEE2E2", color:"#991B1B", padding:16, borderRadius:12, fontSize:14, marginBottom:16, textAlign:"center", border: "1px solid #FCA5A5" }}>
                 {errorMsg}
               </div>
-              <Btn full onClick={function() { handleCheckout(); }} disabled={loading}>
+              <Btn full onClick={function() { handleCheckout("monthly"); }} disabled={loading}>
                 {lang === "pt" ? "Tentar Novamente" : "Try Again"}
               </Btn>
               <button 
