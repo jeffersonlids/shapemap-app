@@ -1228,11 +1228,18 @@ function GlobalStyle() {
       .print-only { display: none !important; }
 
       @media print {
-        body { background: #ffffff !important; margin: 0 !important; padding: 0 !important; font-family: Arial, Helvetica, sans-serif !important; }
+        html, body { 
+          background: #ffffff !important; 
+          margin: 0 !important; 
+          padding: 0 !important; 
+          font-family: Arial, Helvetica, sans-serif !important; 
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
         body * { visibility: hidden !important; font-family: Arial, Helvetica, sans-serif !important; }
         #print-section, #print-section *, #print-compare-section, #print-compare-section * { visibility: visible !important; font-family: Arial, Helvetica, sans-serif !important; }
         
-        .no-print, .no-print * { display: none !important; }
+        .no-print, .no-print * { display: none !important; visibility: hidden !important; }
         .print-only { display: block !important; }
         .recharts-tooltip-wrapper { display: none !important; }
 
@@ -2150,6 +2157,18 @@ function fmtDate(iso) {
   if (!iso) return "";
   const parts = iso.split("-");
   return parts[2] + "/" + parts[1] + "/" + parts[0];
+}
+function triggerPrintReport(studentName) {
+  const originalTitle = document.title;
+  const firstName = (studentName || "").trim().split(/\s+/)[0] || "Cliente";
+  document.title = firstName + " - ShapeMap";
+
+  setTimeout(function() {
+    window.print();
+    setTimeout(function() {
+      document.title = originalTitle;
+    }, 1500);
+  }, 60);
 }
 function pctColor(v) { return parseFloat(v) < 20 ? T.success : parseFloat(v) < 30 ? T.warning : T.danger; }
 function compResult(sexo, idade, perim, comp) {
@@ -5220,7 +5239,7 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
 
   return (
     <div style={{ paddingBottom:80 }}>
-      {done && <CompletionOverlay onPDF={function() { window.print(); }} onClose={onBack} onCompare={onCompare} showCompare={alunoAvaliacoesCount >= 2} lang={lang}/>}
+      {done && <CompletionOverlay onPDF={function() { triggerPrintReport(alunoNome || av.nome); }} onClose={onBack} onCompare={onCompare} showCompare={alunoAvaliacoesCount >= 2} lang={lang}/>}
       <div className="no-print" style={{ position:"sticky", top:0, zIndex:60, background:T.bg, borderBottom:"1px solid "+T.border, padding:"11px 16px 0" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:11 }}>
           <button onClick={handleBack} style={{ background:"none", border:"1.5px solid "+T.border, borderRadius:8, padding:"7px 10px", cursor:"pointer", display:"flex", alignItems:"center" }}>
@@ -6727,7 +6746,7 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
           </div>
         </div>
         <div className="no-print">
-          <Btn onClick={function() { window.print(); }} icon={<IcPdf c="#fff" s={16}/>}>{t("salvar_pdf", lang)}</Btn>
+          <Btn onClick={function() { triggerPrintReport((aluno && aluno.nome) || "Cliente"); }} icon={<IcPdf c="#fff" s={16}/>}>{t("salvar_pdf", lang)}</Btn>
         </div>
       </div>
 
@@ -10011,6 +10030,7 @@ export default function App() {
     let originalTitle = document.title;
 
     function handleBeforePrint() {
+      if (document.title && document.title.includes(" - ShapeMap")) return;
       originalTitle = document.title;
       const cur = stack[stack.length - 1];
       if (cur) {
