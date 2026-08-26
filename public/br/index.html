@@ -134,21 +134,22 @@
                 <div class="vsl-wrapper">
                     <div class="vsl-mockup">
                         <div class="vsl-video-container" style="position: relative; overflow: hidden; background: #000; border-radius: 12px;">
-                            <!-- Embedded Iframe ready to play -->
-                            <iframe 
-                                id="vslPlayer"
-                                src="https://www.youtube.com/embed/zzPiKMaeN48?enablejsapi=1&autoplay=0&mute=0&controls=1&rel=0&playsinline=1" 
-                                title="ShapeMap VSL" 
-                                frameborder="0" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                allowfullscreen
-                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; border-radius: 12px; z-index: 1;">
-                            </iframe>
-                            <!-- Youtube Facade (Preview Image) to prevent initial render blocking -->
-                            <div class="vsl-facade" id="vslFacade" onclick="playVSLVideo()" style="position: absolute; inset: 0; cursor: pointer; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; z-index: 10; transition: opacity 0.5s ease;">
-                                <img src="/br/thumbnail.png" alt="ShapeMap VSL Preview" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: opacity 0.3s, transform 0.3s;">
-                                <div class="play-btn-wrapper" style="position: absolute; width: 68px; height: 68px; background: rgba(0, 0, 0, 0.65); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.4); transition: transform 0.2s, background-color 0.2s;">
-                                    <svg width="24" height="26" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: 3px;">
+                            <!-- Native HTML5 Video Player -->
+                            <video 
+                                id="vslPlayer" 
+                                playsinline 
+                                controls 
+                                preload="none"
+                                poster="/br/capa.webp" 
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 12px; object-fit: cover; z-index: 1;">
+                                <source src="/br/vsl.mp4" type="video/mp4">
+                                Seu navegador não suporta a reprodução deste vídeo.
+                            </video>
+                            <!-- Custom Facade Cover with Play Button -->
+                            <div class="vsl-facade" id="vslFacade" onclick="playVSLVideo()" style="position: absolute; inset: 0; cursor: pointer; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; z-index: 10; transition: opacity 0.4s ease;">
+                                <img src="/br/capa.webp" alt="ShapeMap Vídeo de Apresentação" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95; transition: opacity 0.3s, transform 0.3s;">
+                                <div class="play-btn-wrapper" style="position: absolute; width: 72px; height: 72px; background: rgba(13, 148, 136, 0.9); border: 2px solid rgba(255,255,255,0.8); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(45, 212, 191, 0.4); transition: transform 0.2s, background-color 0.2s;">
+                                    <svg width="26" height="28" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-left: 4px;">
                                         <path d="M4 2.69v22.62c0 1.57 1.73 2.53 3.06 1.7l18.1-11.31c1.23-.77 1.23-2.62 0-3.39L7.06.99C5.73.16 4 1.12 4 2.69z" fill="#ffffff"/>
                                     </svg>
                                 </div>
@@ -837,24 +838,24 @@
 
     <!-- Video Facade and Lazy-loading Video Scripts -->
     <script>
-        // Play YouTube VSL with fade-out effect and postMessage
+        // Play Native VSL Video with smooth fade-out effect
         function playVSLVideo() {
             const facade = document.getElementById('vslFacade');
+            const video = document.getElementById('vslPlayer');
             if (facade) {
                 facade.style.opacity = '0';
                 setTimeout(() => {
                     facade.style.display = 'none';
-                }, 500);
+                }, 400);
             }
-            const iframe = document.getElementById('vslPlayer');
-            if (iframe && iframe.contentWindow) {
-                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+            if (video) {
+                video.play();
             }
         }
 
-        // Lazy-load autoplay videos to prevent network congestion during initial paint
+        // Lazy-load other background autoplay videos to prevent network congestion during initial paint
         window.addEventListener('load', function() {
-            const lazyVideos = [].slice.call(document.querySelectorAll('video'));
+            const lazyVideos = [].slice.call(document.querySelectorAll('video:not(#vslPlayer)'));
             lazyVideos.forEach(function(video) {
                 const source = video.querySelector('source');
                 if (source && source.dataset.src) {
