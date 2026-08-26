@@ -5200,16 +5200,19 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
     });
   }
 
-  async function finalizar() { 
-    setSaveState("saving"); 
-    try {
-      await onSave(av);
-      setSaveState("saved");
-    } catch (err) {
-      console.error("Erro ao finalizar:", err);
-    }
+  function finalizar() { 
+    if (done) return;
     setTab(9); 
     setDone(true); 
+    setSaveState("saving"); 
+    Promise.resolve(onSave(av))
+      .then(function() {
+        setSaveState("saved");
+      })
+      .catch(function(err) {
+        console.error("Erro ao finalizar em segundo plano:", err);
+        setSaveState("error");
+      });
   }
 
   async function enviarAluno() {
