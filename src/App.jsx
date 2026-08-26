@@ -7752,43 +7752,22 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour, onManageAsaa
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <div style={{ width:3, height:17, borderRadius:2, background:ac() }}/>
             <div style={{ fontSize:12, fontWeight:700, color:ac(), letterSpacing:1.2, textTransform:"uppercase" }}>
-              {lang === "es" ? "Programa de Recomendación" : lang === "en" ? "Referral Program" : "Indique e Ganhe"}
+              {lang === "es" ? "Recomienda y Gana 1 Mes Gratis" : lang === "en" ? "Refer & Earn 1 Free Month" : "Indique e Ganhe 1 Mês Grátis"}
             </div>
           </div>
 
-          {/* Destaque Principal com Ícone SVG Personalizado */}
+          {/* Destaque com Ícone de Presente e Texto Explicativo */}
           <div style={{ display:"flex", alignItems:"center", gap:14, padding:"2px 0" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <IcGift c={ac()} s={38} />
+              <IcGift c={ac()} s={36} />
             </div>
-            <div>
-              <div style={{ fontSize:18, fontWeight:800, color:T.text, lineHeight:1.25 }}>
-                {lang === "es" ? "Recomienda y Gana 1 Mes Gratis" : lang === "en" ? "Refer & Earn 1 Free Month" : "Indique e Ganhe 1 Mês Grátis"}
-              </div>
-              <div style={{ fontSize:12, color:T.muted, marginTop:4, lineHeight:1.45 }}>
-                {lang === "es" 
-                  ? "Para cada amigo que se suscriba a través de su enlace, usted gana +1 mes gratis." 
-                  : lang === "en" 
-                  ? "For every friend who subscribes through your link, you get +1 free month." 
-                  : "Para cada amigo que assinar pelo seu link, você ganha +1 mês grátis."}
-              </div>
+            <div style={{ fontSize:13, color:T.muted, lineHeight:1.5 }}>
+              {lang === "es" 
+                ? "Para cada amigo que se suscriba a cualquier plan a través de su enlace, usted gana +1 mes gratis agregado automáticamente a su suscripción." 
+                : lang === "en" 
+                ? "For every friend who subscribes to any plan through your link, you get +1 free month automatically added to your subscription." 
+                : "Para cada amigo que assinar qualquer plano pelo seu link, você ganha +1 mês grátis adicionado automaticamente à sua assinatura."}
             </div>
-          </div>
-
-          {/* Amigos Indicados Logo Abaixo */}
-          <div style={{ 
-            color: ac(), 
-            fontSize: 13, 
-            fontWeight: 700, 
-            display: "flex", 
-            alignItems: "center", 
-            gap: 6,
-            marginTop: -4
-          }}>
-            <IcUsers c={ac()} s={16} />
-            <span>
-              {lang === "es" ? "Amigos Indicados" : lang === "en" ? "Referred Friends" : "Amigos Indicados"}: {referralCount}
-            </span>
           </div>
 
           {/* Campo do Link Exclusivo */}
