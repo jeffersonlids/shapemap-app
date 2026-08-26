@@ -389,11 +389,10 @@ img {
 }
 
 .vsl-mockup {
-    background-color: var(--color-card-bg);
-    border-radius: var(--border-radius-lg);
-    border: 1px solid var(--color-border);
-    box-shadow: var(--shadow-lg);
-    overflow: hidden;
+    background: linear-gradient(135deg, #10b981 0%, #2563eb 100%);
+    padding: 2.5px;
+    border-radius: 16px;
+    box-shadow: 0 16px 36px -6px rgba(16, 185, 129, 0.15), 0 6px 16px -2px rgba(37, 99, 235, 0.08);
     position: relative;
     z-index: 2;
     transition: var(--transition-smooth);
