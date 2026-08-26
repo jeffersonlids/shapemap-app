@@ -105,11 +105,56 @@ export default async function handler(req, res) {
 
   try {
     const paymentObj = payment || (event && event.startsWith('SUBSCRIPTION') ? subscription : null);
-    const rawRef = String(paymentObj?.externalReference || '');
-    const trainerId = rawRef.includes(':') ? rawRef.split(':')[0] : rawRef;
+    const rawRef = String(paymentObj?.externalReference || subscription?.externalReference || '');
+    let trainerId = rawRef.includes(':') ? rawRef.split(':')[0] : rawRef;
     const planTag = rawRef.includes(':') ? rawRef.split(':')[1] : '';
-    const customerId = paymentObj?.customer;
+    const customerId = paymentObj?.customer || subscription?.customer;
     const subscriptionId = paymentObj?.subscription || subscription?.id;
+    let customerEmail = null;
+
+    // Se trainerId não veio no externalReference, busca no cliente do Asaas
+    if (!trainerId && customerId) {
+      const asaasApiKey = process.env.ASAAS_API_KEY;
+      if (asaasApiKey) {
+        try {
+          const custRes = await fetch(`https://www.asaas.com/api/v3/customers/${customerId}`, {
+            headers: { 'access_token': asaasApiKey }
+          });
+          if (custRes.ok) {
+            const custData = await custRes.json();
+            const custRef = String(custData.externalReference || '');
+            if (custRef) {
+              trainerId = custRef.includes(':') ? custRef.split(':')[0] : custRef;
+            }
+            if (custData.email) {
+              customerEmail = custData.email.trim();
+            }
+          }
+        } catch (custErr) {
+          console.warn('⚠️ Aviso ao buscar dados do cliente no Asaas:', custErr);
+        }
+      }
+    }
+
+    // Se ainda não temos o ID, busca no Supabase por email ou asaas_customer_id
+    if (!trainerId && (customerId || customerEmail)) {
+      try {
+        let findQuery = supabase.from('trainers').select('id, email');
+        if (customerId && customerEmail) {
+          findQuery = findQuery.or(`asaas_customer_id.eq.${customerId},email.eq.${customerEmail}`);
+        } else if (customerId) {
+          findQuery = findQuery.eq('asaas_customer_id', customerId);
+        } else if (customerEmail) {
+          findQuery = findQuery.eq('email', customerEmail);
+        }
+        const { data: foundTrainer } = await findQuery.maybeSingle();
+        if (foundTrainer) {
+          trainerId = foundTrainer.id;
+        }
+      } catch (findErr) {
+        console.warn('⚠️ Aviso ao localizar treinador por email/customerId:', findErr);
+      }
+    }
 
     if (event === 'PAYMENT_RECEIVED' || event === 'PAYMENT_CONFIRMED' || event === 'PAYMENT_DUNNING_RECEIVED') {
       // Pagamento confirmado (Pix, Cartão ou Boleto)!
@@ -148,6 +193,8 @@ export default async function handler(req, res) {
         query = query.eq('id', trainerId);
       } else if (customerId) {
         query = query.eq('asaas_customer_id', customerId);
+      } else if (customerEmail) {
+        query = query.eq('email', customerEmail);
       }
 
       const { error } = await query;
