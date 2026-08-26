@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import { processReferralReward } from './referral-reward.js';
 
 function sha256(text) {
   if (!text) return null;
@@ -179,6 +180,11 @@ export default async function handler(req, res) {
             buyerPhone,
             buyerName
           );
+        // Processar bônus de indicação ("Indique e Ganhe")
+        try {
+          await processReferralReward(supabase, trainerId);
+        } catch (refErr) {
+          console.warn('⚠️ Falha ao processar bônus de indicação (Stripe):', refErr);
         }
         break;
       }

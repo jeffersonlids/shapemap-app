@@ -3199,6 +3199,14 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
     setErrorMsg("");
     
     if (isSignUp) {
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlRef = searchParams.get("ref") || searchParams.get("indicacao") || searchParams.get("referral");
+      if (urlRef) {
+        sessionStorage.setItem("signup_ref", urlRef);
+        localStorage.setItem("signup_ref", urlRef);
+      }
+      const signupRef = sessionStorage.getItem("signup_ref") || localStorage.getItem("signup_ref") || null;
+
       const { data, error } = await supabase.auth.signUp({
         email: trimmedEmail,
         password: senha,
@@ -3206,6 +3214,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
           data: {
             nome: nome,
             lang: lang,
+            referred_by: signupRef,
             termos_aceite_data: new Date().toISOString(),
             termos_versao: "1.0"
           }
@@ -3220,7 +3229,6 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
           window.fbq('track', 'CompleteRegistration');
         }
         if (data.session) {
-          const searchParams = new URLSearchParams(window.location.search);
           const planParam = searchParams.get("plan") || searchParams.get("plano");
           const isAnnual = planParam === "anual" || planParam === "annual" || planParam === "annual_card" || planParam === "annual_pix";
 
@@ -3229,6 +3237,10 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
           sessionStorage.setItem("just_signed_up", "true");
           sessionStorage.setItem("signup_lang", lang);
           localStorage.setItem("avaliapro_lang", lang);
+          if (signupRef) {
+            sessionStorage.setItem("signup_ref", signupRef);
+            localStorage.setItem("signup_ref", signupRef);
+          }
           sessionStorage.setItem("signup_selected_plan", isAnnual ? planParam : "monthly");
           if (onUpdateTrainer) {
             onUpdateTrainer({
@@ -7457,6 +7469,37 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour, onManageAsaa
   const [cropImageSrc, setCropImageSrc] = useState(null);
   const fileRef = useRef();
 
+  // Estados para Indique e Ganhe
+  const [referralCount, setReferralCount] = useState(0);
+  const [copiedReferral, setCopiedReferral] = useState(false);
+
+  useEffect(function() {
+    if (!trainer || !trainer.id) return;
+    supabase
+      .from('trainers')
+      .select('id', { count: 'exact', head: true })
+      .eq('referred_by', trainer.id)
+      .then(function({ count, error }) {
+        if (!error && typeof count === 'number') {
+          setReferralCount(count);
+        }
+      });
+  }, [trainer && trainer.id]);
+
+  const referralLink = window.location.origin + "/?ref=" + ((trainer && (trainer.referralCode || trainer.id)) || "");
+  const shareText = lang === "es"
+    ? "¡Hola! Te recomiendo ShapeMap para hacer evaluaciones físicas profesionales de forma rápida y completa. Échale un vistazo: " + referralLink
+    : lang === "en"
+    ? "Hey! I recommend ShapeMap for fast and complete physical assessments. Check it out: " + referralLink
+    : "Olá! Recomendo o ShapeMap para fazer avaliações físicas profissionais de forma rápida e completa. Dá uma olhada: " + referralLink;
+  const whatsappShareUrl = "https://api.whatsapp.com/send?text=" + encodeURIComponent(shareText);
+
+  function handleCopyReferralLink() {
+    navigator.clipboard.writeText(referralLink);
+    setCopiedReferral(true);
+    setTimeout(function() { setCopiedReferral(false); }, 2500);
+  }
+
   // Novos states para alteração de credenciais
   const [showEditCredentials, setShowEditCredentials] = useState(false);
   const [newEmail, setNewEmail] = useState("");
@@ -7653,6 +7696,118 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour, onManageAsaa
           </div>
         </div>
         <input ref={fileRef} type="file" accept="image/*" onChange={handleFoto} style={{ display:"none" }}/>
+      </Card>
+
+      {/* Indique e Ganhe Card */}
+      <Card sx={{ padding:18, marginBottom:14 }}>
+        <div style={{ display: "flex", flexDirection:"column", gap:14 }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <div style={{ fontSize:18 }}>🎁</div>
+              <div style={{ fontSize:14, fontWeight:700, color:T.text }}>
+                {lang === "es" ? "Recomienda y Gana 1 Mes Gratis" : lang === "en" ? "Refer & Earn 1 Free Month" : "Indique e Ganhe 1 Mês Grátis"}
+              </div>
+            </div>
+            <div style={{ 
+              background: ac() + "18", 
+              color: ac(), 
+              padding: "4px 10px", 
+              borderRadius: 20, 
+              fontSize: 12, 
+              fontWeight: 700, 
+              display: "flex", 
+              alignItems: "center", 
+              gap: 5 
+            }}>
+              <span>👥</span>
+              <span>
+                {lang === "es" ? "Amigos Indicados" : lang === "en" ? "Referred Friends" : "Amigos Indicados"}: {referralCount}
+              </span>
+            </div>
+          </div>
+
+          <div style={{ fontSize:13, color:T.muted, lineHeight:1.45 }}>
+            {lang === "es" 
+              ? "Para cada amigo que se suscriba a cualquier plan a través de su enlace, usted gana +1 mes gratis agregado automáticamente a su suscripción." 
+              : lang === "en" 
+              ? "For every friend who subscribes to any plan through your link, you get +1 free month automatically added to your subscription." 
+              : "Para cada amigo que assinar qualquer plano pelo seu link, você ganha +1 mês grátis adicionado automaticamente à sua assinatura."}
+          </div>
+
+          <div style={{ display:"flex", flexDirection:"column", gap:8, background:T.bg, padding:12, borderRadius:12, border:"1.5px solid "+T.border }}>
+            <div style={{ fontSize:11, fontWeight:700, color:T.sub, textTransform:"uppercase", letterSpacing:0.5 }}>
+              {lang === "es" ? "Su Enlace Exclusivo" : lang === "en" ? "Your Exclusive Link" : "Seu Link Exclusivo"}
+            </div>
+            <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+              <input 
+                readOnly 
+                value={referralLink} 
+                onClick={function(e) { e.target.select(); }}
+                style={{ 
+                  flex:1, 
+                  background:T.surface, 
+                  border:"1.5px solid "+T.border, 
+                  borderRadius:8, 
+                  padding:"9px 12px", 
+                  fontSize:12, 
+                  color:T.text, 
+                  fontWeight:500,
+                  outline:"none",
+                  overflow:"hidden",
+                  textOverflow:"ellipsis"
+                }}
+              />
+              <button 
+                onClick={handleCopyReferralLink}
+                style={{ 
+                  background: copiedReferral ? T.success : ac(), 
+                  color:"#fff", 
+                  border:"none", 
+                  borderRadius:8, 
+                  padding:"9px 16px", 
+                  fontSize:12, 
+                  fontWeight:700, 
+                  cursor:"pointer",
+                  display:"flex",
+                  alignItems:"center",
+                  gap:5,
+                  transition:"all 0.15s",
+                  whiteSpace:"nowrap"
+                }}
+              >
+                {copiedReferral ? <IcCheck c="#fff" s={14}/> : null}
+                {copiedReferral 
+                  ? (lang === "es" ? "¡Copiado!" : lang === "en" ? "Copied!" : "Copiado!") 
+                  : (lang === "es" ? "Copiar" : lang === "en" ? "Copy" : "Copiar")}
+              </button>
+            </div>
+          </div>
+
+          <a 
+            href={whatsappShareUrl} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            style={{ 
+              textDecoration:"none", 
+              background:"#25D366", 
+              color:"#fff", 
+              borderRadius:10, 
+              padding:"10px 14px", 
+              fontSize:13, 
+              fontWeight:700, 
+              display:"flex", 
+              alignItems:"center", 
+              justifyContent:"center", 
+              gap:8, 
+              boxShadow:"0 2px 8px rgba(37, 211, 102, 0.25)" 
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff">
+              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+            </svg>
+            <span>{lang === "es" ? "Compartir en WhatsApp" : lang === "en" ? "Share on WhatsApp" : "Compartilhar no WhatsApp"}</span>
+          </a>
+        </div>
       </Card>
 
       {/* Assinatura Card */}
@@ -10218,6 +10373,8 @@ export default function App() {
       const userMetaLang = sessionUser.user_metadata?.lang;
       const effectiveLang = userMetaLang || savedLang || urlLang || (trainer && trainer.lang) || "pt";
 
+      const signupRef = sessionUser.user_metadata?.referred_by || sessionStorage.getItem("signup_ref") || localStorage.getItem("signup_ref") || null;
+
       if (!trainerData) {
         const defaultSettings = {
           defaultMetodo: "pollock7",
@@ -10248,6 +10405,8 @@ export default function App() {
           telefone: sessionUser.user_metadata?.telefone || "",
           cor_primaria: "#1A1A2E",
           lang: effectiveLang,
+          referred_by: (signupRef && signupRef !== sessionUser.id) ? signupRef : null,
+          referral_rewarded: false,
           settings: defaultSettings
         };
 
@@ -10276,7 +10435,10 @@ export default function App() {
         paymentGateway: trainerData.payment_gateway || (trainerData.asaas_subscription_id ? 'asaas' : (trainerData.stripe_customer_id ? 'stripe' : 'none')),
         subscriptionStatus: trainerData.subscription_status || "inactive",
         subscriptionId: trainerData.subscription_id || "",
-        currentPeriodEnd: trainerData.current_period_end || null
+        currentPeriodEnd: trainerData.current_period_end || null,
+        referredBy: trainerData.referred_by || null,
+        referralRewarded: Boolean(trainerData.referral_rewarded),
+        referralCode: trainerData.referral_code || trainerData.id
       };
 
       setTrainer(mappedTrainer);

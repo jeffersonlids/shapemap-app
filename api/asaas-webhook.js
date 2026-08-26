@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import { processReferralReward } from './referral-reward.js';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
@@ -175,13 +176,15 @@ export default async function handler(req, res) {
       }
 
       // Disparar evento de Purchase server-side no Meta Conversions API (CAPI)
+      let currentTrainerId = trainerId;
       try {
-        let queryTrainer = supabase.from('trainers').select('email, nome, telefone');
+        let queryTrainer = supabase.from('trainers').select('id, email, nome, telefone');
         if (trainerId) queryTrainer = queryTrainer.eq('id', trainerId);
         else if (customerId) queryTrainer = queryTrainer.eq('asaas_customer_id', customerId);
 
         const { data: trainerObj } = await queryTrainer.maybeSingle();
         if (trainerObj) {
+          currentTrainerId = trainerObj.id;
           const finalValue = paymentValue > 0 ? paymentValue : (isAnnualPayment ? 179.00 : 19.90);
           await sendMetaCapiEvent(
             trainerObj.email,
@@ -195,6 +198,15 @@ export default async function handler(req, res) {
         }
       } catch (capiErr) {
         console.warn('⚠️ Falha ao buscar dados do treinador para Meta CAPI (Asaas):', capiErr);
+      }
+
+      // Processar bônus de indicação ("Indique e Ganhe")
+      if (currentTrainerId) {
+        try {
+          await processReferralReward(supabase, currentTrainerId);
+        } catch (refErr) {
+          console.warn('⚠️ Falha ao processar bônus de indicação (Asaas):', refErr);
+        }
       }
     } else if (event === 'PAYMENT_OVERDUE' || event === 'PAYMENT_DELETED' || event === 'PAYMENT_REFUNDED' || event === 'SUBSCRIPTION_DELETED') {
       // Pagamento em atraso, cancelado ou reembolsado
