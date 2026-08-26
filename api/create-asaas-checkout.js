@@ -17,10 +17,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { trainerId, email, nome, telefone, planType } = req.body || {};
+  const { trainerId, email, nome, telefone, planType, lang } = req.body || {};
 
   if (!trainerId || !email) {
     return res.status(400).json({ error: 'Dados insuficientes (trainerId ou email ausentes).' });
+  }
+
+  if (lang === 'es' || lang === 'en') {
+    return res.status(400).json({ error: 'Asaas is only available for BRL. International checkouts must use Stripe.' });
   }
 
   try {

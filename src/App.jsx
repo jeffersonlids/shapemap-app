@@ -3205,6 +3205,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
         options: {
           data: {
             nome: nome,
+            lang: lang,
             termos_aceite_data: new Date().toISOString(),
             termos_versao: "1.0"
           }
@@ -3226,6 +3227,8 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
           localStorage.setItem("avaliapro_remember_me", rememberMe ? "true" : "false");
           sessionStorage.setItem("avaliapro_session_active", "true");
           sessionStorage.setItem("just_signed_up", "true");
+          sessionStorage.setItem("signup_lang", lang);
+          localStorage.setItem("avaliapro_lang", lang);
           sessionStorage.setItem("signup_selected_plan", isAnnual ? planParam : "monthly");
           if (onUpdateTrainer) {
             onUpdateTrainer({
@@ -3243,6 +3246,8 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
         } else {
           alert(lang === "pt" 
             ? "Cadastro realizado! Verifique seu e-mail para confirmar a conta." 
+            : lang === "es"
+            ? "¡Registro realizado! Verifique su correo electrónico para confirmar la cuenta."
             : "Registration successful! Please check your email to verify your account.");
           setIsSignUp(false);
         }
@@ -7886,7 +7891,16 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour, onManageAsaa
 }
 
 function PaywallScreen({ trainer, onLogout }) {
-  const lang = (trainer && trainer.lang) || "pt";
+  const searchParams = new URLSearchParams(window.location.search);
+  const urlLang = searchParams.get("lang") || searchParams.get("locale");
+  const savedLang = sessionStorage.getItem("signup_lang") || localStorage.getItem("avaliapro_lang");
+  const effectiveLang = (trainer && (trainer.lang === 'es' || trainer.lang === 'en') ? trainer.lang : null)
+    || savedLang
+    || urlLang
+    || (trainer && trainer.lang)
+    || "pt";
+  const lang = effectiveLang;
+
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("annual");
@@ -7900,30 +7914,34 @@ function PaywallScreen({ trainer, onLogout }) {
   );
 
   const titleText = isExpired 
-    ? (lang === "pt" ? "Assinatura Expirada ou Pendente" : "Subscription Expired or Pending")
-    : (lang === "pt" ? "Ativação Necessária" : "Activation Required");
+    ? (lang === "es" ? "Suscripción Expirada o Pendiente" : lang === "en" ? "Subscription Expired or Pending" : "Assinatura Expirada ou Pendente")
+    : (lang === "es" ? "Activación Requerida" : lang === "en" ? "Activation Required" : "Ativação Necessária");
 
   const descText = isExpired
     ? (lang === "pt" 
         ? "Identificamos um problema no processamento do pagamento da sua última mensalidade. Regularize sua assinatura para continuar acessando seus alunos e avaliações." 
+        : lang === "es"
+        ? "Detectamos un problema al procesar el pago de su última mensualidad. Actualice sus datos de pago para continuar accediendo a su panel."
         : "We detected an issue processing your latest payment. Please update your payment details to continue accessing your dashboard.")
     : (lang === "pt" 
         ? "" 
+        : lang === "es"
+        ? "Para desbloquear el acceso completo al panel y crear evaluaciones físicas, active su suscripción profesional."
         : "To unlock full dashboard access and create new physical evaluations, activate your professional subscription.");
 
   const buttonText = loading
-    ? (lang === "pt" ? "Processando..." : "Processing...")
+    ? (lang === "es" ? "Procesando..." : lang === "en" ? "Processing..." : "Processando...")
     : (lang === "pt" 
         ? (selectedPlan === "annual" ? "Assinar Plano Anual" : "Assinar Plano Mensal") 
-        : "Subscribe to Pro Plan");
+        : (lang === "es" ? "Suscribirse al Plan Pro" : "Subscribe to Pro Plan"));
 
   async function handleCheckout(overridePlanType) {
     setLoading(true);
     setErrorMsg("");
     try {
-      const isUsd = (trainer && (trainer.lang === 'es' || trainer.lang === 'en'));
+      const isUsd = (lang === 'es' || lang === 'en');
       
-      const shouldGoToPortal = isUsd && Boolean(trainer.stripeCustomerId) && (
+      const shouldGoToPortal = isUsd && Boolean(trainer && trainer.stripeCustomerId) && (
         trainer.subscriptionStatus === "active" || 
         trainer.subscriptionStatus === "trialing" ||
         trainer.subscriptionStatus === "past_due" ||
@@ -7947,11 +7965,11 @@ function PaywallScreen({ trainer, onLogout }) {
       const body = shouldGoToPortal 
         ? { customerId: trainer.stripeCustomerId }
         : { 
-            trainerId: trainer.id, 
-            email: trainer.email, 
-            nome: trainer.nome, 
-            telefone: trainer.telefone || "",
-            lang: trainer.lang,
+            trainerId: trainer ? trainer.id : null, 
+            email: trainer ? trainer.email : null, 
+            nome: trainer ? trainer.nome : null, 
+            telefone: (trainer && trainer.telefone) || "",
+            lang: lang,
             planType: activePlanType
           };
 
@@ -10194,6 +10212,12 @@ export default function App() {
 
       if (trainerError) throw trainerError;
 
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlLang = searchParams.get("lang") || searchParams.get("locale");
+      const savedLang = sessionStorage.getItem("signup_lang") || localStorage.getItem("avaliapro_lang");
+      const userMetaLang = sessionUser.user_metadata?.lang;
+      const effectiveLang = userMetaLang || savedLang || urlLang || (trainer && trainer.lang) || "pt";
+
       if (!trainerData) {
         const defaultSettings = {
           defaultMetodo: "pollock7",
@@ -10223,7 +10247,7 @@ export default function App() {
           foto: "",
           telefone: sessionUser.user_metadata?.telefone || "",
           cor_primaria: "#1A1A2E",
-          lang: trainer.lang || "pt",
+          lang: effectiveLang,
           settings: defaultSettings
         };
 
@@ -10244,7 +10268,7 @@ export default function App() {
         foto: trainerData.foto || "",
         telefone: trainerData.telefone || "",
         corPrimaria: trainerData.cor_primaria || "#1A1A2E",
-        lang: trainerData.lang || "pt",
+        lang: (trainerData.lang && trainerData.lang !== 'pt') ? trainerData.lang : (effectiveLang || trainerData.lang || "pt"),
         unitSystem: (trainerData.settings && trainerData.settings.unitSystem) || "metric",
         stripeCustomerId: trainerData.stripe_customer_id || "",
         asaasCustomerId: trainerData.asaas_customer_id || "",
