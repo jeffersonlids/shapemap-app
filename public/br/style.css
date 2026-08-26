@@ -1284,58 +1284,50 @@ img {
     color: #ffffff !important;
 }
 
-.payment-methods-container {
+.payment-methods-single-line {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    margin-top: 16px;
-    text-align: center;
-}
-
-.payment-methods-title {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font-size: 0.78rem;
-    color: #94a3b8;
+    margin-top: 14px;
+    font-size: 0.76rem;
+    color: #cbd5e1;
     font-weight: 500;
-    letter-spacing: 0.2px;
+    white-space: nowrap;
+    width: 100%;
 }
 
-.payment-methods-title i {
-    color: #2dd4bf;
-    font-size: 0.8rem;
-}
-
-.payment-methods-badges {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.pay-badge {
+.pay-item {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    padding: 5px 10px;
-    font-size: 0.76rem;
-    font-weight: 600;
-    color: #e2e8f0;
-    transition: all 0.2s ease;
+    color: #cbd5e1;
 }
 
-.pay-badge:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(45, 212, 191, 0.4);
-    transform: translateY(-1px);
+.pay-svg {
+    flex-shrink: 0;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.pay-sep {
+    color: rgba(255, 255, 255, 0.25);
+    font-size: 0.72rem;
+    font-weight: 300;
+}
+
+@media (max-width: 420px) {
+    .payment-methods-single-line {
+        font-size: 0.68rem;
+        gap: 5px;
+    }
+    .pay-item {
+        gap: 3px;
+    }
+    .pay-svg {
+        width: 11px;
+        height: 11px;
+    }
 }
 
 .guarantee-simple {
