@@ -3180,6 +3180,9 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
     return search.includes("signup=true") || 
            search.includes("cadastro=true") || 
            search.includes("register=true") ||
+           search.includes("ref=") ||
+           search.includes("indicacao=") ||
+           search.includes("referral=") ||
            hash === "#signup" || 
            hash === "#cadastro" || 
            hash === "#register";
@@ -3193,6 +3196,19 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
+
+  useEffect(function() {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlRef = searchParams.get("ref") || searchParams.get("indicacao") || searchParams.get("referral");
+      if (urlRef) {
+        sessionStorage.setItem("signup_ref", urlRef);
+        localStorage.setItem("signup_ref", urlRef);
+      }
+    } catch (e) {
+      console.warn("Erro ao capturar ref:", e);
+    }
+  }, []);
 
   async function go() {
     const trimmedEmail = email.trim();
@@ -3226,7 +3242,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
         sessionStorage.setItem("signup_ref", urlRef);
         localStorage.setItem("signup_ref", urlRef);
       }
-      const signupRef = sessionStorage.getItem("signup_ref") || localStorage.getItem("signup_ref") || null;
+      const signupRef = urlRef || sessionStorage.getItem("signup_ref") || localStorage.getItem("signup_ref") || null;
 
       const { data, error } = await supabase.auth.signUp({
         email: trimmedEmail,
@@ -3261,6 +3277,15 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
           if (signupRef) {
             sessionStorage.setItem("signup_ref", signupRef);
             localStorage.setItem("signup_ref", signupRef);
+            // Atualizar diretamente a coluna referred_by no Supabase para garantir gravação imediata
+            try {
+              await supabase
+                .from('trainers')
+                .update({ referred_by: signupRef })
+                .eq('id', data.session.user.id);
+            } catch (updErr) {
+              console.warn("Erro ao atualizar referred_by pós-signup:", updErr);
+            }
           }
           sessionStorage.setItem("signup_selected_plan", isAnnual ? planParam : "monthly");
           if (onUpdateTrainer) {
@@ -3272,6 +3297,7 @@ function LoginScreen({ onLogin, trainer, onUpdateTrainer }) {
               foto: "",
               corPrimaria: "#1A1A2E",
               lang: lang,
+              referred_by: signupRef,
               subscriptionStatus: "inactive"
             });
           }
@@ -10184,13 +10210,18 @@ export default function App() {
       }
     }
     
-    // Check URL parameters for language override
+    // Check URL parameters for language override and referral
     const search = window.location.search;
     if (search) {
       const params = new URLSearchParams(search);
       const urlLang = params.get("lang") || params.get("locale");
       if (urlLang === "es" || urlLang === "en" || urlLang === "pt") {
         initialTrainer.lang = urlLang;
+      }
+      const refParam = params.get("ref") || params.get("indicacao") || params.get("referral");
+      if (refParam) {
+        sessionStorage.setItem("signup_ref", refParam);
+        localStorage.setItem("signup_ref", refParam);
       }
     }
     return initialTrainer;
@@ -10405,13 +10436,33 @@ export default function App() {
 
       const searchParams = new URLSearchParams(window.location.search);
       const urlLang = searchParams.get("lang") || searchParams.get("locale");
+      const urlRef = searchParams.get("ref") || searchParams.get("indicacao") || searchParams.get("referral");
+      if (urlRef) {
+        sessionStorage.setItem("signup_ref", urlRef);
+        localStorage.setItem("signup_ref", urlRef);
+      }
       const savedLang = sessionStorage.getItem("signup_lang") || localStorage.getItem("avaliapro_lang");
       const userMetaLang = sessionUser.user_metadata?.lang;
       const effectiveLang = userMetaLang || savedLang || urlLang || (trainer && trainer.lang) || "pt";
 
-      const signupRef = sessionUser.user_metadata?.referred_by || sessionStorage.getItem("signup_ref") || localStorage.getItem("signup_ref") || null;
+      const signupRef = sessionUser.user_metadata?.referred_by || urlRef || sessionStorage.getItem("signup_ref") || localStorage.getItem("signup_ref") || null;
 
-      if (!trainerData) {
+      if (trainerData) {
+        // Se a conta do treinador já existe mas ainda não tem quem indicou (referred_by) gravado
+        if (!trainerData.referred_by && signupRef && signupRef !== sessionUser.id) {
+          try {
+            const { error: updRefErr } = await supabase
+              .from('trainers')
+              .update({ referred_by: signupRef })
+              .eq('id', sessionUser.id);
+            if (!updRefErr) {
+              trainerData.referred_by = signupRef;
+            }
+          } catch (e) {
+            console.warn("Erro ao atualizar referred_by em trainerData existente:", e);
+          }
+        }
+      } else {
         const defaultSettings = {
           defaultMetodo: "pollock7",
           anamnesePerguntas: PERGUNTAS_PADRAO.slice(),
