@@ -1284,6 +1284,60 @@ img {
     color: #ffffff !important;
 }
 
+.payment-methods-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+    text-align: center;
+}
+
+.payment-methods-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+}
+
+.payment-methods-title i {
+    color: #2dd4bf;
+    font-size: 0.8rem;
+}
+
+.payment-methods-badges {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pay-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.pay-badge:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(45, 212, 191, 0.4);
+    transform: translateY(-1px);
+}
+
 .guarantee-simple {
     display: flex;
     align-items: flex-start;
