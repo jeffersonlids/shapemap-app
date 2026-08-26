@@ -7731,18 +7731,14 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour, onManageAsaa
               </div>
             </div>
             <div style={{ 
-              background: ac() + "14", 
               color: ac(), 
-              border: "1.5px solid " + ac() + "30",
-              padding: "4px 12px", 
-              borderRadius: 20, 
-              fontSize: 12, 
+              fontSize: 13, 
               fontWeight: 700, 
               display: "flex", 
               alignItems: "center", 
               gap: 6 
             }}>
-              <IcUsers c={ac()} s={15} />
+              <IcUsers c={ac()} s={16} />
               <span>
                 {lang === "es" ? "Amigos Indicados" : lang === "en" ? "Referred Friends" : "Amigos Indicados"}: {referralCount}
               </span>
@@ -7751,18 +7747,8 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour, onManageAsaa
 
           {/* Destaque Principal com Ícone SVG Personalizado */}
           <div style={{ display:"flex", alignItems:"center", gap:14, padding:"4px 0" }}>
-            <div style={{ 
-              width: 48, 
-              height: 48, 
-              borderRadius: 14, 
-              background: ac() + "15", 
-              border: "1.5px solid " + ac() + "35",
-              display: "flex", 
-              alignItems: "center", 
-              justifyContent: "center",
-              flexShrink: 0 
-            }}>
-              <IcGift c={ac()} s={26} />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <IcGift c={ac()} s={38} />
             </div>
             <div>
               <div style={{ fontSize:18, fontWeight:800, color:T.text, lineHeight:1.25 }}>
