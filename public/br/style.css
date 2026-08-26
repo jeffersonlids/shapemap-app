@@ -9,8 +9,8 @@
     --font-body: 'Inter', sans-serif;
 
     /* Theme Colors */
-    --color-bg: #f8fafc;
-    --color-bg-alt: #f8fafc; /* Standardized to match the main background color */
+    --color-bg: #f4f5f7;
+    --color-bg-alt: #f4f5f7; /* Standardized to match the main background color */
     --color-card-bg: #ffffff;
     
     --color-primary: #0d9488; /* Trust Green / Teal */
@@ -29,7 +29,7 @@
     --gradient-accent: linear-gradient(135deg, #0d9488 0%, #2563eb 100%);
     --gradient-button: linear-gradient(135deg, #10b981 0%, #2563eb 100%);
     --gradient-text: linear-gradient(135deg, #0d9488 0%, #2563eb 100%);
-    --gradient-glow: radial-gradient(circle, rgba(13, 148, 136, 0.08) 0%, rgba(13, 148, 136, 0.02) 60%, rgba(255,255,255,0) 100%);
+    --gradient-glow: none;
 
     /* Shadows */
     --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.03);
@@ -285,15 +285,7 @@ img {
 }
 
 .hero-bg-glow {
-    position: absolute;
-    top: -10%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100vw;
-    height: 100%;
-    background: var(--gradient-glow);
-    z-index: 1;
-    pointer-events: none;
+    display: none;
 }
 
 .hero-container-stacked {
@@ -393,24 +385,14 @@ img {
 }
 
 .vsl-wrapper::before {
-    content: '';
-    position: absolute;
-    top: 5%;
-    left: 5%;
-    width: 90%;
-    height: 90%;
-    background: radial-gradient(circle, rgba(13, 148, 136, 0.22) 0%, rgba(37, 99, 235, 0.06) 50%, transparent 100%);
-    z-index: 0;
-    pointer-events: none;
-    animation: vsl-glow-pulse 4s infinite ease-in-out;
-    filter: blur(25px);
+    display: none;
 }
 
 .vsl-mockup {
     background-color: var(--color-card-bg);
     border-radius: var(--border-radius-lg);
     border: 1px solid var(--color-border);
-    box-shadow: var(--shadow-lg), var(--shadow-neon);
+    box-shadow: var(--shadow-lg);
     overflow: hidden;
     position: relative;
     z-index: 2;
@@ -865,15 +847,7 @@ img {
 }
 
 .features-bg-glow {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80%;
-    height: 80%;
-    background: var(--gradient-glow);
-    pointer-events: none;
-    z-index: 1;
+    display: none;
 }
 
 .features-section .container {
