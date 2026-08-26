@@ -1665,6 +1665,27 @@ function IcUsers({ c, s }) {
     </svg>
   );
 }
+function IcGift({ c, s }) {
+  const sz = s || 22;
+  return (
+    <svg width={sz} height={sz} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 12 20 22 4 22 4 12" />
+      <rect x="2" y="7" width="20" height="5" rx="1" />
+      <line x1="12" y1="22" x2="12" y2="7" />
+      <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+      <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+    </svg>
+  );
+}
+function IcCopy({ c, s }) {
+  const sz = s || 16;
+  return (
+    <svg width={sz} height={sz} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  );
+}
 function IcSettings({ c, s }) {
   const sz = s || 22;
   return (
@@ -7701,41 +7722,65 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour, onManageAsaa
       {/* Indique e Ganhe Card */}
       <Card sx={{ padding:18, marginBottom:14 }}>
         <div style={{ display: "flex", flexDirection:"column", gap:14 }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8 }}>
+          {/* Header da Seção */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:10 }}>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <div style={{ fontSize:18 }}>🎁</div>
-              <div style={{ fontSize:14, fontWeight:700, color:T.text }}>
-                {lang === "es" ? "Recomienda y Gana 1 Mes Gratis" : lang === "en" ? "Refer & Earn 1 Free Month" : "Indique e Ganhe 1 Mês Grátis"}
+              <div style={{ width:3, height:17, borderRadius:2, background:ac() }}/>
+              <div style={{ fontSize:12, fontWeight:700, color:ac(), letterSpacing:1.2, textTransform:"uppercase" }}>
+                {lang === "es" ? "Programa de Recomendación" : lang === "en" ? "Referral Program" : "Indique e Ganhe"}
               </div>
             </div>
             <div style={{ 
-              background: ac() + "18", 
+              background: ac() + "14", 
               color: ac(), 
-              padding: "4px 10px", 
+              border: "1.5px solid " + ac() + "30",
+              padding: "4px 12px", 
               borderRadius: 20, 
               fontSize: 12, 
               fontWeight: 700, 
               display: "flex", 
               alignItems: "center", 
-              gap: 5 
+              gap: 6 
             }}>
-              <span>👥</span>
+              <IcUsers c={ac()} s={15} />
               <span>
                 {lang === "es" ? "Amigos Indicados" : lang === "en" ? "Referred Friends" : "Amigos Indicados"}: {referralCount}
               </span>
             </div>
           </div>
 
-          <div style={{ fontSize:13, color:T.muted, lineHeight:1.45 }}>
-            {lang === "es" 
-              ? "Para cada amigo que se suscriba a cualquier plan a través de su enlace, usted gana +1 mes gratis agregado automáticamente a su suscripción." 
-              : lang === "en" 
-              ? "For every friend who subscribes to any plan through your link, you get +1 free month automatically added to your subscription." 
-              : "Para cada amigo que assinar qualquer plano pelo seu link, você ganha +1 mês grátis adicionado automaticamente à sua assinatura."}
+          {/* Destaque Principal com Ícone SVG Personalizado */}
+          <div style={{ display:"flex", alignItems:"center", gap:14, padding:"4px 0" }}>
+            <div style={{ 
+              width: 48, 
+              height: 48, 
+              borderRadius: 14, 
+              background: ac() + "15", 
+              border: "1.5px solid " + ac() + "35",
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center",
+              flexShrink: 0 
+            }}>
+              <IcGift c={ac()} s={26} />
+            </div>
+            <div>
+              <div style={{ fontSize:18, fontWeight:800, color:T.text, lineHeight:1.25 }}>
+                {lang === "es" ? "Recomienda y Gana 1 Mes Gratis" : lang === "en" ? "Refer & Earn 1 Free Month" : "Indique e Ganhe 1 Mês Grátis"}
+              </div>
+              <div style={{ fontSize:12, color:T.muted, marginTop:4, lineHeight:1.45 }}>
+                {lang === "es" 
+                  ? "Para cada amigo que se suscriba a través de su enlace, usted gana +1 mes gratis." 
+                  : lang === "en" 
+                  ? "For every friend who subscribes through your link, you get +1 free month." 
+                  : "Para cada amigo que assinar pelo seu link, você ganha +1 mês grátis."}
+              </div>
+            </div>
           </div>
 
-          <div style={{ display:"flex", flexDirection:"column", gap:8, background:T.bg, padding:12, borderRadius:12, border:"1.5px solid "+T.border }}>
-            <div style={{ fontSize:11, fontWeight:700, color:T.sub, textTransform:"uppercase", letterSpacing:0.5 }}>
+          {/* Campo do Link Exclusivo */}
+          <div style={{ display:"flex", flexDirection:"column", gap:8, background:T.bg, padding:"12px 14px", borderRadius:12, border:"1.5px solid "+T.border }}>
+            <div style={{ fontSize:11, fontWeight:700, color:T.sub, textTransform:"uppercase", letterSpacing:0.6 }}>
               {lang === "es" ? "Su Enlace Exclusivo" : lang === "en" ? "Your Exclusive Link" : "Seu Link Exclusivo"}
             </div>
             <div style={{ display:"flex", gap:8, alignItems:"center" }}>
@@ -7751,7 +7796,7 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour, onManageAsaa
                   padding:"9px 12px", 
                   fontSize:12, 
                   color:T.text, 
-                  fontWeight:500,
+                  fontWeight:600,
                   outline:"none",
                   overflow:"hidden",
                   textOverflow:"ellipsis"
@@ -7770,19 +7815,23 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour, onManageAsaa
                   cursor:"pointer",
                   display:"flex",
                   alignItems:"center",
-                  gap:5,
+                  gap:6,
                   transition:"all 0.15s",
-                  whiteSpace:"nowrap"
+                  whiteSpace:"nowrap",
+                  boxShadow:"0 2px 6px rgba(0,0,0,0.12)"
                 }}
               >
-                {copiedReferral ? <IcCheck c="#fff" s={14}/> : null}
-                {copiedReferral 
-                  ? (lang === "es" ? "¡Copiado!" : lang === "en" ? "Copied!" : "Copiado!") 
-                  : (lang === "es" ? "Copiar" : lang === "en" ? "Copy" : "Copiar")}
+                {copiedReferral ? <IcCheck c="#fff" s={15}/> : <IcCopy c="#fff" s={15}/>}
+                <span>
+                  {copiedReferral 
+                    ? (lang === "es" ? "¡Copiado!" : lang === "en" ? "Copied!" : "Copiado!") 
+                    : (lang === "es" ? "Copiar" : lang === "en" ? "Copy" : "Copiar")}
+                </span>
               </button>
             </div>
           </div>
 
+          {/* Botão WhatsApp com SVG Oficial */}
           <a 
             href={whatsappShareUrl} 
             target="_blank" 
@@ -7792,14 +7841,14 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour, onManageAsaa
               background:"#25D366", 
               color:"#fff", 
               borderRadius:10, 
-              padding:"10px 14px", 
+              padding:"11px 16px", 
               fontSize:13, 
               fontWeight:700, 
               display:"flex", 
               alignItems:"center", 
               justifyContent:"center", 
               gap:8, 
-              boxShadow:"0 2px 8px rgba(37, 211, 102, 0.25)" 
+              boxShadow:"0 3px 10px rgba(37, 211, 102, 0.25)" 
             }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff">
