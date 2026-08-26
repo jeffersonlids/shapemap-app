@@ -7723,30 +7723,15 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour, onManageAsaa
       <Card sx={{ padding:18, marginBottom:14 }}>
         <div style={{ display: "flex", flexDirection:"column", gap:14 }}>
           {/* Header da Seção */}
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:10 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <div style={{ width:3, height:17, borderRadius:2, background:ac() }}/>
-              <div style={{ fontSize:12, fontWeight:700, color:ac(), letterSpacing:1.2, textTransform:"uppercase" }}>
-                {lang === "es" ? "Programa de Recomendación" : lang === "en" ? "Referral Program" : "Indique e Ganhe"}
-              </div>
-            </div>
-            <div style={{ 
-              color: ac(), 
-              fontSize: 13, 
-              fontWeight: 700, 
-              display: "flex", 
-              alignItems: "center", 
-              gap: 6 
-            }}>
-              <IcUsers c={ac()} s={16} />
-              <span>
-                {lang === "es" ? "Amigos Indicados" : lang === "en" ? "Referred Friends" : "Amigos Indicados"}: {referralCount}
-              </span>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <div style={{ width:3, height:17, borderRadius:2, background:ac() }}/>
+            <div style={{ fontSize:12, fontWeight:700, color:ac(), letterSpacing:1.2, textTransform:"uppercase" }}>
+              {lang === "es" ? "Programa de Recomendación" : lang === "en" ? "Referral Program" : "Indique e Ganhe"}
             </div>
           </div>
 
           {/* Destaque Principal com Ícone SVG Personalizado */}
-          <div style={{ display:"flex", alignItems:"center", gap:14, padding:"4px 0" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:14, padding:"2px 0" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <IcGift c={ac()} s={38} />
             </div>
@@ -7762,6 +7747,22 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour, onManageAsaa
                   : "Para cada amigo que assinar pelo seu link, você ganha +1 mês grátis."}
               </div>
             </div>
+          </div>
+
+          {/* Amigos Indicados Logo Abaixo */}
+          <div style={{ 
+            color: ac(), 
+            fontSize: 13, 
+            fontWeight: 700, 
+            display: "flex", 
+            alignItems: "center", 
+            gap: 6,
+            marginTop: -4
+          }}>
+            <IcUsers c={ac()} s={16} />
+            <span>
+              {lang === "es" ? "Amigos Indicados" : lang === "en" ? "Referred Friends" : "Amigos Indicados"}: {referralCount}
+            </span>
           </div>
 
           {/* Campo do Link Exclusivo */}
