@@ -9979,6 +9979,227 @@ function StudentResponseScreen({ evalId }) {
   );
 }
 
+// ── REFERRAL ANNOUNCEMENT MODAL ─────────────────────────────────────────────
+function ReferralAnnouncementModal({ isOpen, onClose, onGoToProfile, lang = "pt", trainer }) {
+  if (!isOpen) return null;
+
+  const referralUrl = window.location.origin + "/?ref=" + ((trainer && (trainer.referralCode || trainer.id)) || "");
+
+  function handleAction() {
+    try {
+      navigator.clipboard.writeText(referralUrl);
+    } catch(e) {
+      console.warn(e);
+    }
+    onGoToProfile();
+  }
+
+  const title = lang === "es" 
+    ? "¡Gana Meses Gratis en ShapeMap!" 
+    : lang === "en" 
+    ? "Get Free Months on ShapeMap!" 
+    : "Ganhe Meses de Graça no ShapeMap!";
+
+  const subtitle = lang === "es"
+    ? "Para cada amigo que se suscriba a ShapeMap a través de su enlace, ¡usted gana +1 Mes Gratis agregado a su suscripción!"
+    : lang === "en"
+    ? "For every friend who subscribes to ShapeMap through your link, you get +1 Free Month added to your subscription!"
+    : "Para cada amigo que assinar o ShapeMap pelo seu link, você ganha +1 Mês Grátis adicionado a sua assinatura!";
+
+  const steps = [
+    {
+      num: 1,
+      text: lang === "es" ? "Obtenga su enlace exclusivo en 'Perfil'" : lang === "en" ? "Get your exclusive link in 'Profile'" : "Pegue seu link exclusivo em \"Perfil\""
+    },
+    {
+      num: 2,
+      text: lang === "es" ? "Compártalo con su amigo" : lang === "en" ? "Share it with your friend" : "Compartilhe com seu amigo"
+    },
+    {
+      num: 3,
+      text: lang === "es" ? "Gane +1 mes gratis por cada nuevo suscriptor. ¡Sin límite de recomendaciones!" : lang === "en" ? "Get +1 free month for every new subscriber. No referral limits!" : "Ganhe +1 mês grátis para cada novo assinante. Sem limite de indicações!"
+    }
+  ];
+
+  return (
+    <div style={{
+      position: "fixed",
+      inset: 0,
+      zIndex: 10050,
+      background: "rgba(15, 23, 42, 0.65)",
+      backdropFilter: "blur(6px)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "16px",
+      animation: "tourFadeIn 0.2s ease-out"
+    }}>
+      <div style={{
+        background: T.surface,
+        color: T.text,
+        width: "100%",
+        maxWidth: "420px",
+        borderRadius: "20px",
+        border: "1px solid " + T.border,
+        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
+        padding: "26px 22px 20px 22px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "18px",
+        position: "relative"
+      }}>
+        {/* Botão de Fechar no topo */}
+        <button
+          onClick={onClose}
+          style={{
+            position: "absolute",
+            top: "14px",
+            right: "14px",
+            background: "none",
+            border: "none",
+            color: T.muted,
+            cursor: "pointer",
+            padding: "4px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "50%",
+            transition: "all 0.15s"
+          }}
+          aria-label="Fechar"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        {/* Emblema / Tag de Novidade */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", textAlign: "center" }}>
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            background: ac() + "18",
+            color: ac(),
+            padding: "5px 14px",
+            borderRadius: "20px",
+            fontSize: "11px",
+            fontWeight: "800",
+            letterSpacing: "0.8px",
+            textTransform: "uppercase"
+          }}>
+            <IcGift c={ac()} s={14} />
+            <span>{lang === "es" ? "Programa de Recomendación" : lang === "en" ? "Referral Program" : "Novidade Exclusiva"}</span>
+          </div>
+
+          {/* Ícone de Presente em Destaque */}
+          <div style={{
+            width: "60px",
+            height: "60px",
+            borderRadius: "18px",
+            background: ac() + "15",
+            border: "1.5px solid " + ac() + "35",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 8px 24px " + ac() + "25"
+          }}>
+            <IcGift c={ac()} s={34} />
+          </div>
+
+          <div>
+            <div style={{ fontSize: "19px", fontWeight: "800", color: T.text, lineHeight: "1.25" }}>
+              {title}
+            </div>
+            <div style={{ fontSize: "13px", color: T.muted, marginTop: "8px", lineHeight: "1.5" }}>
+              {subtitle}
+            </div>
+          </div>
+        </div>
+
+        {/* 3 Passos Rápidos */}
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          background: T.bg,
+          padding: "14px",
+          borderRadius: "14px",
+          border: "1px solid " + T.border
+        }}>
+          {steps.map(function(s) {
+            return (
+              <div key={s.num} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{
+                  width: "24px",
+                  height: "24px",
+                  borderRadius: "50%",
+                  background: ac(),
+                  color: "#FFFFFF",
+                  fontSize: "12px",
+                  fontWeight: "800",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0
+                }}>
+                  {s.num}
+                </div>
+                <div style={{ fontSize: "12.5px", fontWeight: "600", color: T.text, lineHeight: "1.4" }}>
+                  {s.text}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Ações */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "2px" }}>
+          <button
+            onClick={handleAction}
+            style={{
+              background: ac(),
+              color: "#FFFFFF",
+              border: "none",
+              borderRadius: "12px",
+              padding: "13px 18px",
+              fontSize: "14px",
+              fontWeight: "700",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              boxShadow: "0 4px 14px " + ac() + "40",
+              transition: "all 0.15s"
+            }}
+          >
+            <IcCopy c="#FFFFFF" s={16} />
+            <span>{lang === "es" ? "Copiar Mi Enlace Ahora" : lang === "en" ? "Copy My Link Now" : "Copiar Meu Link Agora"}</span>
+          </button>
+
+          <button
+            onClick={onClose}
+            style={{
+              background: "transparent",
+              color: T.muted,
+              border: "none",
+              padding: "6px",
+              fontSize: "12.5px",
+              fontWeight: "600",
+              cursor: "pointer",
+              textAlign: "center"
+            }}
+          >
+            {lang === "es" ? "Ver Después" : lang === "en" ? "Maybe Later" : "Ver Depois"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── ONBOARDING TOUR ───────────────────────────────────────────────────────────
 function OnboardingTour({ active, steps, onClose, lang = "pt" }) {
   const [currentStep, setCurrentStep] = useState(0);
@@ -10168,6 +10389,7 @@ export default function App() {
   const [logged, setLogged] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [showInstallModal, setShowInstallModal] = useState(false);
+  const [showReferralPopup, setShowReferralPopup] = useState(false);
   const [tab, setTab] = useState("home");
   const [hasAccess, setHasAccess] = useState(function() {
     return sessionStorage.getItem("just_signed_up") !== "true";
@@ -10396,6 +10618,19 @@ export default function App() {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Exibir pop-up de anúncio do Indique e Ganhe na 1ª visita do usuário
+  useEffect(function() {
+    if (logged && user) {
+      const hasSeen = localStorage.getItem("shapemap_referral_popup_v1");
+      if (!hasSeen) {
+        const timer = setTimeout(function() {
+          setShowReferralPopup(true);
+        }, 700);
+        return function() { clearTimeout(timer); };
+      }
+    }
+  }, [logged, user]);
 
   async function loadUserData(sessionUser, isInitial = false) {
     if (!sessionUser || isLoadingUserRef.current) return;
@@ -11500,6 +11735,23 @@ export default function App() {
             )}
           </div>
         </div>
+      )}
+
+      {showReferralPopup && (
+        <ReferralAnnouncementModal
+          isOpen={showReferralPopup}
+          trainer={trainer}
+          lang={lang}
+          onClose={function() {
+            localStorage.setItem("shapemap_referral_popup_v1", "seen");
+            setShowReferralPopup(false);
+          }}
+          onGoToProfile={function() {
+            localStorage.setItem("shapemap_referral_popup_v1", "seen");
+            setShowReferralPopup(false);
+            setTab("perfil");
+          }}
+        />
       )}
 
       {activeTour && (
