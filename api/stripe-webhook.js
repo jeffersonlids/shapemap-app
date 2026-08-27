@@ -189,16 +189,30 @@ export default async function handler(req, res) {
         break;
       }
 
+      case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const subscription = event.data.object;
-        const trainerId = subscription.metadata?.trainerId;
+        let trainerId = subscription.metadata?.trainerId;
         const customerId = subscription.customer;
         const currentPeriodEndISO = getIsoDate(subscription.current_period_end);
+        let customerEmail = null;
 
-        console.log(`[Webhook] Atualização de assinatura. Status: ${subscription.status}, End: ${currentPeriodEndISO}, TrainerId: ${trainerId}, CustomerId: ${customerId}`);
+        if (!trainerId && customerId) {
+          try {
+            const cust = await stripe.customers.retrieve(customerId);
+            if (cust) {
+              trainerId = cust.metadata?.trainerId || null;
+              customerEmail = cust.email || null;
+            }
+          } catch (e) {
+            console.warn('⚠️ Erro ao recuperar cliente na Stripe:', e);
+          }
+        }
 
-        if (!trainerId && !customerId) {
-          console.warn('⚠️ Assinatura atualizada sem trainerId nos metadados e sem customerId.');
+        console.log(`[Webhook] Atualização de assinatura Stripe. Status: ${subscription.status}, End: ${currentPeriodEndISO}, TrainerId: ${trainerId}, CustomerId: ${customerId}, Email: ${customerEmail}`);
+
+        if (!trainerId && !customerId && !customerEmail) {
+          console.warn('⚠️ Assinatura atualizada sem trainerId, customerId e sem email.');
           break;
         }
 
@@ -208,8 +222,10 @@ export default async function handler(req, res) {
           .select('id, subscription_id, subscription_status');
         if (trainerId) {
           fetchQuery = fetchQuery.eq('id', trainerId);
-        } else {
+        } else if (customerId) {
           fetchQuery = fetchQuery.eq('stripe_customer_id', customerId);
+        } else if (customerEmail) {
+          fetchQuery = fetchQuery.eq('email', customerEmail);
         }
         const { data: trainersData } = await fetchQuery;
         const existingTrainer = trainersData && trainersData[0];
@@ -233,17 +249,22 @@ export default async function handler(req, res) {
             subscription_id: subscription.id,
             subscription_status: subscription.status,
             current_period_end: currentPeriodEndISO,
+            payment_gateway: 'stripe'
           });
 
         if (trainerId) {
           query = query.eq('id', trainerId);
-        } else {
+        } else if (existingTrainer && existingTrainer.id) {
+          query = query.eq('id', existingTrainer.id);
+        } else if (customerId) {
           query = query.eq('stripe_customer_id', customerId);
+        } else if (customerEmail) {
+          query = query.eq('email', customerEmail);
         }
 
         const { error } = await query;
         if (error) throw error;
-        console.log(`✅ Assinatura Stripe renovada/atualizada para o Treinador (TrainerId: ${trainerId || 'N/A'}, CustomerId: ${customerId})`);
+        console.log(`✅ Assinatura Stripe renovada/atualizada para o Treinador (TrainerId: ${trainerId || (existingTrainer && existingTrainer.id) || 'N/A'}, CustomerId: ${customerId})`);
         break;
       }
 
