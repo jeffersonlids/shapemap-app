@@ -10543,6 +10543,25 @@ export default function App() {
         console.warn("Erro ao ler parametros de conversão:", e);
       }
 
+      // Verificação e Ativação Instantânea (Fail-proof)
+      if (sessionId) {
+        fetch("/api/verify-stripe-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId: sessionId })
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data && data.success) {
+            console.log("✅ [Stripe] Assinatura verificada e ativada instantaneamente!");
+            supabase.auth.getUser().then(function({ data: { user } }) {
+              if (user) loadUserData(user, true);
+            });
+          }
+        })
+        .catch(function(err) { console.warn("Erro ao verificar sessão Stripe:", err); });
+      }
+
       if (typeof window.fbq === 'function') {
         window.fbq('track', 'Purchase', {
           value: urlValue,
