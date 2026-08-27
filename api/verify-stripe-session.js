@@ -23,9 +23,9 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { sessionId, trainerId: reqTrainerId, email: reqEmail } = req.body || req.query || {};
+  const { sessionId, trainerId: reqTrainerId } = req.body || req.query || {};
 
-  if (!sessionId && !reqTrainerId && !reqEmail) {
+  if (!sessionId && !reqTrainerId) {
     return res.status(400).json({ error: 'Parâmetros insuficientes para verificação.' });
   }
 
@@ -44,11 +44,9 @@ export default async function handler(req, res) {
       });
     }
 
-    // Se encontramos uma sessão paga/completa
     if (session && (session.payment_status === 'paid' || session.status === 'complete')) {
       const customerId = typeof session.customer === 'object' ? session.customer?.id : session.customer;
-      const customerEmail = session.customer_details?.email || session.customer_email || (typeof session.customer === 'object' ? session.customer?.email : null) || reqEmail;
-      let targetTrainerId = session.metadata?.trainerId || session.client_reference_id || reqTrainerId;
+      const targetTrainerId = session.metadata?.trainerId || session.client_reference_id || reqTrainerId;
 
       let subscriptionId = null;
       let currentPeriodEndISO = null;
@@ -75,98 +73,46 @@ export default async function handler(req, res) {
         currentPeriodEndISO = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       }
 
-      if (supabase) {
-        let trainerRecord = null;
-        if (targetTrainerId) {
-          const { data } = await supabase.from('trainers').select('*').eq('id', targetTrainerId).maybeSingle();
-          trainerRecord = data;
-        }
-        if (!trainerRecord && customerEmail) {
-          const { data } = await supabase.from('trainers').select('*').eq('email', customerEmail.trim()).maybeSingle();
-          trainerRecord = data;
-          if (trainerRecord) targetTrainerId = trainerRecord.id;
-        }
-        if (!trainerRecord && customerId) {
-          const { data } = await supabase.from('trainers').select('*').eq('stripe_customer_id', customerId).maybeSingle();
-          trainerRecord = data;
-          if (trainerRecord) targetTrainerId = trainerRecord.id;
+      if (supabase && targetTrainerId) {
+        const updateData = {
+          stripe_customer_id: customerId,
+          subscription_id: subscriptionId,
+          subscription_status: subStatus,
+          current_period_end: currentPeriodEndISO,
+          payment_gateway: 'stripe'
+        };
+        if (session.customer_details?.phone) {
+          updateData.telefone = session.customer_details.phone;
         }
 
-        if (targetTrainerId) {
-          const updateData = {
-            stripe_customer_id: customerId,
-            subscription_id: subscriptionId,
-            subscription_status: subStatus,
-            current_period_end: currentPeriodEndISO,
-            payment_gateway: 'stripe'
-          };
-          if (session.customer_details?.phone) {
-            updateData.telefone = session.customer_details.phone;
-          }
+        const { error: updErr } = await supabase
+          .from('trainers')
+          .update(updateData)
+          .eq('id', targetTrainerId);
 
-          const { error: updErr } = await supabase
-            .from('trainers')
-            .update(updateData)
-            .eq('id', targetTrainerId);
-
-          if (updErr) console.error('Erro ao atualizar trainer no Supabase:', updErr);
-          else console.log(`✅ [Instant Verify] Assinante Stripe ativado com sucesso: ${targetTrainerId} (${customerEmail})`);
-
-          try {
-            await processReferralReward(supabase, targetTrainerId);
-          } catch (refErr) {
-            console.warn('⚠️ Erro ao processar bônus de indicação no verify:', refErr);
-          }
-
-          return res.status(200).json({
-            success: true,
-            activated: true,
-            trainerId: targetTrainerId,
-            status: subStatus,
-            currentPeriodEnd: currentPeriodEndISO
-          });
+        if (updErr) {
+          console.error('Erro ao atualizar trainer no Supabase:', updErr);
+        } else {
+          console.log(`✅ [Instant Verify] Assinante Stripe ativado com sucesso: ${targetTrainerId}`);
         }
+
+        try {
+          await processReferralReward(supabase, targetTrainerId);
+        } catch (refErr) {
+          console.warn('⚠️ Erro ao processar bônus de indicação no verify:', refErr);
+        }
+
+        return res.status(200).json({
+          success: true,
+          activated: true,
+          trainerId: targetTrainerId,
+          status: subStatus,
+          currentPeriodEnd: currentPeriodEndISO
+        });
       }
     }
 
-    // Se recebemos apenas email ou trainerId sem sessionId, verificar se tem assinatura ativa na Stripe
-    if (reqEmail || reqTrainerId) {
-      const emailToLookup = reqEmail?.trim();
-      if (emailToLookup) {
-        const customers = await stripe.customers.list({ email: emailToLookup, limit: 1 });
-        if (customers.data.length > 0) {
-          const cust = customers.data[0];
-          const subs = await stripe.subscriptions.list({ customer: cust.id, status: 'active', limit: 1 });
-          if (subs.data.length > 0) {
-            const activeSub = subs.data[0];
-            const endISO = getIsoDate(activeSub.current_period_end) || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-            if (supabase) {
-              await supabase
-                .from('trainers')
-                .update({
-                  stripe_customer_id: cust.id,
-                  subscription_id: activeSub.id,
-                  subscription_status: activeSub.status,
-                  current_period_end: endISO,
-                  payment_gateway: 'stripe'
-                })
-                .or(`email.eq.${emailToLookup}${reqTrainerId ? `,id.eq.${reqTrainerId}` : ''}`);
-            }
-
-            return res.status(200).json({
-              success: true,
-              recovered: true,
-              customerId: cust.id,
-              subscriptionId: activeSub.id,
-              status: activeSub.status
-            });
-          }
-        }
-      }
-    }
-
-    return res.status(200).json({ success: false, message: 'Nenhuma assinatura ativa encontrada para os dados fornecidos.' });
+    return res.status(200).json({ success: false, message: 'Sessão não confirmada ou trainerId não localizado.' });
 
   } catch (error) {
     console.error('Erro ao verificar sessão Stripe:', error);

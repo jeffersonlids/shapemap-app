@@ -40,7 +40,7 @@ async function sendMetaCapiEvent(email, amount, currency, eventName = 'Purchase'
       user_data: userData,
       custom_data: {
         value: amount,
-        currency: currency ? currency.toUpperCase() : 'USD'
+        currency: currency ? currency.toUpperCase() : 'BRL'
       }
     };
 
@@ -48,11 +48,24 @@ async function sendMetaCapiEvent(email, amount, currency, eventName = 'Purchase'
       eventObj.event_id = eventId;
     }
 
-    await fetch(`https://graph.facebook.com/v19.0/${pixelId}/events?access_token=${accessToken}`, {
+    const payload = {
+      data: [eventObj]
+    };
+
+    const response = await fetch(`https://graph.facebook.com/v19.0/${pixelId}/events?access_token=${accessToken}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: [eventObj] })
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
     });
+
+    const resData = await response.json();
+    if (!response.ok) {
+      console.error('❌ Erro Meta Conversions API:', resData);
+    } else {
+      console.log(`✅ Evento Meta CAPI '${eventName}' enviado com sucesso (Event ID: ${eventId}). Response:`, resData);
+    }
   } catch (error) {
     console.error('❌ Falha ao enviar evento Meta CAPI:', error);
   }
@@ -74,8 +87,8 @@ function buffer(req) {
 }
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'placeholder_key');
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'placeholder_key';
+const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder_key';
 
 function getIsoDate(timestamp) {
   if (!timestamp) return null;
@@ -103,116 +116,71 @@ export default async function handler(req, res) {
   let event;
 
   try {
-    if (sig && webhookSecret) {
-      event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
-    } else {
-      console.warn('⚠️ STRIPE_WEBHOOK_SECRET ou assinatura ausente. Processando payload JSON em modo direto.');
-      event = JSON.parse(buf.toString('utf8'));
+    if (!sig || !webhookSecret) {
+      throw new Error('Faltando cabeçalho stripe-signature ou webhook secret local.');
     }
+    event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
   } catch (err) {
-    console.warn(`⚠️ Erro na validação de assinatura (${err.message}). Tentando fallback JSON direto.`);
-    try {
-      event = JSON.parse(buf.toString('utf8'));
-    } catch (parseErr) {
-      console.error(`❌ Erro fatal ao parsear evento: ${parseErr.message}`);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
+    console.error(`❌ Erro na validação de assinatura do Stripe: ${err.message}`);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
-    console.log(`⚡ [Stripe Webhook] Evento recebido: ${event.type}`);
-
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
-        let trainerId = session.metadata?.trainerId || session.client_reference_id;
-        const customerId = typeof session.customer === 'object' ? session.customer?.id : session.customer;
-        const subscriptionId = typeof session.subscription === 'object' ? session.subscription?.id : session.subscription;
-        const buyerEmail = session.customer_details?.email || session.customer_email || (typeof session.customer === 'object' ? session.customer?.email : null);
+        const trainerId = session.metadata?.trainerId;
+        const customerId = session.customer;
+        const subscriptionId = session.subscription;
+
+        if (!trainerId) {
+          console.warn('⚠️ Checkout completado sem trainerId nos metadados.');
+          break;
+        }
+
+        // Buscar detalhes da assinatura no Stripe para obter a data final do período pago
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const currentPeriodEndISO = getIsoDate(subscription.current_period_end);
+
         const buyerPhone = session.customer_details?.phone || '';
+
+        // Atualizar perfil do treinador no Supabase
+        const { error } = await supabase
+          .from('trainers')
+          .update({
+            stripe_customer_id: customerId,
+            subscription_status: subscription.status,
+            subscription_id: subscriptionId,
+            current_period_end: currentPeriodEndISO,
+            payment_gateway: 'stripe',
+            telefone: buyerPhone,
+          })
+          .eq('id', trainerId);
+
+        if (error) throw error;
+        console.log(`✅ Assinatura Stripe ativada com sucesso para o Treinador: ${trainerId}`);
+
+        // Processar bônus de indicação ("Indique e Ganhe")
+        try {
+          await processReferralReward(supabase, trainerId);
+        } catch (refErr) {
+          console.warn('⚠️ Falha ao processar bônus de indicação (Stripe):', refErr);
+        }
+
+        // Disparar evento de conversão para a Meta (Facebook) via CAPI
+        const buyerEmail = session.customer_details?.email || session.customer_email;
         const buyerName = session.customer_details?.name || '';
-
-        let currentPeriodEndISO = null;
-        let subStatus = 'active';
-
-        if (subscriptionId) {
-          try {
-            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-            currentPeriodEndISO = getIsoDate(subscription.current_period_end);
-            subStatus = subscription.status || 'active';
-            if (!trainerId && subscription.metadata?.trainerId) {
-              trainerId = subscription.metadata.trainerId;
-            }
-          } catch (subFetchErr) {
-            console.warn('⚠️ Não foi possível obter subscription no retrieve:', subFetchErr.message);
-          }
-        }
-
-        if (!currentPeriodEndISO) {
-          currentPeriodEndISO = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-        }
-
-        // Se trainerId não veio no metadata, busca pelo e-mail no Supabase
-        if (!trainerId && buyerEmail) {
-          const { data: foundTrainer } = await supabase
-            .from('trainers')
-            .select('id')
-            .eq('email', buyerEmail.trim())
-            .maybeSingle();
-          if (foundTrainer) {
-            trainerId = foundTrainer.id;
-          }
-        }
-
-        if (trainerId) {
-          const { error } = await supabase
-            .from('trainers')
-            .update({
-              stripe_customer_id: customerId,
-              subscription_status: subStatus,
-              subscription_id: subscriptionId,
-              current_period_end: currentPeriodEndISO,
-              payment_gateway: 'stripe',
-              telefone: buyerPhone || undefined,
-            })
-            .eq('id', trainerId);
-
-          if (error) console.error('Erro ao atualizar trainer no Supabase:', error);
-          else console.log(`✅ [Stripe] Assinatura ativada para o Treinador: ${trainerId} (${buyerEmail})`);
-
-          // Processar bônus de indicação
-          try {
-            await processReferralReward(supabase, trainerId);
-          } catch (refErr) {
-            console.warn('⚠️ Falha ao processar bônus de indicação (Stripe):', refErr);
-          }
-        } else if (buyerEmail) {
-          // Atualiza pelo email diretamente se não achou ID
-          await supabase
-            .from('trainers')
-            .update({
-              stripe_customer_id: customerId,
-              subscription_status: subStatus,
-              subscription_id: subscriptionId,
-              current_period_end: currentPeriodEndISO,
-              payment_gateway: 'stripe',
-              telefone: buyerPhone || undefined,
-            })
-            .eq('email', buyerEmail.trim());
-        }
-
-        // Meta Conversions API
-        const totalAmount = session.amount_total ? session.amount_total / 100 : 3.90;
-        const totalCurrency = session.currency || 'usd';
+        const totalAmount = session.amount_total ? session.amount_total / 100 : 99.00;
+        const totalCurrency = session.currency || 'brl';
         if (buyerEmail) {
           await sendMetaCapiEvent(
             buyerEmail, 
             totalAmount, 
             totalCurrency, 
             'Purchase', 
-            session.id, 
+            session.id, // eventId
             buyerPhone,
             buyerName
           );
@@ -220,74 +188,32 @@ export default async function handler(req, res) {
         break;
       }
 
-      case 'invoice.payment_succeeded': {
-        const invoice = event.data.object;
-        const customerId = typeof invoice.customer === 'object' ? invoice.customer?.id : invoice.customer;
-        const subscriptionId = typeof invoice.subscription === 'object' ? invoice.subscription?.id : invoice.subscription;
-        const customerEmail = invoice.customer_email || (typeof invoice.customer === 'object' ? invoice.customer?.email : null);
-        const periodEndUnix = invoice.lines?.data?.[0]?.period?.end;
-        const currentPeriodEndISO = getIsoDate(periodEndUnix) || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-        console.log(`[Webhook] Fatura paga no Stripe para cliente: ${customerId} / ${customerEmail}`);
-
-        let query = supabase
-          .from('trainers')
-          .update({
-            stripe_customer_id: customerId,
-            subscription_id: subscriptionId,
-            subscription_status: 'active',
-            current_period_end: currentPeriodEndISO,
-            payment_gateway: 'stripe'
-          });
-
-        if (customerId) {
-          const { error } = await query.eq('stripe_customer_id', customerId);
-          if (error && customerEmail) {
-            await supabase.from('trainers').update({
-              stripe_customer_id: customerId,
-              subscription_id: subscriptionId,
-              subscription_status: 'active',
-              current_period_end: currentPeriodEndISO,
-              payment_gateway: 'stripe'
-            }).eq('email', customerEmail.trim());
-          }
-        } else if (customerEmail) {
-          await query.eq('email', customerEmail.trim());
-        }
-        break;
-      }
-
-      case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const subscription = event.data.object;
-        let trainerId = subscription.metadata?.trainerId;
-        const customerId = typeof subscription.customer === 'object' ? subscription.customer?.id : subscription.customer;
+        const trainerId = subscription.metadata?.trainerId;
+        const customerId = subscription.customer;
         const currentPeriodEndISO = getIsoDate(subscription.current_period_end);
-        let customerEmail = null;
 
-        if (!trainerId && customerId) {
-          try {
-            const cust = await stripe.customers.retrieve(customerId);
-            if (cust) {
-              trainerId = cust.metadata?.trainerId || null;
-              customerEmail = cust.email || null;
-            }
-          } catch (e) {
-            console.warn('⚠️ Erro ao recuperar cliente na Stripe:', e);
-          }
+        console.log(`[Webhook] Atualização de assinatura. Status: ${subscription.status}, End: ${currentPeriodEndISO}, TrainerId: ${trainerId}, CustomerId: ${customerId}`);
+
+        if (!trainerId && !customerId) {
+          console.warn('⚠️ Assinatura atualizada sem trainerId nos metadados e sem customerId.');
+          break;
         }
 
-        let fetchQuery = supabase.from('trainers').select('id, subscription_id, subscription_status');
+        // Buscar dados atuais do treinador para prevenir sobrescrever uma assinatura ativa por uma antiga/abandonada
+        let fetchQuery = supabase
+          .from('trainers')
+          .select('id, subscription_id, subscription_status');
         if (trainerId) {
           fetchQuery = fetchQuery.eq('id', trainerId);
-        } else if (customerId) {
+        } else {
           fetchQuery = fetchQuery.eq('stripe_customer_id', customerId);
-        } else if (customerEmail) {
-          fetchQuery = fetchQuery.eq('email', customerEmail);
         }
         const { data: trainersData } = await fetchQuery;
         const existingTrainer = trainersData && trainersData[0];
 
+        // Se a assinatura atualizada NÃO for ativa e o treinador já possui OUTRA assinatura ativa gravada, ignora
         if (
           existingTrainer &&
           subscription.status !== 'active' &&
@@ -295,7 +221,7 @@ export default async function handler(req, res) {
           existingTrainer.subscription_id !== subscription.id &&
           existingTrainer.subscription_status === 'active'
         ) {
-          console.log(`ℹ️ Ignorando atualização não-ativa (${subscription.status}) da assinatura antiga ${subscription.id}`);
+          console.log(`ℹ️ Ignorando atualização não-ativa (${subscription.status}) da assinatura antiga/abandonada ${subscription.id} pois o treinador já possui a assinatura ativa ${existingTrainer.subscription_id}.`);
           break;
         }
 
@@ -306,29 +232,34 @@ export default async function handler(req, res) {
             subscription_id: subscription.id,
             subscription_status: subscription.status,
             current_period_end: currentPeriodEndISO,
-            payment_gateway: 'stripe'
           });
 
         if (trainerId) {
           query = query.eq('id', trainerId);
-        } else if (existingTrainer && existingTrainer.id) {
-          query = query.eq('id', existingTrainer.id);
-        } else if (customerId) {
+        } else {
           query = query.eq('stripe_customer_id', customerId);
-        } else if (customerEmail) {
-          query = query.eq('email', customerEmail);
         }
 
-        await query;
+        const { error } = await query;
+        if (error) throw error;
+        console.log(`✅ Assinatura Stripe renovada/atualizada para o Treinador (TrainerId: ${trainerId || 'N/A'}, CustomerId: ${customerId})`);
         break;
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object;
         const trainerId = subscription.metadata?.trainerId;
-        const customerId = typeof subscription.customer === 'object' ? subscription.customer?.id : subscription.customer;
+        const customerId = subscription.customer;
 
-        let fetchQuery = supabase.from('trainers').select('id, subscription_id, subscription_status');
+        if (!trainerId && !customerId) {
+          console.warn('⚠️ Assinatura deletada sem trainerId e sem customerId.');
+          break;
+        }
+
+        // Buscar dados atuais do treinador para verificar se o cancelamento pertence à assinatura atualmente ativa
+        let fetchQuery = supabase
+          .from('trainers')
+          .select('id, subscription_id, subscription_status');
         if (trainerId) {
           fetchQuery = fetchQuery.eq('id', trainerId);
         } else {
@@ -337,23 +268,54 @@ export default async function handler(req, res) {
         const { data: trainersData } = await fetchQuery;
         const existingTrainer = trainersData && trainersData[0];
 
+        // Se a assinatura cancelada for diferente da assinatura atualmente ativa do treinador, ignora o cancelamento
         if (
           existingTrainer &&
           existingTrainer.subscription_id &&
           existingTrainer.subscription_id !== subscription.id &&
           existingTrainer.subscription_status === 'active'
         ) {
-          console.log(`ℹ️ Ignorando cancelamento da assinatura antiga ${subscription.id}`);
+          console.log(`ℹ️ Ignorando cancelamento da assinatura antiga/abandonada ${subscription.id} pois o treinador já possui a assinatura ativa ${existingTrainer.subscription_id}.`);
           break;
         }
 
-        let query = supabase.from('trainers').update({ subscription_status: 'canceled' });
+        let query = supabase
+          .from('trainers')
+          .update({
+            subscription_status: 'canceled',
+          });
+
         if (trainerId) {
           query = query.eq('id', trainerId);
         } else {
           query = query.eq('stripe_customer_id', customerId);
         }
-        await query;
+
+        const { error } = await query;
+        if (error) throw error;
+        console.log(`❌ Assinatura Stripe cancelada/deletada para o Treinador (TrainerId: ${trainerId || 'N/A'}, CustomerId: ${customerId})`);
+        break;
+      }
+
+      case 'checkout.session.expired': {
+        const session = event.data.object;
+        const trainerId = session.metadata?.trainerId;
+        const phone = session.customer_details?.phone;
+
+        if (trainerId && phone) {
+          const { error } = await supabase
+            .from('trainers')
+            .update({
+              telefone: phone,
+            })
+            .eq('id', trainerId);
+
+          if (error) {
+            console.error(`❌ Erro ao atualizar telefone de checkout expirado: ${error.message}`);
+          } else {
+            console.log(`✅ Telefone de lead recuperado com sucesso via checkout expirado: ${trainerId} -> ${phone}`);
+          }
+        }
         break;
       }
 
