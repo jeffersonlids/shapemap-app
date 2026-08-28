@@ -117,6 +117,7 @@ export default async function handler(req, res) {
         maxInstallmentCount: 12,
         billingType: 'CREDIT_CARD', // Exibe exclusivamente Cartão de Crédito em até 12x
         dueDateLimitDays: 3,
+        notificationEnabled: false,
         notificationDisabled: true,
         externalReference: `${trainerId}:annual_card`,
         callback: {
@@ -133,6 +134,7 @@ export default async function handler(req, res) {
         chargeType: 'DETACHED', // Cobrança avulsa à vista sem parcelas
         billingType: 'BOLETO', // Exibe exclusivamente Boleto Bancário / Pix
         dueDateLimitDays: 3,
+        notificationEnabled: false,
         notificationDisabled: true,
         externalReference: `${trainerId}:annual_pix`,
         callback: {
@@ -150,6 +152,7 @@ export default async function handler(req, res) {
         maxInstallmentCount: 12,
         billingType: 'UNDEFINED',
         dueDateLimitDays: 3,
+        notificationEnabled: false,
         notificationDisabled: true,
         externalReference: `${trainerId}:annual`,
         callback: {
@@ -167,6 +170,7 @@ export default async function handler(req, res) {
         subscriptionCycle: 'MONTHLY',
         billingType: 'UNDEFINED',
         dueDateLimitDays: 3,
+        notificationEnabled: false,
         notificationDisabled: true,
         externalReference: `${trainerId}:monthly`,
         callback: {
