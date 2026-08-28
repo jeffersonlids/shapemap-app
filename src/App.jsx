@@ -10799,7 +10799,7 @@ export default function App() {
           access = true;
         }
       }
-      if (status === "trialing" && periodEndStr) {
+      if ((status === "trialing" || status === "canceled") && periodEndStr) {
         const periodEnd = new Date(periodEndStr);
         if (periodEnd > new Date()) {
           access = true;
