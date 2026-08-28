@@ -155,9 +155,20 @@ Quando qualquer pagamento do primeiro mês de um novo assinante é confirmado (v
   - **Status `active` / `trialing` + Data no Futuro** ➔ Acesso liberado.
   - **Data no Passado (Vencida) ou Status Inativo/Cancelado** ➔ Acesso bloqueado com exibição automática da `PaywallScreen`.
 
+## 🛡️ 8. Arquitetura de Segurança e Blindagem de APIs
+
+1. **Autenticação Obrigatória JWT em Ações Sensíveis**:
+   - Endpoints de ação (`api/cancel-asaas-subscription.js`, `api/create-portal-session.js`, `api/update-stripe-email.js`) exigem cabeçalho `Authorization: Bearer <TOKEN>` criptográfico emitido pelo Supabase.
+   - Chamadas não autorizadas ou com tokens forjados são rejeitadas com **`401 - Unauthorized`**.
+2. **Proteção Antissequestro e IDOR (Insecure Direct Object Reference)**:
+   - Toda rota valida se o `user.id` do token coincide estritamente com o `trainerId` ou o proprietário do `customerId` registrado no banco de dados.
+3. **Ambiente Limpo de Produção**:
+   - Endpoints de teste abertos foram removidos.
+   - Chaves secretas mestras (`ASAAS_API_KEY`, `STRIPE_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) permanecem 100% isoladas no servidor Vercel.
+
 ---
 
-## 🔄 8. Fluxo de Trabalho Git e Deploy na Vercel
+## 🔄 9. Fluxo de Trabalho Git e Deploy na Vercel
 
 1. **Branch de Testes (`staging`)**:
    - URL de Preview: `nixshape-app-git-staging-nixshape.vercel.app`.
