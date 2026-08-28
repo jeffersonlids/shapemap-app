@@ -26,11 +26,30 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { subscriptionId, trainerId } = req.body;
+  const { subscriptionId, trainerId } = req.body || {};
   const asaasApiKey = process.env.ASAAS_API_KEY;
 
   if (!asaasApiKey) {
     return res.status(500).json({ error: 'Chave de ambiente ASAAS_API_KEY não configurada na Vercel!' });
+  }
+
+  // 1. Validação de Autenticação Segura via Token JWT do Supabase
+  const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+  const token = authHeader?.replace(/^Bearer\s+/i, '');
+
+  if (!token) {
+    return res.status(401).json({ error: 'Acesso não autorizado. Token de autenticação ausente.' });
+  }
+
+  if (supabase) {
+    const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
+    if (authErr || !user) {
+      return res.status(401).json({ error: 'Sessão inválida ou expirada. Faça login novamente.' });
+    }
+    // Trava de IDOR: O usuário autenticado DEVE ser o proprietário da conta
+    if (trainerId && user.id !== trainerId) {
+      return res.status(403).json({ error: 'Ação não permitida para este usuário.' });
+    }
   }
 
   const headers = {

@@ -7593,9 +7593,14 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour, onManageAsaa
 
         // Atualizar na Stripe
         if (trainer.stripeCustomerId) {
+          const sessionObj = (await supabase.auth.getSession()).data.session;
+          const token = sessionObj?.access_token || "";
           const stripeRes = await fetch("/api/update-stripe-email", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": "Bearer " + token
+            },
             body: JSON.stringify({ customerId: trainer.stripeCustomerId, email: emailTrimmed })
           });
           const stripeData = await stripeRes.json();
@@ -7904,9 +7909,14 @@ function PerfilScreen({ trainer, onUpdate, onLogout, onRestartTour, onManageAsaa
                       variant="outline" 
                       onClick={async function() {
                         try {
+                          const sessionObj = (await supabase.auth.getSession()).data.session;
+                          const token = sessionObj?.access_token || "";
                           const res = await fetch("/api/create-portal-session", {
                             method: "POST",
-                            headers: { "Content-Type": "application/json" },
+                            headers: { 
+                              "Content-Type": "application/json",
+                              "Authorization": "Bearer " + token
+                            },
                             body: JSON.stringify({ customerId: trainer.stripeCustomerId })
                           });
                           const data = await res.json();
@@ -8169,11 +8179,18 @@ function PaywallScreen({ trainer, onLogout }) {
             planType: activePlanType
           };
 
+      const sessionObj = (await supabase.auth.getSession()).data.session;
+      const token = sessionObj?.access_token || "";
+      const reqHeaders = {
+        "Content-Type": "application/json"
+      };
+      if (token) {
+        reqHeaders["Authorization"] = "Bearer " + token;
+      }
+
       const res = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: reqHeaders,
         body: JSON.stringify(body)
       });
 
@@ -11719,9 +11736,14 @@ export default function App() {
 
                   setCancelingAsaasSub(true);
                   try {
+                    const sessionObj = (await supabase.auth.getSession()).data.session;
+                    const token = sessionObj?.access_token || "";
                     const res = await fetch("/api/cancel-asaas-subscription", {
                       method: "POST",
-                      headers: { "Content-Type": "application/json" },
+                      headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                      },
                       body: JSON.stringify({ 
                         subscriptionId: trainer.asaasSubscriptionId, 
                         trainerId: trainer.id 
