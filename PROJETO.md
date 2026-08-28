@@ -1,4 +1,4 @@
-﻿# ShapeMap App - Documentação Geral e Arquitetura do Projeto
+# ShapeMap App - Documentação Geral e Arquitetura do Projeto
 
 Este documento é o **guia mestre de referência técnica e operacional** do **ShapeMap App**. Ele contém o mapeamento completo da arquitetura, integrações de pagamento (Asaas e Stripe), sistema de indicação ("Indique e Ganhe"), pop-up de novidades, eventos de rastreamento de anúncios da Meta (Pixel + Conversions API), regras de acesso/paywall e o fluxo de trabalho de deploy.
 
@@ -103,16 +103,20 @@ Quando qualquer pagamento do primeiro mês de um novo assinante é confirmado (v
 #### A) Plano Mensal (Recorrente)
 - **Valor**: R$ 19,90 / mês.
 - **Configuração na API (`api/create-asaas-checkout.js`)**:
-  - `chargeType: 'RECURRENT'`, `subscriptionCycle: 'MONTHLY'`, `billingType: 'UNDEFINED'`, `externalReference: `${trainerId}:monthly``.
+  - `name`: `'ShapeMap - Plano Mensal'`, `description`: `'ShapeMap - Plano Mensal'`.
+  - `chargeType: 'RECURRENT'`, `subscriptionCycle: 'MONTHLY'`, `billingType: 'UNDEFINED'`, `notificationDisabled: true`, `externalReference: `${trainerId}:monthly``.
 - **Fluxo do Primeiro Cadastro**: Redirecionamento automático para o checkout mensal na criação de nova conta (`just_signed_up === 'true'`).
 
 #### B) Plano Anual (2 Etapas Inteligentes)
 - **Valor**: R$ 179,00 à vista ou em 12x de R$ 14,92 no cartão (25% de desconto).
 - **Opções no Paywall**:
-  1. **Cartão de Crédito (12x de R$ 14,92)**: `chargeType: 'INSTALLMENT'`, `maxInstallmentCount: 12`, `billingType: 'CREDIT_CARD'`, `externalReference: `${trainerId}:annual_card``.
-  2. **Pix ou Boleto à Vista**: `chargeType: 'DETACHED'`, `billingType: 'BOLETO'`, `externalReference: `${trainerId}:annual_pix``.
+  1. **Cartão de Crédito (12x de R$ 14,92)**: `name`: `'ShapeMap - Plano Anual'`, `description`: `'ShapeMap - Plano Anual'`, `chargeType: 'INSTALLMENT'`, `maxInstallmentCount: 12`, `billingType: 'CREDIT_CARD'`, `notificationDisabled: true`, `externalReference: `${trainerId}:annual_card``.
+  2. **Pix ou Boleto à Vista**: `name`: `'ShapeMap - Plano Anual'`, `description`: `'ShapeMap - Plano Anual'`, `chargeType: 'DETACHED'`, `billingType: 'BOLETO'`, `notificationDisabled: true`, `externalReference: `${trainerId}:annual_pix``.
 
-#### C) Webhook do Asaas (`api/asaas-webhook.js`)
+#### C) Desativação de Notificações Nativas do Asaas (`notificationDisabled: true`)
+- Links de pagamento e perfis de clientes são gerados com `notificationDisabled: true`, evitando que o Asaas envie notificações automáticas por e-mail/SMS/WhatsApp, permitindo que as automações próprias do ShapeMap gerenciem 100% da régua de comunicação.
+
+#### D) Webhook do Asaas (`api/asaas-webhook.js`)
 - Identificação estrita por `trainerId` (via `externalReference`), com busca segura por `asaas_customer_id`.
 - Grava **+365 dias** para assinaturas anuais e **+30 dias** para mensais.
 - Dispara `processReferralReward(supabase, trainerId)` e evento de conversão Meta CAPI no `PAYMENT_RECEIVED` / `PAYMENT_CONFIRMED`.

@@ -64,7 +64,8 @@ export default async function handler(req, res) {
         const customerBody = {
           name: nome && nome.trim() ? nome.trim() : email.split('@')[0],
           email: email.trim(),
-          externalReference: trainerId
+          externalReference: trainerId,
+          notificationDisabled: true
         };
         if (cleanPhone) {
           customerBody.mobilePhone = cleanPhone;
@@ -82,19 +83,21 @@ export default async function handler(req, res) {
       } catch (e) {
         console.warn('Aviso ao criar cliente Asaas:', e);
       }
-    } else if (cleanPhone) {
-      // Se o cliente já existia, atualizar o número de WhatsApp no cadastro do Asaas
+    } else {
+      // Se o cliente já existia, garantir notificationDisabled e atualizar WhatsApp se fornecido
       try {
+        const updateCustBody = { notificationDisabled: true };
+        if (cleanPhone) {
+          updateCustBody.mobilePhone = cleanPhone;
+          updateCustBody.phone = cleanPhone;
+        }
         await fetch(`https://www.asaas.com/api/v3/customers/${customerId}`, {
           method: 'PUT',
           headers,
-          body: JSON.stringify({
-            mobilePhone: cleanPhone,
-            phone: cleanPhone
-          })
+          body: JSON.stringify(updateCustBody)
         });
       } catch (e) {
-        console.warn('Aviso ao atualizar telefone do cliente Asaas:', e);
+        console.warn('Aviso ao atualizar cliente Asaas:', e);
       }
     }
 
@@ -114,6 +117,7 @@ export default async function handler(req, res) {
         maxInstallmentCount: 12,
         billingType: 'CREDIT_CARD', // Exibe exclusivamente Cartão de Crédito em até 12x
         dueDateLimitDays: 3,
+        notificationDisabled: true,
         externalReference: `${trainerId}:annual_card`,
         callback: {
           successUrl: `https://shapemapapp.com/?success=true&value=179.00&currency=BRL`,
@@ -129,6 +133,7 @@ export default async function handler(req, res) {
         chargeType: 'DETACHED', // Cobrança avulsa à vista sem parcelas
         billingType: 'BOLETO', // Exibe exclusivamente Boleto Bancário / Pix
         dueDateLimitDays: 3,
+        notificationDisabled: true,
         externalReference: `${trainerId}:annual_pix`,
         callback: {
           successUrl: `https://shapemapapp.com/?success=true&value=179.00&currency=BRL`,
@@ -145,6 +150,7 @@ export default async function handler(req, res) {
         maxInstallmentCount: 12,
         billingType: 'UNDEFINED',
         dueDateLimitDays: 3,
+        notificationDisabled: true,
         externalReference: `${trainerId}:annual`,
         callback: {
           successUrl: `https://shapemapapp.com/?success=true&value=179.00&currency=BRL`,
@@ -155,11 +161,13 @@ export default async function handler(req, res) {
       // Plano Mensal Recorrente (R$ 19,90/mês)
       payload = {
         name: 'ShapeMap - Plano Mensal',
+        description: 'ShapeMap - Plano Mensal',
         value: 19.90,
         chargeType: 'RECURRENT',
         subscriptionCycle: 'MONTHLY',
         billingType: 'UNDEFINED',
         dueDateLimitDays: 3,
+        notificationDisabled: true,
         externalReference: `${trainerId}:monthly`,
         callback: {
           successUrl: `https://shapemapapp.com/?success=true&value=19.90&currency=BRL`,
