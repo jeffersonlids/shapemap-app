@@ -258,19 +258,40 @@ export default async function handler(req, res) {
     } else if (event === 'PAYMENT_OVERDUE' || event === 'PAYMENT_DELETED' || event === 'PAYMENT_REFUNDED' || event === 'SUBSCRIPTION_DELETED') {
       // Pagamento em atraso, cancelado ou reembolsado
       
-      // Se for pagamento vencido e tiver ID de assinatura, inativar/cancelar a assinatura no Asaas automaticamente para não gerar cobranças futuras
-      if (event === 'PAYMENT_OVERDUE' && subscriptionId && process.env.ASAAS_API_KEY) {
-        try {
-          await fetch(`https://www.asaas.com/api/v3/subscriptions/${subscriptionId}`, {
-            method: 'DELETE',
-            headers: {
-              'Content-Type': 'application/json',
-              'access_token': process.env.ASAAS_API_KEY
+      // Se for pagamento vencido, inativar/cancelar a assinatura no Asaas automaticamente para limpar cobranças futuras
+      if (event === 'PAYMENT_OVERDUE' && process.env.ASAAS_API_KEY) {
+        const asaasApiKey = process.env.ASAAS_API_KEY;
+        const asaasHeaders = {
+          'Content-Type': 'application/json',
+          'access_token': asaasApiKey
+        };
+
+        let targetSubId = subscriptionId;
+
+        // Se subscriptionId não veio direto, buscar assinatura ativa por customerId ou trainerId
+        if (!targetSubId && customerId) {
+          try {
+            const subSearchRes = await fetch(`https://www.asaas.com/api/v3/subscriptions?customer=${customerId}`, { headers: asaasHeaders });
+            const subSearchData = await subSearchRes.json();
+            if (subSearchData.data && subSearchData.data.length > 0) {
+              const activeSub = subSearchData.data.find(s => s.status === 'ACTIVE') || subSearchData.data[0];
+              targetSubId = activeSub.id;
             }
-          });
-          console.log(`🗑️ [Asaas Webhook] Assinatura ${subscriptionId} inativada/cancelada automaticamente no Asaas por inadimplência.`);
-        } catch (subErr) {
-          console.warn(`⚠️ [Asaas Webhook] Erro ao inativar assinatura no Asaas:`, subErr);
+          } catch (e) {
+            console.warn('⚠️ Erro ao buscar assinatura por customerId no Asaas:', e);
+          }
+        }
+
+        if (targetSubId) {
+          try {
+            await fetch(`https://www.asaas.com/api/v3/subscriptions/${targetSubId}`, {
+              method: 'DELETE',
+              headers: asaasHeaders
+            });
+            console.log(`🗑️ [Asaas Webhook] Assinatura ${targetSubId} cancelada automaticamente no Asaas por vencimento sem pagamento (cobranças futuras removidas).`);
+          } catch (subErr) {
+            console.warn(`⚠️ [Asaas Webhook] Erro ao deletar assinatura no Asaas:`, subErr);
+          }
         }
       }
 
