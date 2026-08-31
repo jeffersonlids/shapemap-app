@@ -134,7 +134,8 @@ Quando qualquer pagamento do primeiro mês de um novo assinante é confirmado (v
 
 #### B) Ciclo de Vida no Webhook (`api/stripe-webhook.js`)
 - **`checkout.session.completed`**: Ativa assinatura (`subscription_status = 'active'`), grava `stripe_customer_id`, `subscription_id`, `current_period_end` e aciona `processReferralReward`.
-- **`customer.subscription.updated`**: Atualiza status em tempo real (`active`, `past_due`, `unpaid`) e datas de renovação. Possui trava para não sobrescrever assinaturas ativas por eventos de assinaturas abandonadas.
+- **`invoice.payment_succeeded` / `invoice.paid`**: Processa a cobrança de cada mensalidade recorrente e atualizações de plano, atualizando `subscription_status = 'active'` e gravando a data de validade (`current_period_end`) obtida diretamente da linha da fatura / assinatura da Stripe.
+- **`customer.subscription.created` / `customer.subscription.updated`**: Atualiza status em tempo real (`active`, `past_due`, `unpaid`) e datas de renovação. Possui trava para não sobrescrever assinaturas ativas por eventos de assinaturas abandonadas.
 - **`customer.subscription.deleted`**: Atualiza status para **`canceled`**.
 - **`checkout.session.expired`**: Grava o telefone do lead no Supabase para recuperação comercial.
 
