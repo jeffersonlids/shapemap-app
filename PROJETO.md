@@ -109,9 +109,11 @@ Quando qualquer pagamento do primeiro mês de um novo assinante é confirmado (v
 
 #### B) Plano Anual (2 Etapas Inteligentes)
 - **Valor**: R$ 179,00 à vista ou em 12x de R$ 14,92 no cartão (25% de desconto).
-- **Opções no Paywall**:
-  1. **Cartão de Crédito (12x de R$ 14,92)**: `name`: `'ShapeMap - Plano Anual'`, `description`: `'ShapeMap - Plano Anual'`, `chargeType: 'INSTALLMENT'`, `maxInstallmentCount: 12`, `billingType: 'CREDIT_CARD'`, `notificationDisabled: true`, `externalReference: `${trainerId}:annual_card``.
-  2. **Pix ou Boleto à Vista**: `name`: `'ShapeMap - Plano Anual'`, `description`: `'ShapeMap - Plano Anual'`, `chargeType: 'DETACHED'`, `billingType: 'BOLETO'`, `notificationDisabled: true`, `externalReference: `${trainerId}:annual_pix``.
+- **Fluxo de Cadastro via Landing Page (`?register=true&plan=anual`)**:
+  - Quando um novo cliente se cadastra vindo pelo botão do Plano Anual da página de vendas, o app **não faz redirecionamento cego** para checkout misto.
+  - Ele abre diretamente a **Etapa 2 do Paywall** para o cliente escolher com 1 clique a forma de pagamento desejada:
+    1. **💳 Cartão de Crédito (12x de R$ 14,92)**: `name`: `'ShapeMap - Plano Anual'`, `chargeType: 'INSTALLMENT'`, `maxInstallmentCount: 12`, `billingType: 'CREDIT_CARD'`, `externalReference: `${trainerId}:annual_card``.
+    2. **⚡ Pix ou Boleto à Vista (R$ 179,00)**: `name`: `'ShapeMap - Plano Anual'`, `chargeType: 'DETACHED'`, `billingType: 'BOLETO'`, `externalReference: `${trainerId}:annual_pix``.
 
 #### C) Desativação de Notificações Nativas do Asaas (`notificationDisabled: true`)
 - Links de pagamento e perfis de clientes são gerados com `notificationDisabled: true`, evitando que o Asaas envie notificações automáticas por e-mail/SMS/WhatsApp, permitindo que as automações próprias do ShapeMap gerenciem 100% da régua de comunicação.
