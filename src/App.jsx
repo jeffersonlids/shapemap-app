@@ -8110,8 +8110,18 @@ function PaywallScreen({ trainer, onLogout }) {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("annual");
-  const [paywallStep, setPaywallStep] = useState("select_plan"); // 'select_plan' | 'annual_method'
-  const [annualPaymentMethod, setAnnualPaymentMethod] = useState("card"); // 'card' | 'pix'
+  const [paywallStep, setPaywallStep] = useState(function() {
+    const signupPlan = sessionStorage.getItem("signup_selected_plan");
+    if (signupPlan === "anual" || signupPlan === "annual" || signupPlan === "annual_card" || signupPlan === "annual_pix") {
+      return "annual_method";
+    }
+    return "select_plan";
+  });
+  const [annualPaymentMethod, setAnnualPaymentMethod] = useState(function() {
+    const signupPlan = sessionStorage.getItem("signup_selected_plan");
+    if (signupPlan === "annual_pix") return "pix";
+    return "card";
+  });
 
   const isExpired = trainer && trainer.stripeCustomerId && (
     trainer.subscriptionStatus === "past_due" || 
@@ -8212,6 +8222,12 @@ function PaywallScreen({ trainer, onLogout }) {
   }
 
   const [isAutoRedirecting, setIsAutoRedirecting] = useState(function() {
+    const signupPlan = sessionStorage.getItem("signup_selected_plan");
+    const isAnnualChoice = (signupPlan === "anual" || signupPlan === "annual");
+    if (isAnnualChoice) {
+      sessionStorage.removeItem("just_signed_up");
+      return false;
+    }
     return sessionStorage.getItem("just_signed_up") === "true" && !isExpired;
   });
 
