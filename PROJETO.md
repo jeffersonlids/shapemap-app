@@ -120,6 +120,7 @@ Quando qualquer pagamento do primeiro mês de um novo assinante é confirmado (v
 - Identificação estrita por `trainerId` (via `externalReference`), com busca segura por `asaas_customer_id`.
 - Grava **+365 dias** para assinaturas anuais e **+30 dias** para mensais.
 - Dispara `processReferralReward(supabase, trainerId)` e evento de conversão Meta CAPI no `PAYMENT_RECEIVED` / `PAYMENT_CONFIRMED`.
+- **Autocancelamento por Inadimplência (`PAYMENT_OVERDUE`)**: Ao receber notificação de fatura vencida sem pagamento, o webhook dispara ordem de cancelamento da assinatura no Asaas (`DELETE /v3/subscriptions/{id}`). O Asaas automaticamente cancela a assinatura e **exclui/apaga todas as cobranças futuras que haviam sido pré-agendadas (mês seguinte)**, impedindo acúmulo indevido de cobranças e notificações para clientes que pararam de pagar. No Supabase, o status é atualizado para `inactive`.
 
 ---
 
