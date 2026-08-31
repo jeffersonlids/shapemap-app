@@ -1,4 +1,4 @@
-﻿import Stripe from 'stripe';
+import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { processReferralReward } from './referral-reward.js';
@@ -188,6 +188,72 @@ export default async function handler(req, res) {
         break;
       }
 
+      case 'invoice.payment_succeeded':
+      case 'invoice.paid': {
+        const invoice = event.data.object;
+        const customerId = typeof invoice.customer === 'object' ? invoice.customer?.id : invoice.customer;
+        const subscriptionId = typeof invoice.subscription === 'object' ? invoice.subscription?.id : invoice.subscription;
+        
+        let currentPeriodEndISO = null;
+        
+        // Tentar obter a data de término do período pela linha da fatura
+        if (invoice.lines?.data?.length > 0) {
+          const linePeriodEnd = invoice.lines.data[0]?.period?.end;
+          if (linePeriodEnd) {
+            currentPeriodEndISO = getIsoDate(linePeriodEnd);
+          }
+        }
+        
+        // Se não veio na linha e temos ID de assinatura, buscar na Stripe
+        if (!currentPeriodEndISO && subscriptionId) {
+          try {
+            const sub = await stripe.subscriptions.retrieve(subscriptionId);
+            if (sub?.current_period_end) {
+              currentPeriodEndISO = getIsoDate(sub.current_period_end);
+            }
+          } catch (subErr) {
+            console.warn('⚠️ Erro ao recuperar assinatura na Stripe em invoice.payment_succeeded:', subErr);
+          }
+        }
+
+        // Fallback de +30 dias se nenhuma data foi calculada
+        if (!currentPeriodEndISO) {
+          currentPeriodEndISO = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        }
+
+        const trainerId = invoice.subscription_details?.metadata?.trainerId || invoice.metadata?.trainerId;
+
+        if (!trainerId && !customerId) {
+          console.warn('⚠️ invoice.payment_succeeded sem trainerId e sem customerId.');
+          break;
+        }
+
+        const updateData = {
+          subscription_status: 'active',
+          current_period_end: currentPeriodEndISO,
+          payment_gateway: 'stripe'
+        };
+        if (customerId) updateData.stripe_customer_id = customerId;
+        if (subscriptionId) updateData.subscription_id = subscriptionId;
+
+        let query = supabase.from('trainers').update(updateData);
+
+        if (trainerId) {
+          query = query.eq('id', trainerId);
+        } else {
+          query = query.eq('stripe_customer_id', customerId);
+        }
+
+        const { error: invoiceErr } = await query;
+        if (invoiceErr) {
+          console.error('❌ Erro ao atualizar trainer em invoice.payment_succeeded:', invoiceErr);
+        } else {
+          console.log(`✅ [Stripe Webhook] Fatura paga processada com sucesso! Vencimento gravado: ${currentPeriodEndISO} para Customer: ${customerId} / Trainer: ${trainerId || 'N/A'}`);
+        }
+        break;
+      }
+
+      case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const subscription = event.data.object;
         const trainerId = subscription.metadata?.trainerId;
