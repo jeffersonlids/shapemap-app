@@ -142,7 +142,14 @@ export default async function handler(req, res) {
 
         // Buscar detalhes da assinatura no Stripe para obter a data final do período pago
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-        const currentPeriodEndISO = getIsoDate(subscription.current_period_end);
+        const periodEndTimestamp = subscription.current_period_end 
+          || subscription.items?.data?.[0]?.current_period_end
+          || (subscription.lines?.data?.[0]?.period?.end);
+
+        let currentPeriodEndISO = getIsoDate(periodEndTimestamp);
+        if (!currentPeriodEndISO) {
+          currentPeriodEndISO = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        }
 
         const buyerPhone = session.customer_details?.phone || '';
 
@@ -258,7 +265,14 @@ export default async function handler(req, res) {
         const subscription = event.data.object;
         const trainerId = subscription.metadata?.trainerId;
         const customerId = subscription.customer;
-        const currentPeriodEndISO = getIsoDate(subscription.current_period_end);
+        const periodEndTimestamp = subscription.current_period_end 
+          || subscription.items?.data?.[0]?.current_period_end
+          || (subscription.lines?.data?.[0]?.period?.end);
+
+        let currentPeriodEndISO = getIsoDate(periodEndTimestamp);
+        if (!currentPeriodEndISO && subscription.status === 'active') {
+          currentPeriodEndISO = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        }
 
         console.log(`[Webhook] Atualização de assinatura. Status: ${subscription.status}, End: ${currentPeriodEndISO}, TrainerId: ${trainerId}, CustomerId: ${customerId}`);
 

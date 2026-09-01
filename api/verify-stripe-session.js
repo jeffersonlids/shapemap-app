@@ -1,4 +1,4 @@
-﻿import Stripe from 'stripe';
+import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { processReferralReward } from './referral-reward.js';
 
@@ -55,13 +55,19 @@ export default async function handler(req, res) {
       if (session.subscription) {
         if (typeof session.subscription === 'object') {
           subscriptionId = session.subscription.id;
-          currentPeriodEndISO = getIsoDate(session.subscription.current_period_end);
+          const periodEndTimestamp = session.subscription.current_period_end 
+            || session.subscription.items?.data?.[0]?.current_period_end
+            || (session.subscription.lines?.data?.[0]?.period?.end);
+          currentPeriodEndISO = getIsoDate(periodEndTimestamp);
           subStatus = session.subscription.status || 'active';
         } else {
           subscriptionId = session.subscription;
           try {
             const subObj = await stripe.subscriptions.retrieve(subscriptionId);
-            currentPeriodEndISO = getIsoDate(subObj.current_period_end);
+            const periodEndTimestamp = subObj.current_period_end 
+              || subObj.items?.data?.[0]?.current_period_end
+              || (subObj.lines?.data?.[0]?.period?.end);
+            currentPeriodEndISO = getIsoDate(periodEndTimestamp);
             subStatus = subObj.status || 'active';
           } catch (e) {
             console.warn('Erro ao buscar subObj:', e);
