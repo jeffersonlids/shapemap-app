@@ -131,10 +131,11 @@ Quando qualquer pagamento do primeiro mês de um novo assinante é confirmado (v
 #### A) Regras de Identificação e Segurança
 - **Identificação Estrita por IDs Imutáveis**: O webhook e as APIs de verificação utilizam **exclusivamente `trainerId` (UUID)** (via metadados da sessão), `stripe_customer_id` e `subscription_id`. Nenhuma busca depende de e-mails mutáveis, prevenindo inconsistências caso o cliente troque de e-mail.
 - **Ativação Instantânea (`api/verify-stripe-session.js`)**: Ao retornar do checkout com `?success=true&session_id=...`, o app valida e ativa a assinatura no Supabase em **0 segundos**, fornecendo redundância fail-proof aos webhooks.
+- **Resolução de Vencimento Dual-Path + Trava Fail-Proof**: Captura `current_period_end` tanto da raiz da assinatura quanto do novo padrão de item-billing da Stripe (`subscription.items.data[0].current_period_end`). Caso a Stripe não envie data, aciona automaticamente fallback matemático de **+30 dias (`Date.now() + 30 * 24 * 60 * 60 * 1000`)**, garantindo que a coluna nunca mais fique `NULL`.
 
 #### B) Ciclo de Vida no Webhook (`api/stripe-webhook.js`)
-- **`checkout.session.completed`**: Ativa assinatura (`subscription_status = 'active'`), grava `stripe_customer_id`, `subscription_id`, `current_period_end` e aciona `processReferralReward`.
-- **`invoice.payment_succeeded` / `invoice.paid`**: Processa a cobrança de cada mensalidade recorrente e atualizações de plano, atualizando `subscription_status = 'active'` e gravando a data de validade (`current_period_end`) obtida diretamente da linha da fatura / assinatura da Stripe.
+- **`checkout.session.completed`**: Ativa assinatura (`subscription_status = 'active'`), grava `stripe_customer_id`, `subscription_id`, `current_period_end` (via dual-path + fallback) e aciona `processReferralReward`.
+- **`invoice.payment_succeeded` / `invoice.paid`**: Processa a cobrança de cada mensalidade recorrente e atualizações de plano, atualizando `subscription_status = 'active'` e gravando a data de validade (`current_period_end`) obtida diretamente da linha da fatura / assinatura da Stripe com fallback fail-proof.
 - **`customer.subscription.created` / `customer.subscription.updated`**: Atualiza status em tempo real (`active`, `past_due`, `unpaid`) e datas de renovação. Possui trava para não sobrescrever assinaturas ativas por eventos de assinaturas abandonadas.
 - **`customer.subscription.deleted`**: Atualiza status para **`canceled`**.
 - **`checkout.session.expired`**: Grava o telefone do lead no Supabase para recuperação comercial.
