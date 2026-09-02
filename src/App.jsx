@@ -10595,11 +10595,16 @@ export default function App() {
         .catch(function(err) { console.warn("Erro ao verificar sessão Stripe:", err); });
       }
 
-      if (typeof window.fbq === 'function') {
+      // Apenas dispara Purchase no navegador se for uma sessão Stripe com sessionId,
+      // pois a Stripe só redireciona após a cobrança estar concluída.
+      // Para o Asaas (Pix/Boleto/Cartão), o evento Purchase é enviado de forma 100% precisa
+      // exclusivamente pelo servidor via Meta Conversions API (CAPI) quando o pagamento for
+      // realmente confirmado, evitando marcação de compras fantasmas (Pix gerado e não pago).
+      if (typeof window.fbq === 'function' && sessionId) {
         window.fbq('track', 'Purchase', {
           value: urlValue,
           currency: urlCurrency
-        }, sessionId ? { eventID: sessionId } : undefined);
+        }, { eventID: sessionId });
       }
       try {
         const url = new URL(window.location.href);

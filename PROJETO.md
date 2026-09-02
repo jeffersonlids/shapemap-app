@@ -148,9 +148,11 @@ Quando qualquer pagamento do primeiro mês de um novo assinante é confirmado (v
   - `PageView`: Páginas de vendas e app.
   - `CompleteRegistration`: Disparado na criação de conta.
   - `InitiateCheckout`: Disparado ao clicar em botões de assinatura no Paywall.
-  - `Purchase`: Disparado no retorno com `?success=true` com valor, moeda e `sessionId` para desduplicação.
+  - `Purchase`: Disparado exclusivamente no retorno com `?success=true` que contenha `sessionId` (sessões Stripe verificadas com `eventID`), prevenindo disparos falsos de compras no Asaas.
 - **Server-Side (Meta CAPI)**:
-  - Disparado diretamente pelos webhooks do **Asaas** e **Stripe** com dados criptografados em SHA-256 (`em`, `ph`, `fn`, `ln`), garantindo 100% de atribuição de vendas mesmo com bloqueadores de anúncios (AdBlock) ou navegadores com restrição de cookies.
+  - **Asaas (100% Server-Side)**: O evento `Purchase` do Asaas é emitido exclusivamente pelo webhook (`api/asaas-webhook.js`) nos eventos `PAYMENT_RECEIVED` e `PAYMENT_CONFIRMED` (após confirmação real do Pix, Boleto ou Cartão). Isso blinda o Meta Ads contra **vendas fantasmas** (Pix/Boleto gerado e não pago) e elimina duplicações de compras.
+  - **Stripe**: Emitido em `checkout.session.completed` e desduplicado com o Pixel via `sessionId`.
+  - Dados criptografados em SHA-256 (`em`, `ph`, `fn`, `ln`), garantindo 100% de atribuição de vendas mesmo com bloqueadores de anúncios (AdBlock) ou navegadores com restrição de cookies.
 
 ---
 
