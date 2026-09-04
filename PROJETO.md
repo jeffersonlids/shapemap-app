@@ -136,8 +136,8 @@ Quando qualquer pagamento do primeiro mês de um novo assinante é confirmado (v
 #### B) Ciclo de Vida no Webhook (`api/stripe-webhook.js`)
 - **`checkout.session.completed`**: Ativa assinatura (`subscription_status = 'active'`), grava `stripe_customer_id`, `subscription_id`, `current_period_end` (via dual-path + fallback) e aciona `processReferralReward`.
 - **`invoice.payment_succeeded` / `invoice.paid`**: Processa a cobrança de cada mensalidade recorrente e atualizações de plano, atualizando `subscription_status = 'active'` e gravando a data de validade (`current_period_end`) obtida diretamente da linha da fatura / assinatura da Stripe com fallback fail-proof.
-- **`customer.subscription.created` / `customer.subscription.updated`**: Atualiza status em tempo real (`active`, `past_due`, `unpaid`) e datas de renovação. Possui trava para não sobrescrever assinaturas ativas por eventos de assinaturas abandonadas.
-- **`customer.subscription.deleted`**: Atualiza status para **`canceled`**.
+- **`customer.subscription.created` / `customer.subscription.updated`**: Atualiza status em tempo real (`active`, `past_due`, `unpaid`). **Proteção Antiestouro de Data (`current_period_end`)**: A data de validade `current_period_end` **SÓ é estendida para frente se o status for `active` ou `trialing`**. Se a assinatura estiver em `past_due` (fatura não paga), o status é gravado como `past_due`, mas a data no banco **permanece a original**, impedindo concessão indevida de dias futuros para faturas em aberto. Quando o cliente regulariza e paga a fatura (`invoice.payment_succeeded`), a data é então avançada com sucesso.
+- **`customer.subscription.deleted`**: Atualiza status para **`canceled`**. Se a assinatura for cancelada em decorrência de inadimplência (`existingTrainer.subscription_status === 'past_due'`), o `current_period_end` é encerrado imediatamente no mesmo segundo (`now()`), garantindo que clientes inadimplentes não recebam dias de cortesia.
 - **`checkout.session.expired`**: Grava o telefone do lead no Supabase para recuperação comercial.
 
 ---

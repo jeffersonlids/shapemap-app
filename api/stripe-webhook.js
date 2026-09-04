@@ -305,14 +305,25 @@ export default async function handler(req, res) {
           break;
         }
 
+        const updatePayload = {
+          stripe_customer_id: customerId,
+          subscription_id: subscription.id,
+          subscription_status: subscription.status,
+        };
+
+        // REGRA DE SEGURANÇA: current_period_end SÓ avança se a assinatura for 'active' ou 'trialing'.
+        // Se estiver em 'past_due' (fatura não paga), a data no banco NÃO é alterada!
+        if (subscription.status === 'active' || subscription.status === 'trialing') {
+          if (currentPeriodEndISO) {
+            updatePayload.current_period_end = currentPeriodEndISO;
+          }
+        } else {
+          console.log(`🔒 [Stripe Webhook] Status '${subscription.status}': mantendo current_period_end original (não estendendo para fatura não paga).`);
+        }
+
         let query = supabase
           .from('trainers')
-          .update({
-            stripe_customer_id: customerId,
-            subscription_id: subscription.id,
-            subscription_status: subscription.status,
-            current_period_end: currentPeriodEndISO,
-          });
+          .update(updatePayload);
 
         if (trainerId) {
           query = query.eq('id', trainerId);
@@ -339,7 +350,7 @@ export default async function handler(req, res) {
         // Buscar dados atuais do treinador para verificar se o cancelamento pertence à assinatura atualmente ativa
         let fetchQuery = supabase
           .from('trainers')
-          .select('id, subscription_id, subscription_status');
+          .select('id, subscription_id, subscription_status, current_period_end');
         if (trainerId) {
           fetchQuery = fetchQuery.eq('id', trainerId);
         } else {
@@ -359,11 +370,20 @@ export default async function handler(req, res) {
           break;
         }
 
+        const deletePayload = {
+          subscription_status: 'canceled',
+        };
+
+        // Se a assinatura foi cancelada enquanto estava em atraso/inadimplente ('past_due' ou 'unpaid'),
+        // encerra o período no mesmo segundo (now()) para não dar dias de cortesia de fatura não paga!
+        if (existingTrainer && (existingTrainer.subscription_status === 'past_due' || existingTrainer.subscription_status === 'unpaid')) {
+          deletePayload.current_period_end = new Date().toISOString();
+          console.log(`🔒 [Stripe Webhook] Cancelamento por inadimplência: current_period_end encerrado imediatamente para Trainer: ${trainerId || customerId}`);
+        }
+
         let query = supabase
           .from('trainers')
-          .update({
-            subscription_status: 'canceled',
-          });
+          .update(deletePayload);
 
         if (trainerId) {
           query = query.eq('id', trainerId);
