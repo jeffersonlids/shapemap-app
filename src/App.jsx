@@ -5170,6 +5170,36 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
   const tabsRef = useRef(null);
   
   const [saveState, setSaveState] = useState("saved"); // 'saved', 'saving', 'unsaved', 'error'
+  const [loadingFotos, setLoadingFotos] = useState(false);
+
+  // Carregamento sob demanda das fotos apenas quando a avaliação é aberta
+  useEffect(function() {
+    if (init && init.id && !isNew && init._lazyFotos) {
+      setLoadingFotos(true);
+      let isMounted = true;
+      supabase
+        .from('evaluations')
+        .select('fotos')
+        .eq('id', init.id)
+        .maybeSingle()
+        .then(function({ data, error }) {
+          if (!error && data && data.fotos && isMounted) {
+            init.fotos = data.fotos;
+            init._lazyFotos = false;
+            setAv(function(prev) {
+              return Object.assign({}, prev, {
+                fotos: data.fotos,
+                _lazyFotos: false
+              });
+            });
+          }
+        })
+        .finally(function() {
+          if (isMounted) setLoadingFotos(false);
+        });
+      return function() { isMounted = false; };
+    }
+  }, [init?.id, isNew]);
 
   const upd = useCallback(function(path, val) {
     setAv(function(prev) {
@@ -5996,6 +6026,12 @@ function AvalForm({ av: init, alunoNome, isNew, onSave, onBack, settings, traine
             <Card sx={{ padding:14, background:acL(), border:"1px solid "+ac()+"20" }}>
               <div style={{ fontSize:12, color:ac(), fontWeight:600 }}>{t("opcional_fotos", lang)}</div>
             </Card>
+            {loadingFotos && (
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: T.surface, borderRadius: 10, border: "1px solid " + T.border, fontSize: 13, color: T.sub }}>
+                <div style={{ width: 14, height: 14, border: "2px solid " + T.border, borderTopColor: ac(), borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+                <span>{lang === "es" ? "Cargando fotos..." : lang === "en" ? "Loading photos..." : "Carregando fotos da avaliação..."}</span>
+              </div>
+            )}
             <div>
               <div style={{ fontSize:11, fontWeight:700, color:T.sub, letterSpacing:0.5, textTransform:"uppercase", marginBottom:12 }}>{t("posicoes", lang)}</div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
@@ -6451,6 +6487,28 @@ function CompararScreen({ aluno, initAv1, initAv2, initSelected, onBack, setting
   var sortedSelected = [...selectedIndexes].sort(function(a, b) { return a - b; });
   var av1 = avs[sortedSelected[0]];
   var av2 = avs[sortedSelected[sortedSelected.length - 1]];
+
+  const [, setForceCompareRender] = useState(0);
+
+  // Carregamento sob demanda de fotos para o comparativo
+  useEffect(function() {
+    [av1, av2].forEach(function(item) {
+      if (item && item.id && item._lazyFotos) {
+        supabase
+          .from('evaluations')
+          .select('fotos')
+          .eq('id', item.id)
+          .maybeSingle()
+          .then(function({ data }) {
+            if (data && data.fotos) {
+              item.fotos = data.fotos;
+              item._lazyFotos = false;
+              setForceCompareRender(function(c) { return c + 1; });
+            }
+          });
+      }
+    });
+  }, [av1?.id, av2?.id]);
 
   if (!av1 || !av2) return <div style={{ padding:40, textAlign:"center", color:T.muted }}>{t("avaliacoes_nao_encontradas", lang)}</div>;
 
@@ -10849,7 +10907,37 @@ export default function App() {
 
       const { data: studentsData, error: studentsError } = await supabase
         .from('students')
-        .select('*, evaluations(*)')
+        .select(`
+          id,
+          trainer_id,
+          nome,
+          sexo,
+          foto,
+          telefone,
+          data_nascimento,
+          evaluations (
+            id,
+            student_id,
+            data,
+            nome,
+            sexo,
+            idade,
+            telefone,
+            objetivo,
+            anamnese,
+            peso,
+            altura,
+            composicoes,
+            perimetria,
+            testes,
+            flexibilidade,
+            cardiovascular,
+            observacao_fotos,
+            tipo,
+            status,
+            config
+          )
+        `)
         .eq('trainer_id', sessionUser.id)
         .order('nome');
 
@@ -10880,7 +10968,8 @@ export default function App() {
               testes: e.testes || [],
               flexibilidade: e.flexibilidade || {},
               cardiovascular: e.cardiovascular || {},
-              fotos: e.fotos || { frente: null, lado: null, costas: null },
+              fotos: { frente: null, lado: null, costas: null },
+              _lazyFotos: true,
               observacaoFotos: e.observacao_fotos || "",
               tipo: e.tipo || "presencial",
               status: e.status || "finalizada",
@@ -11255,7 +11344,8 @@ export default function App() {
         if (String(a.id) !== String(alunoId)) return a;
         var avList = a.avaliacoes || [];
         var ex = avList.find(function(x) { return String(x.id) === String(av.id); });
-        var newAvs = ex ? avList.map(function(x) { return String(x.id) === String(av.id) ? av : x; }) : avList.concat([av]);
+        var updatedAv = Object.assign({}, av, { _lazyFotos: false });
+        var newAvs = ex ? avList.map(function(x) { return String(x.id) === String(av.id) ? updatedAv : x; }) : avList.concat([updatedAv]);
         return Object.assign({}, a, { avaliacoes: newAvs });
       });
     });
