@@ -257,7 +257,8 @@ export default async function handler(req, res) {
       }
     } else if (event === 'PAYMENT_OVERDUE' || event === 'PAYMENT_DELETED' || event === 'PAYMENT_REFUNDED' || event === 'SUBSCRIPTION_DELETED') {
       // Pagamento em atraso, cancelado ou reembolsado
-      
+      let targetSubId = subscriptionId;
+
       // Se for pagamento vencido, inativar/cancelar a assinatura no Asaas automaticamente para limpar cobranças futuras
       if (event === 'PAYMENT_OVERDUE' && process.env.ASAAS_API_KEY) {
         const asaasApiKey = process.env.ASAAS_API_KEY;
@@ -265,8 +266,6 @@ export default async function handler(req, res) {
           'Content-Type': 'application/json',
           'access_token': asaasApiKey
         };
-
-        let targetSubId = subscriptionId;
 
         // Se subscriptionId não veio direto, buscar assinatura ativa por customerId ou trainerId
         if (!targetSubId && customerId) {
