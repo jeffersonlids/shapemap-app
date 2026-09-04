@@ -11362,12 +11362,17 @@ export default function App() {
         testes: av.testes || [],
         flexibilidade: av.flexibilidade || {},
         cardiovascular: av.cardiovascular || {},
-        fotos: av.fotos || { frente: null, lado: null, costas: null },
         observacao_fotos: av.observacaoFotos || "",
         tipo: av.tipo || "presencial",
         status: av.status || "finalizada",
         config: av.config || {}
       };
+
+      // Trava de segurança: só envia 'fotos' se elas foram carregadas ou editadas nesta sessão.
+      // Se _lazyFotos ainda for true, não sobrescreve a coluna de fotos existente no banco!
+      if (!av._lazyFotos) {
+        dbAval.fotos = av.fotos || { frente: null, lado: null, costas: null };
+      }
 
       const { error } = await supabase
         .from('evaluations')
