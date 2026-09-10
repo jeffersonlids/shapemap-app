@@ -14,6 +14,16 @@ function sha256(text) {
   return crypto.createHash('sha256').update(text.trim().toLowerCase()).digest('hex');
 }
 
+function addMonths(date, months) {
+  const d = new Date(date);
+  const targetDay = d.getDate();
+  d.setMonth(d.getMonth() + months);
+  if (d.getDate() !== targetDay) {
+    d.setDate(0);
+  }
+  return d;
+}
+
 async function sendMetaCapiEvent(email, amount, currency = 'BRL', eventName = 'Purchase', eventId = null, phone = null, name = null) {
   const pixelId = process.env.META_PIXEL_ID || '1230329092413734';
   const accessToken = process.env.META_ACCESS_TOKEN;
@@ -170,10 +180,95 @@ export default async function handler(req, res) {
         paymentDesc.includes('anual') ||
         paymentName.includes('anual')
       );
+      const monthsToAdd = isAnnualPayment ? 12 : 1;
 
-      const periodEnd = isAnnualPayment
-        ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      // 1. Buscar dados atuais do treinador para verificar o vencimento existente
+      let existingTrainer = null;
+      try {
+        let queryTrainer = supabase
+          .from('trainers')
+          .select('id, email, nome, telefone, current_period_end, subscription_status, asaas_subscription_id, asaas_customer_id');
+
+        if (trainerId) {
+          queryTrainer = queryTrainer.eq('id', trainerId);
+        } else if (customerId) {
+          queryTrainer = queryTrainer.eq('asaas_customer_id', customerId);
+        } else if (customerEmail) {
+          queryTrainer = queryTrainer.eq('email', customerEmail);
+        }
+
+        const { data: tData } = await queryTrainer.maybeSingle();
+        if (tData) {
+          existingTrainer = tData;
+          if (!trainerId) trainerId = tData.id;
+        }
+      } catch (fetchErr) {
+        console.warn('⚠️ Falha ao consultar treinador existente antes do pagamento:', fetchErr);
+      }
+
+      const now = new Date();
+
+      // 2. Se for assinatura recorrente no Asaas, tentar obter o nextDueDate oficial diretamente da API do Asaas
+      let asaasNextDueDate = null;
+      if (subscriptionId && process.env.ASAAS_API_KEY) {
+        try {
+          const subRes = await fetch(`https://www.asaas.com/api/v3/subscriptions/${subscriptionId}`, {
+            headers: { 'access_token': process.env.ASAAS_API_KEY }
+          });
+          if (subRes.ok) {
+            const subData = await subRes.json();
+            if (subData.nextDueDate) {
+              const parsed = new Date(`${subData.nextDueDate}T23:59:59.999Z`);
+              if (!isNaN(parsed.getTime())) {
+                asaasNextDueDate = parsed;
+              }
+            }
+          }
+        } catch (subFetchErr) {
+          console.warn('⚠️ Não foi possível consultar nextDueDate da assinatura no Asaas:', subFetchErr);
+        }
+      }
+
+      // 3. Determinar a data base para prorrogação do período:
+      // Se o cliente pagou de forma antecipada, ele ainda possui dias válidos (current_period_end > now).
+      // O novo período NÃO deve recomeçar do zero hoje, e sim ser somado a partir do vencimento existente ou do vencimento da fatura!
+      let chargeDueDate = null;
+      if (paymentObj?.dueDate) {
+        const parsed = new Date(`${paymentObj.dueDate}T23:59:59.999Z`);
+        if (!isNaN(parsed.getTime())) {
+          chargeDueDate = parsed;
+        }
+      }
+
+      const currentEnd = existingTrainer?.current_period_end ? new Date(existingTrainer.current_period_end) : null;
+      const isCurrentEndValid = currentEnd && !isNaN(currentEnd.getTime());
+
+      let baseDate = now;
+      if (isCurrentEndValid && currentEnd > now) {
+        // Cliente ativo pagando antecipadamente: prorroga a partir da data de término atual
+        baseDate = currentEnd;
+      } else if (chargeDueDate && chargeDueDate > now) {
+        // Fatura com vencimento futuro: prorroga a partir do vencimento da fatura
+        baseDate = chargeDueDate;
+      } else {
+        // Novo cliente ou assinatura expirada: ciclo começa a partir da data de pagamento (hoje)
+        baseDate = now;
+      }
+
+      let calculatedPeriodEnd = addMonths(baseDate, monthsToAdd);
+
+      // Se o Asaas tem um nextDueDate oficial para a assinatura e ele for posterior, alinha com a data da próxima fatura
+      if (asaasNextDueDate && asaasNextDueDate > calculatedPeriodEnd) {
+        calculatedPeriodEnd = asaasNextDueDate;
+      }
+
+      // Trava de segurança: a nova data de expiração NUNCA pode ser menor do que a que o cliente já tinha
+      if (isCurrentEndValid && currentEnd > calculatedPeriodEnd) {
+        calculatedPeriodEnd = addMonths(currentEnd, monthsToAdd);
+      }
+
+      const periodEnd = calculatedPeriodEnd.toISOString();
+      console.log(`📅 [Asaas Webhook] Vencimento calculado para Treinador ${trainerId || customerId}: Base = ${baseDate.toISOString()} ➔ Novo Período Fim = ${periodEnd}`);
 
       // Montar objeto de atualização com colunas oficiais do Asaas
       const updateData = {
@@ -223,14 +318,10 @@ export default async function handler(req, res) {
       }
 
       // Disparar evento de Purchase server-side no Meta Conversions API (CAPI)
-      let currentTrainerId = trainerId;
+      let currentTrainerId = trainerId || existingTrainer?.id;
       try {
-        let queryTrainer = supabase.from('trainers').select('id, email, nome, telefone');
-        if (trainerId) queryTrainer = queryTrainer.eq('id', trainerId);
-        else if (customerId) queryTrainer = queryTrainer.eq('asaas_customer_id', customerId);
-
-        const { data: trainerObj } = await queryTrainer.maybeSingle();
-        if (trainerObj) {
+        const trainerObj = existingTrainer;
+        if (trainerObj && trainerObj.email) {
           currentTrainerId = trainerObj.id;
           const finalValue = paymentValue > 0 ? paymentValue : (isAnnualPayment ? 179.00 : 19.90);
           await sendMetaCapiEvent(
