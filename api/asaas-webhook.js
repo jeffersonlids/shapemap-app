@@ -350,7 +350,36 @@ export default async function handler(req, res) {
       // Pagamento em atraso, cancelado ou reembolsado
       let targetSubId = subscriptionId;
 
-      // Se for pagamento vencido, inativar/cancelar a assinatura no Asaas automaticamente para limpar cobranças futuras
+      // Buscar dados atuais do treinador para verificar se a cobrança pertence à assinatura ativa
+      let checkQuery = supabase
+        .from('trainers')
+        .select('id, subscription_status, asaas_subscription_id, current_period_end');
+
+      if (trainerId) {
+        checkQuery = checkQuery.eq('id', trainerId);
+      } else if (customerId) {
+        checkQuery = checkQuery.eq('asaas_customer_id', customerId);
+      } else if (customerEmail) {
+        checkQuery = checkQuery.eq('email', customerEmail);
+      }
+
+      const { data: existingTrainer } = await checkQuery.maybeSingle();
+
+      // TRAVA DE PROTEÇÃO:
+      // Se o treinador já estiver com status 'active' E:
+      // 1) A cobrança/assinatura vencida for de uma tentativa diferente da que está ativa, OU
+      // 2) O período pago dele ainda for válido no futuro (current_period_end > agora)
+      // -> Ignoramos a inativação no banco de dados e no Asaas para não derrubar o acesso legítimo do cliente!
+      const hasFuturePeriod = existingTrainer?.current_period_end && new Date(existingTrainer.current_period_end) > new Date();
+      const isDifferentSub = targetSubId && existingTrainer?.asaas_subscription_id && existingTrainer.asaas_subscription_id !== targetSubId;
+
+      if (existingTrainer && existingTrainer.subscription_status === 'active' && (isDifferentSub || hasFuturePeriod)) {
+        console.log(`ℹ️ [Asaas Webhook] Proteção ativada: Ignorando inativação (${event}) pois o treinador já possui assinatura ativa (${existingTrainer.asaas_subscription_id}) ou período válido até ${existingTrainer.current_period_end}.`);
+        return res.status(200).json({ received: true, ignored: true, reason: 'active_subscription_protected' });
+      }
+
+      // Se for pagamento vencido sem proteção ativa, inativar a assinatura no Asaas (status: INACTIVE)
+      // Isso interrompe cobranças futuras MAS PRESERVA a fatura vencida no painel do Asaas para acompanhamento!
       if (event === 'PAYMENT_OVERDUE' && process.env.ASAAS_API_KEY) {
         const asaasApiKey = process.env.ASAAS_API_KEY;
         const asaasHeaders = {
@@ -374,43 +403,21 @@ export default async function handler(req, res) {
 
         if (targetSubId) {
           try {
-            await fetch(`https://www.asaas.com/api/v3/subscriptions/${targetSubId}`, {
-              method: 'DELETE',
-              headers: asaasHeaders
+            const updSubRes = await fetch(`https://www.asaas.com/api/v3/subscriptions/${targetSubId}`, {
+              method: 'PUT',
+              headers: asaasHeaders,
+              body: JSON.stringify({ status: 'INACTIVE' })
             });
-            console.log(`🗑️ [Asaas Webhook] Assinatura ${targetSubId} cancelada automaticamente no Asaas por vencimento sem pagamento (cobranças futuras removidas).`);
+            if (updSubRes.ok) {
+              console.log(`⏸️ [Asaas Webhook] Assinatura ${targetSubId} inativada com sucesso no Asaas. Cobrança vencida preservada no dashboard e novas cobranças futuras interrompidas.`);
+            } else {
+              const updSubErr = await updSubRes.json();
+              console.warn(`⚠️ [Asaas Webhook] Aviso ao inativar assinatura no Asaas:`, updSubErr);
+            }
           } catch (subErr) {
-            console.warn(`⚠️ [Asaas Webhook] Erro ao deletar assinatura no Asaas:`, subErr);
+            console.warn(`⚠️ [Asaas Webhook] Erro ao inativar assinatura no Asaas:`, subErr);
           }
         }
-      }
-
-      // Buscar dados atuais do treinador para verificar se a cobrança pertence à assinatura ativa
-      let checkQuery = supabase
-        .from('trainers')
-        .select('id, subscription_status, asaas_subscription_id, current_period_end');
-
-      if (trainerId) {
-        checkQuery = checkQuery.eq('id', trainerId);
-      } else if (customerId) {
-        checkQuery = checkQuery.eq('asaas_customer_id', customerId);
-      } else if (customerEmail) {
-        checkQuery = checkQuery.eq('email', customerEmail);
-      }
-
-      const { data: existingTrainer } = await checkQuery.maybeSingle();
-
-      // TRAVA DE PROTEÇÃO:
-      // Se o treinador já estiver com status 'active' E:
-      // 1) A cobrança/assinatura vencida for de uma tentativa diferente da que está ativa, OU
-      // 2) O período pago dele ainda for válido no futuro (current_period_end > agora)
-      // -> Ignoramos a inativação no banco de dados para não derrubar o acesso legítimo do cliente!
-      const hasFuturePeriod = existingTrainer?.current_period_end && new Date(existingTrainer.current_period_end) > new Date();
-      const isDifferentSub = targetSubId && existingTrainer?.asaas_subscription_id && existingTrainer.asaas_subscription_id !== targetSubId;
-
-      if (existingTrainer && existingTrainer.subscription_status === 'active' && (isDifferentSub || hasFuturePeriod)) {
-        console.log(`ℹ️ [Asaas Webhook] Proteção ativada: Ignorando inativação (${event}) pois o treinador já possui assinatura ativa (${existingTrainer.asaas_subscription_id}) ou período válido até ${existingTrainer.current_period_end}.`);
-        return res.status(200).json({ received: true, ignored: true, reason: 'active_subscription_protected' });
       }
 
       let query = supabase.from('trainers').update({
