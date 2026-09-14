@@ -122,7 +122,7 @@ Quando qualquer pagamento do primeiro mês de um novo assinante é confirmado (v
 - Identificação estrita por `trainerId` (via `externalReference`), com busca segura por `asaas_customer_id`.
 - Grava **+365 dias** para assinaturas anuais e **+30 dias** para mensais.
 - Dispara `processReferralReward(supabase, trainerId)` e evento de conversão Meta CAPI no `PAYMENT_RECEIVED` / `PAYMENT_CONFIRMED`.
-- **Autocancelamento por Inadimplência com Trava de Proteção (`PAYMENT_OVERDUE`)**: Ao receber notificação de fatura vencida sem pagamento, o webhook inativa a assinatura correspondente no Asaas (`PUT /v3/subscriptions/{id}` com `status: 'INACTIVE'`), o que interrompe a geração de cobranças futuras, mas **preserva a fatura vencida visível no painel do Asaas**. Antes de inativar a conta no Supabase, **executa validação de assinatura ativa**: se o cliente possuir outra assinatura ativa gravada (`asaas_subscription_id != targetSubId`) ou período pago ainda válido no futuro (`current_period_end > now()`), a inativação é ignorada com sucesso. Apenas assinaturas principais vencidas e sem período válido têm a conta inativada (`inactive`).
+- **Autocancelamento por Inadimplência com Trava de Proteção (`PAYMENT_OVERDUE`)**: Ao receber notificação de fatura vencida sem pagamento, o webhook inativa a assinatura correspondente no Asaas (`PUT /v3/subscriptions/{id}` com `status: 'INACTIVE'`) e busca/exclui todas as cobranças futuras pendentes vinculadas (`DELETE /v3/payments/{id}` com `status: 'PENDING'`), **preservando a fatura vencida visível no painel do Asaas**. Em seguida, atualiza a conta do treinador para `inactive` no Supabase, a menos que possua outra assinatura ativa gravada (`isDifferentSub`) ou período futuro substancialmente válido (> 48h).
 
 ---
 
