@@ -150,9 +150,9 @@ Quando qualquer pagamento do primeiro mês de um novo assinante é confirmado (v
   - `InitiateCheckout`: Disparado ao clicar em botões de assinatura no Paywall.
   - `Purchase`: Disparado exclusivamente no retorno com `?success=true` que contenha `sessionId` (sessões Stripe verificadas com `eventID`), prevenindo disparos falsos de compras no Asaas.
 - **Server-Side (Meta CAPI)**:
-  - **Asaas (100% Server-Side)**: O evento `Purchase` do Asaas é emitido exclusivamente pelo webhook (`api/asaas-webhook.js`) nos eventos `PAYMENT_RECEIVED` e `PAYMENT_CONFIRMED` (após confirmação real do Pix, Boleto ou Cartão). Isso blinda o Meta Ads contra **vendas fantasmas** (Pix/Boleto gerado e não pago) e elimina duplicações de compras.
+  - **Asaas (100% Server-Side)**: O evento `Purchase` do Asaas é emitido pelo webhook (`api/asaas-webhook.js`) **exclusivamente na 1ª compra de novos clientes, reativação de inativos ou adesão ao plano anual**. Renovações mensais automáticas de clientes que já eram ativos não disparam `Purchase`, blindando as métricas de aquisição de novos clientes (CAC e ROAS) contra inflação por mensalidades recorrentes. Normalização E.164 com DDI 55 e metadados geográficos (`br`) elevam a correspondência avançada (Event Match Quality).
   - **Stripe**: Emitido em `checkout.session.completed` e desduplicado com o Pixel via `sessionId`.
-  - Dados criptografados em SHA-256 (`em`, `ph`, `fn`, `ln`), garantindo 100% de atribuição de vendas mesmo com bloqueadores de anúncios (AdBlock) ou navegadores com restrição de cookies.
+  - Dados criptografados em SHA-256 (`em`, `ph`, `fn`, `ln`, `country`), garantindo 100% de atribuição de vendas mesmo com bloqueadores de anúncios (AdBlock) ou navegadores com restrição de cookies.
 
 ---
 

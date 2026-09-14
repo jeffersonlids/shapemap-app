@@ -35,7 +35,15 @@ async function sendMetaCapiEvent(email, amount, currency = 'BRL', eventName = 'P
 
   try {
     const hashedEmail = sha256(email);
-    const hashedPhone = phone ? sha256(phone.replace(/\D/g, '')) : null;
+    
+    // Normalizar telefone para o padrão internacional E.164 (com DDI 55 do Brasil)
+    let cleanPhone = phone ? String(phone).replace(/\D/g, '') : '';
+    if (cleanPhone) {
+      if ((cleanPhone.length === 10 || cleanPhone.length === 11) && !cleanPhone.startsWith('55')) {
+        cleanPhone = '55' + cleanPhone;
+      }
+    }
+    const hashedPhone = cleanPhone ? sha256(cleanPhone) : null;
     
     let hashedFirstName = null;
     let hashedLastName = null;
@@ -46,7 +54,8 @@ async function sendMetaCapiEvent(email, amount, currency = 'BRL', eventName = 'P
     }
 
     const userData = {
-      em: hashedEmail ? [hashedEmail] : []
+      em: hashedEmail ? [hashedEmail] : [],
+      country: [sha256('br')]
     };
     if (hashedPhone) userData.ph = [hashedPhone];
     if (hashedFirstName) userData.fn = [hashedFirstName];
@@ -122,8 +131,10 @@ export default async function handler(req, res) {
     const subscriptionId = paymentObj?.subscription || subscription?.id;
     let customerEmail = null;
 
-    // Se trainerId não veio no externalReference, busca no cliente do Asaas
-    if (!trainerId && customerId) {
+    let asaasCustomerData = null;
+
+    // Se temos customerId, busca dados no cliente do Asaas para identificação e dados de contato
+    if (customerId) {
       const asaasApiKey = process.env.ASAAS_API_KEY;
       if (asaasApiKey) {
         try {
@@ -132,11 +143,12 @@ export default async function handler(req, res) {
           });
           if (custRes.ok) {
             const custData = await custRes.json();
+            asaasCustomerData = custData;
             const custRef = String(custData.externalReference || '');
-            if (custRef) {
+            if (!trainerId && custRef) {
               trainerId = custRef.includes(':') ? custRef.split(':')[0] : custRef;
             }
-            if (custData.email) {
+            if (!customerEmail && custData.email) {
               customerEmail = custData.email.trim();
             }
           }
@@ -205,6 +217,16 @@ export default async function handler(req, res) {
       } catch (fetchErr) {
         console.warn('⚠️ Falha ao consultar treinador existente antes do pagamento:', fetchErr);
       }
+
+      // Identificar se o cliente JÁ ERA um assinante ativo antes deste pagamento.
+      // Se ele já estava ativo, com current_period_end definido e pagando mensalidade normal (< 100):
+      // trata-se de uma RENOVAÇÃO AUTOMÁTICA periódica.
+      const isExistingActiveSubscriber = Boolean(
+        existingTrainer &&
+        existingTrainer.subscription_status === 'active' &&
+        existingTrainer.current_period_end &&
+        !isAnnualPayment
+      );
 
       const now = new Date();
 
@@ -318,24 +340,37 @@ export default async function handler(req, res) {
       }
 
       // Disparar evento de Purchase server-side no Meta Conversions API (CAPI)
+      // REGRA DE OURO: Disparar Purchase EXCLUSIVAMENTE para Novas Vendas (1ª compra de novos clientes,
+      // reativação de inativos ou adesão ao plano anual).
+      // Renovações mensais automáticas de clientes que já eram ativos NÃO disparam Purchase,
+      // garantindo que o Meta Ads meça com 100% de fidelidade o CAC e as novas aquisições reais.
       let currentTrainerId = trainerId || existingTrainer?.id;
       try {
-        const trainerObj = existingTrainer;
-        if (trainerObj && trainerObj.email) {
-          currentTrainerId = trainerObj.id;
-          const finalValue = paymentValue > 0 ? paymentValue : (isAnnualPayment ? 179.00 : 19.90);
-          await sendMetaCapiEvent(
-            trainerObj.email,
-            finalValue,
-            'BRL',
-            'Purchase',
-            paymentObj?.id,
-            trainerObj.telefone,
-            trainerObj.nome
-          );
+        if (isExistingActiveSubscriber) {
+          console.log(`ℹ️ [Asaas Webhook] Pagamento recebido referente à RENOVAÇÃO de assinatura ativa para o Treinador ID: ${currentTrainerId}. Evento Purchase não disparado para o Meta Ads para preservar métricas de novas aquisições.`);
+        } else {
+          const trainerObj = existingTrainer;
+          const targetEmail = trainerObj?.email || customerEmail || asaasCustomerData?.email;
+          const targetPhone = trainerObj?.telefone || asaasCustomerData?.mobilePhone || asaasCustomerData?.phone;
+          const targetName = trainerObj?.nome || asaasCustomerData?.name;
+
+          if (targetEmail) {
+            currentTrainerId = trainerObj?.id || currentTrainerId;
+            const finalValue = paymentValue > 0 ? paymentValue : (isAnnualPayment ? 179.00 : 19.90);
+            await sendMetaCapiEvent(
+              targetEmail,
+              finalValue,
+              'BRL',
+              'Purchase',
+              paymentObj?.id,
+              targetPhone,
+              targetName
+            );
+            console.log(`🎯 [Asaas Webhook] NOVA VENDA confirmada (R$ ${finalValue}) para Treinador ID: ${currentTrainerId}! Evento 'Purchase' enviado com sucesso para o Meta Ads.`);
+          }
         }
       } catch (capiErr) {
-        console.warn('⚠️ Falha ao buscar dados do treinador para Meta CAPI (Asaas):', capiErr);
+        console.warn('⚠️ Falha ao processar Meta CAPI (Asaas):', capiErr);
       }
 
       // Processar bônus de indicação ("Indique e Ganhe")
